@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VoiceOfClock.WinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "VoiceOfClock.WinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+﻿
+#### Periodic Timer 
+
+TimeOfDayToSpeechText = 時刻は {0}時 {1}分 です
