@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:VoiceOfClock" 
-  xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters">
+  xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters"
+  xmlns:myDialog="using:VoiceOfClock.Views.Dialogs"
+  >
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -20,13 +22,13 @@
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
-          <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemControlForegroundBaseLowBrush}" />
+          <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
           <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemBaseMediumLowColor}" Opacity="0.1" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
-          <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemControlForegroundBaseLowBrush}" />
+          <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
           <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemBaseMediumLowColor}" Opacity="0.1" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
@@ -53,6 +55,11 @@
         <Setter Property="ClockIdentifier" Value="24HourClock" />
       </Style>
 
+
+      <!-- bug on the ContentDialog derived -->
+      <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
+      <Style TargetType="myDialog:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+      
     </ResourceDictionary>
   </Application.Resources>
 </Application>

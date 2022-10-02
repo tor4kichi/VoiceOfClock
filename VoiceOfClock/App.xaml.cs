@@ -4,6 +4,7 @@ using DryIoc;
 using I18NPortable;
 using LiteDB;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,11 +12,15 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using VoiceOfClock.UseCases;
+using VoiceOfClock.ViewModels;
+using VoiceOfClock.Views;
+using VoiceOfClock.Views.Dialogs;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.UI.Core;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -61,12 +66,15 @@ public partial class App : Application
 
         container.RegisterMapping<IApplicationLifeCycleAware, TimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, UWP_VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        //container.RegisterMapping<IApplicationLifeCycleAware, Legacy_VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        //container.RegisterMapping<IApplicationLifeCycleAware, Legacy_VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);        
+
+        container.Register<PeriodicTimerPageViewModel>();
     }
 
     private static void RegisterTypes(Container container)
     {
         container.RegisterInstance<IMessenger>(WeakReferenceMessenger.Default);
+        container.Register<IPeriodicTimerDialogService, PeriodicTimerEditDialogService>();
     }
 
     /// <summary>
@@ -108,4 +116,15 @@ public partial class App : Application
     }
 
     private MainWindow _window;
+    
+    public void InitializeWithWindow(object target)
+    {
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        WinRT.Interop.InitializeWithWindow.Initialize(target, hWnd);        
+    }    
+
+    public void InitializeDialog(ContentDialog dialog)
+    {
+        dialog.XamlRoot = _window.Content.XamlRoot;
+    }
 }

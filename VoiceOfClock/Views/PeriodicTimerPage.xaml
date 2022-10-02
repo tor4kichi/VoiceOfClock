@@ -8,7 +8,11 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:uiControls="using:CommunityToolkit.WinUI.UI.Controls"
   xmlns:viewModels="using:VoiceOfClock.ViewModels" 
-  xmlns:myControls="using:VoiceOfClock.Views.Controls" xmlns:muxc="using:Microsoft.UI.Xaml.Controls"  
+  xmlns:myControls="using:VoiceOfClock.Views.Controls" 
+  xmlns:muxc="using:Microsoft.UI.Xaml.Controls" 
+  xmlns:i="using:Microsoft.Xaml.Interactivity"
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+  xmlns:behaviors="using:CommunityToolkit.WinUI.UI.Behaviors"
   mc:Ignorable="d"
   Background="{ThemeResource ApplicationContentBackgroundBrush}"
   >
@@ -25,56 +29,67 @@
         <Grid.Shadow>
           <ThemeShadow />
         </Grid.Shadow>
-        
-        <Grid x:Name="Grid_Editting" Visibility="{x:Bind IsEditting, Mode=OneWay}">
-          <Button x:Name="Button_Delete" Foreground="OrangeRed" Command="{x:Bind DeleteCommand}">
-            <SymbolIcon Symbol="Delete" />
-          </Button>
-        </Grid>
 
-        <Grid x:Name="Grid_Content" Visibility="{x:Bind IsEditting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}">
-          <StackPanel Spacing="4">
-            <StackPanel Orientation="Horizontal" Spacing="2" >
-              <TextBlock FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
-                <Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Minutes), Mode=OneWay}" />
-              </TextBlock>
+        <i:Interaction.Behaviors>
+          <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_StartTime}" PropertyName="Opacity" Value="0.5" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_EndTime}" PropertyName="Opacity" Value="0.5" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="0.5" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="0.5" />
+          </core:DataTriggerBehavior>
+          <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_StartTime}" PropertyName="Opacity" Value="1.0" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_EndTime}" PropertyName="Opacity" Value="1.0" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="1.0" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="1.0" />
+          </core:DataTriggerBehavior>
+        </i:Interaction.Behaviors>
+     
+        <Grid x:Name="Grid_Content">
+          <StackPanel Spacing="4" HorizontalAlignment="Left">
+            <TextBlock x:Name="TextBlock_StartTime" FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
+                <Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Minutes), Mode=OneWay}" />から
+            </TextBlock>
 
-              <TextBlock Text="から" VerticalAlignment="Bottom" />
-            </StackPanel>
+            <TextBlock x:Name="TextBlock_EndTime" FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
+                <Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Minutes), Mode=OneWay}" />まで
+            </TextBlock>
 
-            <StackPanel Orientation="Horizontal" Spacing="2" >
-              <TextBlock FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
-                <Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Minutes), Mode=OneWay}" />
-              </TextBlock>
-
-              <TextBlock Text="まで" VerticalAlignment="Bottom" />
-            </StackPanel>
-                        
-            <Grid Opacity="0.7">
-              <SymbolIcon Symbol="Clock" RenderTransformOrigin="0.25, 0.5" Width="20" HorizontalAlignment="Left">
+            <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7">
+              <SymbolIcon x:Name="SymbolIcon_NextTimeIcon" Symbol="Clock" RenderTransformOrigin="0.25, 0.5" Width="20" HorizontalAlignment="Left">
                 <SymbolIcon.RenderTransform>
                   <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
                 </SymbolIcon.RenderTransform>
               </SymbolIcon>
-              <TextBlock Text="{x:Bind NextTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0">
+              <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind PeriodicTimerRunningInfo.NextTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0">
                 
               </TextBlock>
             </Grid>
 
-            <TextBlock Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="4 0 0 0" />
+            <TextBlock x:Name="TextBlock_TimerTitle" Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="4 0 0 0" />
 
           </StackPanel>
 
-          <TextBlock HorizontalAlignment="Right" Margin="0 48 0 0" FontSize="24">
+          <TextBlock x:Name="TextBlock_TimerIntervalTime" HorizontalAlignment="Right" Margin="0 48 0 0" FontSize="24">
             <Run Text="{x:Bind IntervalTime.TotalMinutes, Mode=OneWay}" />分毎に
           </TextBlock>
 
-          <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
-                        Style="{StaticResource ToggleSwitchWithoutContent}"                        
+          <ToggleSwitch x:Name="ToggleSwitch_IsEnabled" HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
+                        Style="{StaticResource ToggleSwitchWithoutContent}"      
+                        Visibility="{x:Bind IsEditting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
                         >
             
           </ToggleSwitch>
         </Grid>
+
+
+        <Grid x:Name="Grid_Editting" Visibility="{x:Bind IsEditting, Mode=OneWay}" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <Button x:Name="Button_Delete" Foreground="OrangeRed" Command="{x:Bind DeleteCommand}" CommandParameter="{x:Bind}"
+                  Background="Transparent" BorderThickness="0" Width="40" Height="40" Padding="4">
+            <SymbolIcon Symbol="Delete" />
+          </Button>
+        </Grid>
+
       </Grid>
     </DataTemplate>
 
@@ -84,10 +99,10 @@
   
   <Grid>
 
-    <uiControls:AdaptiveGridView ItemsSource="{x:Bind _timers}"
+    <uiControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Timers}"
                                  ItemTemplate="{StaticResource PeriodicTimerTemplate}"                                 
                                  Margin="8"
-                                 ItemClick="AdaptiveGridView_ItemClick"
+                                 ItemClickCommand="{x:Bind _vm.EditTimerCommand}"                                 
                                  IsItemClickEnabled="True"
                                  SelectionMode="None"
                                  ItemHeight="180"
@@ -98,15 +113,16 @@
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />
           <Setter Property="VerticalContentAlignment" Value="Stretch" />
           <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+          <Setter Property="MaxWidth" Value="420" />
           <Setter Property="Margin" Value="6" />
           <Setter Property="CornerRadius" Value="6" />
           <Setter Property="BorderThickness" Value="0.5" />
           <Setter Property="BorderBrush" Value="{ThemeResource  SystemControlBackgroundBaseLowBrush}" />
           <Setter Property="ContextFlyout">
             <Setter.Value>
-              <MenuFlyout x:Name="MenuFlyout_TimerItem"  Opening="MenuFlyout_TimerItem_Opening">
-                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerEdit" Text="編集" Icon="Edit" Click="MenuFlyoutItem_TimerEdit_Click" />
-                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerDelete" Text="削除" Icon="Delete" Click="MenuFlyoutItem_TimerDelete_Click" />
+              <MenuFlyout x:Name="MenuFlyout_TimerItem" Opening="MenuFlyout_TimerItem_Opening">
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerEdit" Text="編集" Icon="Edit" Command="{x:Bind _vm.EditTimerCommand}" CommandParameter="{Binding}" />
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerDelete" Text="削除" Icon="Delete" Command="{x:Bind _vm.DeleteTimerCommand}" CommandParameter="{Binding}" />
               </MenuFlyout>
             </Setter.Value>
           </Setter>
@@ -136,7 +152,7 @@
 
                 <Grid>
                   <TimePicker x:Name="TimePicker_ImmidiateRunTimer"
-                        Time="00:03:00"      
+                        SelectedTime="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=TwoWay}"      
                         FontSize="48"        
                           ClockIdentifier="24HourClock"
                         >
@@ -158,20 +174,33 @@
 
               </StackPanel>
 
-              <Button Content="時報を開始" 
+              <StackPanel VerticalAlignment="Center">
+                <Button Content="時報を開始" 
                     x:Name="Button_ImmidiateStart"
-                    Tapped="Button_ImmidiateStart_Tapped"
+                        Command="{x:Bind _vm.StartImmidiateTimerCommand}"
+                        CommandParameter="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=OneWay}"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
+                        Visibility="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
                     />
 
-              <Button Content="時報を停止"
+                <Button Content="時報を停止"
                     x:Name="Button_ImmidiateStop"
-                    Tapped="Button_ImmidiateStop_Tapped"
+                    Command="{x:Bind _vm.StopImmidiateTimerCommand}"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
-                    Visibility="Collapsed"
+                    Visibility="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                     >
 
-              </Button>
+                </Button>
+
+                <TextBlock x:Name="TextBlock_ImmidiateStartTime" Text="{x:Bind _vm.ImmidiateTimerStartTime, Mode=OneWay}" 
+                           Opacity="0.7"
+                           >
+                  
+                </TextBlock>
+                <TextBlock x:Name="TextBlock_ImmidiateNextTime" Text="{x:Bind _vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.NextTime, Mode=OneWay}"
+                           Opacity="0.7"
+                           />
+              </StackPanel>
             </StackPanel>
           </Grid>
 
@@ -180,108 +209,42 @@
       </uiControls:AdaptiveGridView.Header>
     </uiControls:AdaptiveGridView>
     
-    <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="32">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <Button x:Name="Button_EditTimers">
-          <SymbolIcon x:Name="SymbolIcon_Edit" Symbol="Edit" Tapped="SymbolIcon_Edit_Tapped" />
-        </Button>
-        <Button x:Name="Button_AddTimer" Tapped="Button_AddTimer_Tapped">
-          <SymbolIcon Symbol="Add" />
-        </Button>
-      </StackPanel>
-    </Grid>
-
-    <Grid x:Name="Grid_EditTimer" Background="{ThemeResource AppBarItemPointerOverBackgroundThemeBrush}" Visibility="Collapsed"
-          IsHitTestVisible="True"
-          Tapped="Grid_EditTimer_Tapped"     
-          Opacity="0"
+    <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="32"
+          Background="{ThemeResource MicaBackgroundBrush}" Padding="4"
+          BorderBrush="{ThemeResource MicaBorderBrush}"
+          BorderThickness="1"
+          CornerRadius="6"
+          Translation="0, 0, 8"             
           >
-
-    </Grid>
-
-    <ContentDialog x:Name="ContentDialog_EditTimer" HorizontalAlignment="Center" VerticalAlignment="Center"                                                         
-                   PrimaryButtonText="保存"
-                   CloseButtonText="キャンセル"
-                   PrimaryButtonClick="ContentDialog_EditTimer_PrimaryButtonClick"
-                   CloseButtonClick="ContentDialog_EditTimer_SecondaryButtonClick"
-                   Title="タイマーを編集"
-                   PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
-                   CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"                                      
-                   >
-
-      <StackPanel Spacing="8">
-
-      
-        <Grid>
-          <TimePicker x:Name="TimePicker_StartTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="開始"
-                    >
-
-          </TimePicker>
-          <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Text="時" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-            <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-          </Grid>
-        </Grid>
-
-        <Grid>
-          <TimePicker x:Name="TimePicker_EndTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="終了"
-                    >
-
-          </TimePicker>
-          <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Text="時" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-            <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-          </Grid>
-        </Grid>
-
-        <Grid>
-          <TimePicker x:Name="TimePicker_IntervalTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="時報の間隔"
-                    >
-
-          </TimePicker>
-          <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Text="時間" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-            <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            </TextBlock>
-          </Grid>
-        </Grid>
-
-        <TextBox x:Name="TextBox_EditTitle" PlaceholderText="ラベル"
-                 Header="タイトル"
-                 />
-
+      <Grid.Shadow>
+        <ThemeShadow  />
+      </Grid.Shadow>
+      <Grid.Resources>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+          <Setter Property="Width" Value="40" />
+          <Setter Property="Height" Value="40" />
+          <Setter Property="Padding" Value="4" />
+        </Style>
+        <Style TargetType="SymbolIcon" x:Name="ActionButtonIconStyle">
+          <Setter Property="RenderTransformOrigin" Value="0.5, 0.5" />
+          <Setter Property="RenderTransform">
+            <Setter.Value>
+              <ScaleTransform ScaleX="0.80" ScaleY="0.8" />
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </Grid.Resources>
+      <StackPanel Orientation="Horizontal" Spacing="2">
+        <Button x:Name="Button_EditTimers" Command="{x:Bind _vm.DeleteToggleCommand}">
+          <SymbolIcon x:Name="SymbolIcon_Edit" Symbol="Edit" Style="{StaticResource ActionButtonIconStyle}" />
+        </Button>
+        <Button x:Name="Button_AddTimer" Command="{x:Bind _vm.AddTimerCommand}" IsEnabled="{x:Bind _vm.NowEditting, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
+          <SymbolIcon Symbol="Add" Style="{StaticResource ActionButtonIconStyle}"  />
+        </Button>
       </StackPanel>
-
-    </ContentDialog>
-
+    </Grid>
+ 
   </Grid>
 </Page>
