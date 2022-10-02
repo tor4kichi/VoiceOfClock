@@ -1,11 +1,15 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using I18NPortable;
 using Microsoft.UI.Dispatching;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
@@ -13,7 +17,7 @@ using VoiceOfClock.Models.Services;
 
 namespace VoiceOfClock.UseCases
 {
-    public class TimerRunningInfo
+    public sealed partial class TimerRunningInfo : ObservableObject
     {
         public TimerRunningInfo(PeriodicTimerEntity entity)
         {
@@ -22,8 +26,22 @@ namespace VoiceOfClock.UseCases
         }
 
         public PeriodicTimerEntity Entity { get; init; }
-        public DateTime NextTime { get; private set; }        
-        public bool IsInsidePeriod { get; private set; }
+
+        [ObservableProperty]
+        private DateTime _nextTime;
+
+        [ObservableProperty]
+        private bool _isInsidePeriod;
+        
+        public void UpdateEntity(PeriodicTimerEntity entity)
+        {
+            Entity.Title = entity.Title;
+            Entity.StartTime = entity.StartTime;
+            Entity.EndTime = entity.EndTime;
+            Entity.IntervalTime = entity.IntervalTime;
+            Entity.IsEnabled = entity.IsEnabled;
+            CalcNextTime();
+        }
 
         void CalcNextTime()
         {
@@ -31,7 +49,7 @@ namespace VoiceOfClock.UseCases
             IsInsidePeriod = TimeHelpers.IsInsideTime(now.TimeOfDay, Entity.StartTime, Entity.EndTime);
             if (IsInsidePeriod)
             {
-                TimeSpan elapsedTime = Entity.StartTime - now.TimeOfDay;
+                TimeSpan elapsedTime = now.TimeOfDay - Entity.StartTime;
                 int count = (int)Math.Ceiling(elapsedTime / Entity.IntervalTime);
                 NextTime = DateTime.Today + Entity.StartTime + Entity.IntervalTime * count;
             }
@@ -62,13 +80,16 @@ namespace VoiceOfClock.UseCases
     public sealed class TimerLifetimeManager : IApplicationLifeCycleAware,
         IRecipient<PeriodicTimerUpdated>,
         IRecipient<PeriodicTimerRemoved>,
-        IRecipient<PeriodicTimerAdded>
+        IRecipient<PeriodicTimerAdded>,
+        IRecipient<RequestRunningPeriodicTimer>
 
     {
         private readonly IMessenger _messenger;
         private readonly PeriodicTimerRepository _periodicTimerRepository;
-        private readonly List<TimerRunningInfo> _periodicTimers;
+        private readonly ObservableCollection<TimerRunningInfo> _periodicTimers;
         private readonly DispatcherQueueTimer _timer;
+
+        IDisposable _runningTimerObserver;
 
         public TimerLifetimeManager(IMessenger messenger,
             PeriodicTimerRepository periodicTimerRepository
@@ -76,12 +97,20 @@ namespace VoiceOfClock.UseCases
         {
             _messenger = messenger;
             _periodicTimerRepository = periodicTimerRepository;
-            _periodicTimers = _periodicTimerRepository.ReadAllItems().Select(x => new TimerRunningInfo(x)).ToList();
+            _periodicTimers = new ObservableCollection<TimerRunningInfo>(_periodicTimerRepository.ReadAllItems().Select(x => new TimerRunningInfo(x)));
             _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.IsRepeating = true;
             _timer.Tick += _timer_Tick;
             _timer.Start();
+
+            _runningTimerObserver = new[]
+            {
+                _periodicTimers.ObserveElementProperty(x => x.NextTime).Select(x => x.Instance),
+                _periodicTimers.ObserveElementProperty(x => x.IsInsidePeriod).Select(x => x.Instance)
+            }
+            .Merge()            
+            .Subscribe(x => _messenger.Send<RunningPeriodicTimerUpdated>(new RunningPeriodicTimerUpdated(x)));            
         }
 
         private void _timer_Tick(DispatcherQueueTimer sender, object args)
@@ -134,7 +163,7 @@ namespace VoiceOfClock.UseCases
         void IRecipient<PeriodicTimerUpdated>.Receive(PeriodicTimerUpdated message)
         {
             var entity = message.Value;
-            
+            _periodicTimers.First(x => x.Entity.Id == entity.Id).UpdateEntity(entity);
         }
 
         void IRecipient<PeriodicTimerRemoved>.Receive(PeriodicTimerRemoved message)
@@ -148,6 +177,27 @@ namespace VoiceOfClock.UseCases
             _periodicTimers.Add(new TimerRunningInfo(message.Value));
         }
 
+        void IRecipient<RequestRunningPeriodicTimer>.Receive(RequestRunningPeriodicTimer message)
+        {
+            message.Reply(_periodicTimers.First(x => x.Entity.Id == message.TimerId));
+        }
+    }
+
+    public sealed class RunningPeriodicTimerUpdated : ValueChangedMessage<TimerRunningInfo>
+    {
+        public RunningPeriodicTimerUpdated(TimerRunningInfo value) : base(value)
+        {
+        }
+    }
+
+    public sealed class RequestRunningPeriodicTimer : RequestMessage<TimerRunningInfo>
+    {
+        public RequestRunningPeriodicTimer(Guid timerId)
+        {
+            TimerId = timerId;
+        }
+
+        public Guid TimerId { get; }
     }
 
 

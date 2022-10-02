@@ -43,8 +43,23 @@ public sealed partial class PeriodicTimerPage : Page
     }
     
     protected override void OnNavigatedTo(NavigationEventArgs e)
-    {                        
+    {
+        foreach (var itemVM in _timers)
+        {
+            _messenger.RegisterAll(itemVM);
+        }
+
         base.OnNavigatedTo(e);
+    }
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        foreach (var itemVM in _timers)
+        {
+            _messenger.UnregisterAll(itemVM);
+        }
+
+        base.OnNavigatingFrom(e);
     }
 
     bool _isEditting;
@@ -92,7 +107,9 @@ public sealed partial class PeriodicTimerPage : Page
                 };
 
                 _periodicTimerRepository.CreateItem(newEntity);
-                _timers.Add(new PeriodicTimerViewModel(newEntity, _periodicTimerRepository, _messenger));
+                var itemVM = new PeriodicTimerViewModel(newEntity, _periodicTimerRepository, _messenger);
+                _timers.Add(itemVM);
+                _messenger.RegisterAll(itemVM);
             }
         }
         finally
@@ -215,6 +232,6 @@ public sealed partial class PeriodicTimerPage : Page
 
     private void MenuFlyoutItem_TimerDelete_Click(object sender, RoutedEventArgs e)
     {
-
+        // _messenger.UnregisterAll(itemVM);
     }
 }    

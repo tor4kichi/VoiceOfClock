@@ -56,8 +56,8 @@
                   <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
                 </SymbolIcon.RenderTransform>
               </SymbolIcon>
-              <TextBlock VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0">
-                <Run Text="10" /> <Run Text="分後" />
+              <TextBlock Text="{x:Bind NextTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0">
+                
               </TextBlock>
             </Grid>
 
@@ -114,59 +114,69 @@
       </uiControls:AdaptiveGridView.ItemContainerStyle>
 
       <uiControls:AdaptiveGridView.Header>
-        <Grid Background="{ThemeResource MicaBackgroundBrush}"
+        <StackPanel>
+          <Grid Background="{ThemeResource MicaBackgroundBrush}"
               CornerRadius="6"   
               Padding="12" 
               Translation="0, 0, 16"                  
               HorizontalAlignment="Center"
               Margin="32"
               >
-          <Grid.Shadow>
-            <ThemeShadow />
-          </Grid.Shadow>
-          
-          <StackPanel Spacing="8">
+            <Grid.Shadow>
+              <ThemeShadow />
+            </Grid.Shadow>
 
-            <TextBlock Text="間隔を指定して時報を開始する" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
 
-            <Grid>
-              <TimePicker x:Name="TimePicker_ImmidiateRunTimer"
+
+              <StackPanel Spacing="4">
+
+
+                <TextBlock Text="間隔を指定して時報を開始する" />
+
+                <Grid>
+                  <TimePicker x:Name="TimePicker_ImmidiateRunTimer"
                         Time="00:03:00"      
                         FontSize="48"        
                           ClockIdentifier="24HourClock"
                         >
 
-              </TimePicker>
-              <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*" />
-                  <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                  </TimePicker>
+                  <Grid HorizontalAlignment="Stretch" Opacity="0.5">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Text="時間" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-                </TextBlock>
-                <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-                </TextBlock>
-              </Grid>
-            </Grid>
-              
+                    <TextBlock Text="時間" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                    </TextBlock>
+                    <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                    </TextBlock>
+                  </Grid>
+                </Grid>
 
-            <Button Content="今すぐ開始" 
+
+              </StackPanel>
+
+              <Button Content="時報を開始" 
                     x:Name="Button_ImmidiateStart"
                     Tapped="Button_ImmidiateStart_Tapped"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
                     />
 
-            <Button Content="停止"
+              <Button Content="時報を停止"
                     x:Name="Button_ImmidiateStop"
                     Tapped="Button_ImmidiateStop_Tapped"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
                     Visibility="Collapsed"
                     >
-              
-            </Button>
-          </StackPanel>
-        </Grid>
+
+              </Button>
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Text="スケジュールされた時報" Style="{StaticResource SubtitleTextBlockStyle}" />
+        </StackPanel>
       </uiControls:AdaptiveGridView.Header>
     </uiControls:AdaptiveGridView>
     
