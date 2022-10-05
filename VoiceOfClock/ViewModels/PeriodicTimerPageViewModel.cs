@@ -132,17 +132,20 @@ namespace VoiceOfClock.ViewModels
             private set => SetProperty(ref _immidiateTimerStartTime, value);
         }
 
-            [RelayCommand]
+        [RelayCommand]
         void StartImmidiateTimer(TimeSpan intervalTime)
         {
             _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);            
             ImmidiateTimerStartTime = DateTime.Today + _timerLifetimeManager.InstantPeriodicTimer.StartTime;
+
+            InstantPeriodicTimer.IsEnabled = true;
         }
 
         [RelayCommand]
         void StopImmidiateTimer()
         {
-            _timerLifetimeManager.StopInstantPeriodicTimer();            
+            _timerLifetimeManager.StopInstantPeriodicTimer();
+            InstantPeriodicTimer.IsEnabled = false;
         }
     }
 }

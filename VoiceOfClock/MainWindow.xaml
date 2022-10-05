@@ -26,6 +26,7 @@
     <NavigationView     
       Background="{ThemeResource ApplicationContentBackgroundBrush}"
       IsBackButtonVisible="Collapsed"
+      ItemInvoked="NavigationView_ItemInvoked"
       >
       <NavigationView.MenuItems>
         <NavigationViewItem x:Name="NVI_Alerm" Content="アラーム" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed" />

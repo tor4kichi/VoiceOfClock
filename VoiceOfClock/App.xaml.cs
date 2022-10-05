@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Views;
@@ -60,15 +61,16 @@ public partial class App : Application
     {
         container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={Path.Combine(ApplicationData.Current.LocalFolder.Path, "user.db")}; Async=false;"));
 
+        container.Register<TimerSettings>(reuse: new SingletonReuse());
+
         container.Register<TimerLifetimeManager>(reuse: new SingletonReuse());
-        container.Register<UWP_VoicePlayer>(reuse: new SingletonReuse());
-        //container.Register<Legacy_VoicePlayer>(reuse: new SingletonReuse());
+        container.Register<VoicePlayer>(reuse: new SingletonReuse());
 
         container.RegisterMapping<IApplicationLifeCycleAware, TimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        container.RegisterMapping<IApplicationLifeCycleAware, UWP_VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        //container.RegisterMapping<IApplicationLifeCycleAware, Legacy_VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);        
+        container.RegisterMapping<IApplicationLifeCycleAware, VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
         container.Register<PeriodicTimerPageViewModel>();
+        container.Register<SettingsPageViewModel>();
     }
 
     private static void RegisterTypes(Container container)

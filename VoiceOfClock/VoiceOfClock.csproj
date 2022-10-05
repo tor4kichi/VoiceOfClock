@@ -18,6 +18,8 @@
     <None Remove="Locales\ja-JP.txt" />
     <None Remove="Views\Controls\NumberBox.xaml" />
     <None Remove="Views\Dialogs\PeriodicTimerEditDialog.xaml" />
+    <None Remove="Views\SettingsPage.xaml" />
+    <None Remove="Views\Styles\SettingsItemStyle.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +67,16 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Models\VoiceOfClock.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Styles\SettingsItemStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Controls\NumberBox.xaml">

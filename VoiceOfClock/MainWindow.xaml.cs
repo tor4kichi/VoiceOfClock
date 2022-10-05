@@ -56,4 +56,12 @@ public sealed partial class MainWindow : Window
     {
         Navigate(typeof(Views.PeriodicTimerPage), null);
     }
+
+    private void NavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        if (args.IsSettingsInvoked)
+        {
+            Navigate(typeof(Views.SettingsPage), null);
+        }
+    }
 }

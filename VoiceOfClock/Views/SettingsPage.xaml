@@ -1,0 +1,268 @@
+﻿<Page
+    x:Class="VoiceOfClock.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:VoiceOfClock.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls" 
+  xmlns:viewModels="using:VoiceOfClock.ViewModels"
+  mc:Ignorable="d"
+  Background="{StaticResource ApplicationContentBackgroundBrush}"
+    >
+
+  <Page.Resources>
+
+    <local:SettingsContentStyleSelector x:Key="SettingsContentStyleSelector">
+      <local:SettingsContentStyleSelector.Normal>
+        <Style TargetType="ContentPresenter">
+          <Setter Property="Background" Value="{ThemeResource MicaBackgroundBrush}" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="CornerRadius" Value="6" />
+          <Setter Property="Margin" Value="0 0 0 4" />
+        </Style>
+      </local:SettingsContentStyleSelector.Normal>
+
+      <local:SettingsContentStyleSelector.Subheader>
+        <Style TargetType="ContentPresenter">
+          <Setter Property="FontWeight" Value="SemiBold" />
+          <Setter Property="Margin" Value="0 16 0 8" />
+        </Style>
+      </local:SettingsContentStyleSelector.Subheader>
+
+      <local:SettingsContentStyleSelector.Expander>
+        <Style TargetType="ContentPresenter">
+          <Setter Property="Margin" Value="0 0 0 4" />
+        </Style>
+      </local:SettingsContentStyleSelector.Expander>
+      <local:SettingsContentStyleSelector.ExpanderMiddle>
+        <Style TargetType="ContentPresenter">
+          <Setter Property="Background" Value="{ThemeResource MicaBackgroundBrush}" />
+          <Setter Property="BorderThickness" Value="0 0 0 1" />
+          <Setter Property="CornerRadius" Value="0" />
+        </Style>
+      </local:SettingsContentStyleSelector.ExpanderMiddle>
+
+      <local:SettingsContentStyleSelector.ExpanderLast>
+        <Style TargetType="ContentPresenter">
+          <Setter Property="Background" Value="{ThemeResource MicaBackgroundBrush}" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="CornerRadius" Value="0 0 6 6" />
+        </Style>
+      </local:SettingsContentStyleSelector.ExpanderLast>
+    </local:SettingsContentStyleSelector>
+    
+    <DataTemplate x:DataType="viewModels:ExpanderSettingContent" x:Key="ExpanderSettingContentTemplate">
+      <Expander>
+        <Expander.Header>
+          <tkControls:DockPanel>
+            <StackPanel tkControls:DockPanel.Dock="Left">
+              <TextBlock Text="{x:Bind Label}" Visibility="{x:Bind Label, Converter={StaticResource EmptyStringToCollapsedConverter}}" />
+              <TextBlock Text="{x:Bind Description}" Style="{StaticResource CaptionTextBlockStyle}"
+                         Opacity="0.7"
+                         Visibility="{x:Bind Description, Converter={StaticResource EmptyStringToCollapsedConverter}}"
+                         />
+            </StackPanel>
+
+            <ContentControl Content="{x:Bind Content}"
+                            ContentTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"
+                            HorizontalAlignment="Right"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            IsTabStop="False"
+                            />
+
+          </tkControls:DockPanel>
+        </Expander.Header>
+        <Expander.Content>
+          <ItemsControl ItemsSource="{x:Bind Items}"
+                        ItemTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"
+                        ItemContainerStyleSelector="{StaticResource SettingsContentStyleSelector}"
+                        >
+            
+          </ItemsControl>
+        </Expander.Content>
+      </Expander>
+    </DataTemplate>
+
+    <DataTemplate x:DataType="viewModels:SettingContentWithHeader" x:Key="SettingContentWithHeaderTemplate">
+      <Border>
+        <tkControls:DockPanel Padding="16">
+          <StackPanel tkControls:DockPanel.Dock="Left" VerticalAlignment="Center">
+            <TextBlock Text="{x:Bind Label}" VerticalAlignment="Center"
+                       Visibility="{x:Bind Label, Converter={StaticResource EmptyStringToCollapsedConverter}}"
+                       />
+            <TextBlock Text="{x:Bind Description}" Style="{StaticResource CaptionTextBlockStyle}"                       
+                       Opacity="0.7"
+                       Visibility="{x:Bind Description, Converter={StaticResource EmptyStringToCollapsedConverter}}"
+                       />
+          </StackPanel>
+
+          <ContentControl Content="{x:Bind Content}"
+                            ContentTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"
+                            HorizontalAlignment="Right"
+                            HorizontalContentAlignment="Stretch"
+                            IsTabStop="False"
+                            />
+
+        </tkControls:DockPanel>
+      </Border>
+    </DataTemplate>
+      
+    <local:SettingContentDataTemplateSelector x:Key="SettingContentDataTemplateSelector"
+                                              ExpanderSettingContent="{StaticResource ExpanderSettingContentTemplate}"
+                                              SettingContentWithHeader="{StaticResource SettingContentWithHeaderTemplate}"
+                                              >
+
+      <local:SettingContentDataTemplateSelector.SettingHeader>
+        <DataTemplate x:DataType="viewModels:SettingHeader">
+          <TextBlock Text="{x:Bind Title}" Style="{StaticResource SettingsSubTitleTextBlockStyle}" />
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.SettingHeader>
+
+      <local:SettingContentDataTemplateSelector.ButtonSettingContent>
+        <DataTemplate x:DataType="viewModels:ButtonSettingContent">
+          <Button Content="{x:Bind Label}" Command="{x:Bind DoActionCommand}"
+                  HorizontalAlignment="Right"
+                  />
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.ButtonSettingContent>
+
+      <local:SettingContentDataTemplateSelector.SliderSettingContent>
+        <DataTemplate x:DataType="viewModels:SliderSettingContent">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{x:Bind ConvertToString(Value), Mode=OneWay}"
+                       VerticalAlignment="Center"                       
+                       />
+            <Slider x:Name="Slider" Value="{x:Bind Value, Mode=TwoWay}"
+                  Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}"
+                    ThumbToolTipValueConverter="{x:Bind ValueConverter}"
+                  TickFrequency="0.01"
+                  StepFrequency="0.01"
+                  MaxWidth="240" MinWidth="200" Padding="0" Margin="0" VerticalAlignment="Center"                                    
+                  HorizontalAlignment="Right"
+                    DataContext="{x:Bind}"
+                  >
+
+            </Slider>
+
+          </StackPanel>
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.SliderSettingContent>
+
+      <local:SettingContentDataTemplateSelector.ComboBoxSettingContent>
+        <DataTemplate x:DataType="viewModels:ComboBoxSettingContent">
+          <ComboBox ItemsSource="{x:Bind Items}"    
+                    SelectedItem="{x:Bind FirstSelect, Mode=OneTime}"
+                    SelectionChanged="{x:Bind ComboBoxSelectionChanged}"
+                    HorizontalAlignment="Right"
+                    >
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="viewModels:ComboBoxSettingContentItem">
+                <TextBlock Text="{x:Bind Label}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+            
+          </ComboBox>
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.ComboBoxSettingContent>
+
+      <local:SettingContentDataTemplateSelector.ToggleSwitchSettingContent>
+        <DataTemplate x:DataType="viewModels:ToggleSwitchSettingContent">
+          <ToggleSwitch IsOn="{x:Bind Value, Mode=TwoWay}"
+                        OnContent="{x:Bind OnContent}"
+                        OffContent="{x:Bind OffContent}"
+                        Style="{StaticResource SettingsToggleSwitch}"            
+                        HorizontalAlignment="Right"
+                        
+            />
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.ToggleSwitchSettingContent>
+
+      <local:SettingContentDataTemplateSelector.TextSettingContent>
+        <DataTemplate x:DataType="viewModels:TextSettingContent">
+          <TextBlock Text="{x:Bind Text, Mode=OneWay}" Opacity="0.7" VerticalAlignment="Center" />
+        </DataTemplate>
+      </local:SettingContentDataTemplateSelector.TextSettingContent>
+    </local:SettingContentDataTemplateSelector>
+
+    
+    
+  </Page.Resources>
+  <Grid>
+
+    <tkControls:DockPanel>
+
+      <TextBlock x:Name="TextBlock_PageHeader" Text="設定" Style="{StaticResource HeaderTextBlockStyle}" tkControls:DockPanel.Dock="Top"
+                 Margin="48 24 48 16"
+                 />
+
+      <ScrollViewer MaxWidth="920" >
+
+        <StackPanel>
+          <tkControls:DockPanel x:Name="StackPanel_PageContentContainer" Margin="48 0 48 24" HorizontalAlignment="Stretch">
+
+
+            <StackPanel x:Name="StackPanel_OtherInformationContainer" tkControls:DockPanel.Dock="Right" Margin="48 16 0 0"                                            
+                        Spacing="16"
+                        MinWidth="160"
+                      >
+              <StackPanel>
+                <TextBlock Text="このアプリについて" />
+                <TextBlock IsTextSelectionEnabled="True">
+                  <Run Text="{x:Bind _vm.AppName}" /> <Run Text="{x:Bind _vm.AppVersion}" />
+                </TextBlock>
+              </StackPanel>
+
+              <HyperlinkButton Content="プロジェクトサイト" Margin="0" Padding="0" />
+
+              <Button Content="フィードバックを送信" />
+            </StackPanel>
+
+
+
+            <ItemsControl ItemsSource="{x:Bind _vm.Items}"
+                      ItemTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"                      
+                      ItemContainerStyleSelector="{StaticResource SettingsContentStyleSelector}"
+                        MinWidth="320"                        
+                      >
+
+            </ItemsControl>
+
+          </tkControls:DockPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </tkControls:DockPanel>
+
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="960" />
+          </VisualState.StateTriggers>
+        </VisualState>
+
+        <VisualState>
+          <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="500" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="StackPanel_OtherInformationContainer.(tkControls:DockPanel.Dock)" Value="Bottom" />
+            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 32 16 24" />
+          </VisualState.Setters>
+        </VisualState>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="0" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="TextBlock_PageHeader.Margin" Value="16 24 16 16" />
+            <Setter Target="StackPanel_PageContentContainer.Margin" Value="16 0 16 24" />
+            <Setter Target="StackPanel_OtherInformationContainer.(tkControls:DockPanel.Dock)" Value="Bottom" />
+            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 32 16 24" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+  </Grid>
+</Page>

@@ -75,7 +75,7 @@
           </TextBlock>
 
           <ToggleSwitch x:Name="ToggleSwitch_IsEnabled" HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
-                        Style="{StaticResource ToggleSwitchWithoutContent}"      
+                        Style="{StaticResource SettingsToggleSwitch}"                              
                         Visibility="{x:Bind IsEditting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
                         >
             

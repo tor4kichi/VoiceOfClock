@@ -11,10 +11,9 @@
       <ResourceDictionary.MergedDictionaries>
         <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
         <!-- Other merged dictionaries here -->
+        <ResourceDictionary Source="Views/Styles/SettingsItemStyle.xaml" />
         <ResourceDictionary Source="Views/Styles/ContentDialogButtonWithIconStylesDictionary.xaml" />
-        <ResourceDictionary Source="Views/Styles/ToggleSwitchWithoutContentStyle.xaml" />
         <ResourceDictionary Source="Views/Styles/GridViewItemMicaStyle.xaml" />
-
       </ResourceDictionary.MergedDictionaries>
       <!-- Other app resources here -->
 
@@ -47,6 +46,24 @@
       </uwpConverters:BoolToObjectConverter>
 
       <uwpConverters:StringFormatConverter x:Key="StringFormatConverter" />
+
+      <uwpConverters:EmptyStringToObjectConverter x:Key="EmptyStringToVisibleConverter">
+        <uwpConverters:EmptyStringToObjectConverter.EmptyValue>
+          <Visibility>Visible</Visibility>
+        </uwpConverters:EmptyStringToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyStringToObjectConverter.NotEmptyValue>
+          <Visibility>Collapsed</Visibility>
+        </uwpConverters:EmptyStringToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyStringToObjectConverter>
+
+      <uwpConverters:EmptyStringToObjectConverter x:Key="EmptyStringToCollapsedConverter">
+        <uwpConverters:EmptyStringToObjectConverter.EmptyValue>
+          <Visibility>Collapsed</Visibility>
+        </uwpConverters:EmptyStringToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyStringToObjectConverter.NotEmptyValue>
+          <Visibility>Visible</Visibility>
+        </uwpConverters:EmptyStringToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyStringToObjectConverter>
 
       <x:Double x:Key="MicaCornerRadius">4</x:Double>
 

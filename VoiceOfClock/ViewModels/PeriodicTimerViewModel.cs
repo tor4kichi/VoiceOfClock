@@ -47,6 +47,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
 
     partial void OnIsEnabledChanged(bool value)
     {        
+        if (IsRemovable) { return; }
         PeriodicTimerRunningInfo.IsEnabled = value;
     }
 

@@ -54,7 +54,7 @@ namespace VoiceOfClock.Models.Infrastructure
         }
 
         protected void Save<T>(T value, [CallerMemberName] string propertyName = null)
-        {
+        {             
             _LocalStorageHelper.Save(propertyName, value);
         }
 
@@ -83,6 +83,16 @@ namespace VoiceOfClock.Models.Infrastructure
             {
                 return true;
             }
+        }
+
+        protected override void OnPropertyChanging(PropertyChangingEventArgs e)
+        {
+            base.OnPropertyChanging(e);
+        }
+
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
         }
 
         protected bool SetProperty<T>(ref T? storage, T? value, [CallerMemberName] string propertyName = null)
