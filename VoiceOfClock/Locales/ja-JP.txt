@@ -1,4 +1,19 @@
 ﻿
+#### Generic 
+
+Start = 開始
+End = 終了
+
+
+
 #### Periodic Timer 
 
 TimeOfDayToSpeechText = 時刻は {0}時 {1}分 です
+
+
+ElapsedTime_Days_Hours_Minutes_Seconds = {3}日{2:d2}時間{1:d2}分{0:d2}秒
+ElapsedTime_Hours_Minutes_Seconds = {2:d2}時間{1:d2}分{0:d2}秒
+ElapsedTime_Minutes_Seconds = {1:d2}分{0:d2}秒
+ElapsedTime_Seconds = {0:d2}秒
+
+DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}

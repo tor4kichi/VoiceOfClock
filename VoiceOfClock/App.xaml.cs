@@ -95,7 +95,6 @@ public partial class App : Application
             .SetFallbackLocale("en-US")
             .SetNotFoundSymbol("🍣")
             ;
-               
     }    
 
     /// <summary>

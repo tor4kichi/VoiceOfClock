@@ -39,14 +39,8 @@ namespace VoiceOfClock.UseCases
 
         private void OnDeferUpdate_Internal()
         {
-            try
-            {
-                OnDeferUpdate();
-            }
-            finally
-            {
-                NowDeferUpdateRequested = false;
-            }
+            NowDeferUpdateRequested = false;
+            OnDeferUpdate();
         }
         protected abstract void OnDeferUpdate();
     }
@@ -83,6 +77,13 @@ namespace VoiceOfClock.UseCases
         private DateTime _nextTime;
 
         [ObservableProperty]
+        private DateTime _startDateTime;
+
+        [ObservableProperty]
+        private TimeSpan _elapsedTime;
+
+
+        [ObservableProperty]
         private bool _isInsidePeriod;
 
         [ObservableProperty]
@@ -91,7 +92,7 @@ namespace VoiceOfClock.UseCases
         partial void OnIsEnabledChanged(bool value)
         {
             _entity.IsEnabled = value;
-            if (!NowDeferUpdateRequested)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
             }
@@ -103,7 +104,7 @@ namespace VoiceOfClock.UseCases
         partial void OnIntervalTimeChanged(TimeSpan value)
         {
             _entity.IntervalTime = value;
-            if (!NowDeferUpdateRequested)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
             }
@@ -115,7 +116,7 @@ namespace VoiceOfClock.UseCases
         partial void OnStartTimeChanged(TimeSpan value)
         {
             _entity.StartTime = value;
-            if (!NowDeferUpdateRequested)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
             }
@@ -127,7 +128,7 @@ namespace VoiceOfClock.UseCases
         partial void OnEndTimeChanged(TimeSpan value)
         {
             _entity.EndTime = value;
-            if (!NowDeferUpdateRequested)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
             }
@@ -139,7 +140,7 @@ namespace VoiceOfClock.UseCases
         partial void OnTitleChanged(string value)
         {
             _entity.Title = value;
-            if (!NowDeferUpdateRequested)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
             }
@@ -152,24 +153,18 @@ namespace VoiceOfClock.UseCases
             _entity.EndTime = entity.EndTime;
             _entity.IntervalTime = entity.IntervalTime;
             _entity.IsEnabled = entity.IsEnabled;
-            if (_entity.Id != Guid.Empty)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
-                if (!NowDeferUpdateRequested)
-                {
-                    _repository.UpdateItem(_entity);
-                }
+                _repository.UpdateItem(_entity);
             }
             CalcNextTime();
         }
 
         void Save()
         {
-            if (_entity.Id != Guid.Empty)
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
-                if (!NowDeferUpdateRequested)
-                {
-                    _repository.UpdateItem(_entity);
-                }
+                _repository.UpdateItem(_entity);
             }
         }
 
@@ -179,8 +174,17 @@ namespace VoiceOfClock.UseCases
             IsInsidePeriod = TimeHelpers.IsInsideTime(now.TimeOfDay, _entity.StartTime, _entity.EndTime);
             if (IsInsidePeriod)
             {
-                TimeSpan elapsedTime = now.TimeOfDay - _entity.StartTime;
-                int count = (int)Math.Ceiling(elapsedTime / _entity.IntervalTime);
+                if (_entity.StartTime > now.TimeOfDay)
+                {
+                    StartDateTime = DateTime.Today + _entity.StartTime - TimeSpan.FromDays(1);
+                }
+                else
+                {
+                    StartDateTime = DateTime.Today + _entity.StartTime;
+                }
+
+                ElapsedTime = (now - StartDateTime).TrimMilliSeconds();
+                int count = (int)Math.Ceiling(ElapsedTime / _entity.IntervalTime);
                 NextTime = DateTime.Today + _entity.StartTime + _entity.IntervalTime * count;
             }
             else
@@ -198,12 +202,19 @@ namespace VoiceOfClock.UseCases
 
         public void IncrementNextTime()
         {
-            if (DateTime.Now - NextTime < TimeSpan.FromMinutes(1))
-            {
-
-            }
-
             NextTime += _entity.IntervalTime;
+        }
+
+        public void UpdateElapsedTime()
+        {
+            if (TimeHelpers.IsInsideTime(DateTime.Now.TimeOfDay, _entity.StartTime, _entity.EndTime))
+            {                
+                ElapsedTime = (DateTime.Now - StartDateTime).TrimMilliSeconds();
+            }
+            else
+            {
+                ElapsedTime = TimeSpan.Zero;
+            }
         }
     }
 
@@ -226,7 +237,7 @@ namespace VoiceOfClock.UseCases
             _periodicTimers = new ObservableCollection<PeriodicTimerRunningInfo>(_periodicTimerRepository.ReadAllItems().Select(x => new PeriodicTimerRunningInfo(x, _periodicTimerRepository)));
             PeriodicTimers = new(_periodicTimers);
             _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Interval = TimeSpan.FromSeconds(0.2);
             _timer.IsRepeating = true;
             _timer.Tick += _timer_Tick;
             _timer.Start();
@@ -239,6 +250,7 @@ namespace VoiceOfClock.UseCases
             }, _periodicTimerRepository);
         }
 
+        DateTime _lastTickTime = DateTime.MinValue;
         private void _timer_Tick(DispatcherQueueTimer sender, object args)
         {
             if (GetInsideEnablingTimeTimers() is not null and var timers && timers.Any())
@@ -246,18 +258,22 @@ namespace VoiceOfClock.UseCases
                 foreach (var timer in timers)
                 {
                     // 次に通知すべき時間を割り出す
-                    if (timer.NextTime < DateTime.Now + TimeSpan.FromSeconds(1))
+                    if (timer.NextTime < DateTime.Now)
                     {
                         var time = timer.NextTime;
                         _ = SendCurrentTimeVoiceAsync(time);
                         timer.IncrementNextTime();
 
                         Debug.WriteLine($"{timer.Title} の再生を開始");
+                        _messenger.Send(new PeriodicTimerUpdated(timer._entity));
                     }
+
+                    timer.UpdateElapsedTime();
                 }
             }
 
-            Debug.WriteLine(DateTime.Now.TimeOfDay);
+            _lastTickTime = DateTime.Now;
+            //Debug.WriteLine(_lastTickTime.TimeOfDay);
         }
 
         async Task SendCurrentTimeVoiceAsync(DateTime time)
@@ -323,7 +339,7 @@ namespace VoiceOfClock.UseCases
         public void StartInstantPeriodicTimer(TimeSpan intervalTime)
         {
             TimeSpan timeOfDay = DateTime.Now.TimeOfDay;
-            timeOfDay = new TimeSpan(timeOfDay.Hours, timeOfDay.Minutes, 0);
+            timeOfDay = new TimeSpan(timeOfDay.Hours, timeOfDay.Minutes, timeOfDay.Seconds);
             using (InstantPeriodicTimer.DeferUpdate())
             {
                 InstantPeriodicTimer.IsEnabled = true;
@@ -369,5 +385,5 @@ namespace VoiceOfClock.UseCases
         public PeriodicTimerAdded(PeriodicTimerEntity value) : base(value)
         {
         }
-    }
+    }    
 }

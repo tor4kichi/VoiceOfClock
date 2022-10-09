@@ -32,6 +32,11 @@ public static class TimeHelpers
         else
         {
             return !(endTimeOfDay < targetTimeOfDay && targetTimeOfDay < startTimeOfDay);
-        }
+        }        
+    }
+
+    public static TimeSpan TrimMilliSeconds(this TimeSpan ts)
+    {        
+        return new TimeSpan(ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
     }
 }

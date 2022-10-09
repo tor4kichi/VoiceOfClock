@@ -193,19 +193,43 @@
 
     <tkControls:DockPanel>
 
-      <TextBlock x:Name="TextBlock_PageHeader" Text="設定" Style="{StaticResource HeaderTextBlockStyle}" tkControls:DockPanel.Dock="Top"
-                 Margin="48 24 48 16"
+      <Border MaxWidth="1200" tkControls:DockPanel.Dock="Top">
+        <TextBlock x:Name="TextBlock_PageHeader" Text="設定" Style="{StaticResource SubheaderTextBlockStyle}" 
+                 Margin="48 24 48 16"                                  
                  />
+      </Border>
 
-      <ScrollViewer MaxWidth="920" >
+      <ScrollViewer x:Name="ScrollViewer" MaxWidth="1200">
 
-        <StackPanel>
-          <tkControls:DockPanel x:Name="StackPanel_PageContentContainer" Margin="48 0 48 24" HorizontalAlignment="Stretch">
+        <Grid x:Name="Grid_ContentContainer" Margin="48 0 48 24" HorizontalAlignment="Stretch" >
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
 
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          
+          <ItemsControl x:Name="ItemsControl_SettingItems" ItemsSource="{x:Bind _vm.Items}"
+                      ItemTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"                      
+                      ItemContainerStyleSelector="{StaticResource SettingsContentStyleSelector}"                        
+                        Grid.Column="0"
+                        Grid.ColumnSpan="1"
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                      >
 
-            <StackPanel x:Name="StackPanel_OtherInformationContainer" tkControls:DockPanel.Dock="Right" Margin="48 16 0 0"                                            
+          </ItemsControl>
+          
+          <StackPanel x:Name="StackPanel_OtherInformationContainer" tkControls:DockPanel.Dock="Right" Margin="48 16 0 0"                                            
                         Spacing="16"
                         MinWidth="160"
+                      Grid.Column="1"
+                        Grid.ColumnSpan="1"
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
                       >
               <StackPanel>
                 <TextBlock Text="このアプリについて" />
@@ -221,16 +245,7 @@
 
 
 
-            <ItemsControl ItemsSource="{x:Bind _vm.Items}"
-                      ItemTemplateSelector="{StaticResource SettingContentDataTemplateSelector}"                      
-                      ItemContainerStyleSelector="{StaticResource SettingsContentStyleSelector}"
-                        MinWidth="320"                        
-                      >
-
-            </ItemsControl>
-
-          </tkControls:DockPanel>
-        </StackPanel>
+        </Grid>
       </ScrollViewer>
     </tkControls:DockPanel>
 
@@ -244,11 +259,19 @@
 
         <VisualState>
           <VisualState.StateTriggers>
-            <AdaptiveTrigger MinWindowWidth="500" />
+            <AdaptiveTrigger MinWindowWidth="520" />
           </VisualState.StateTriggers>
           <VisualState.Setters>
-            <Setter Target="StackPanel_OtherInformationContainer.(tkControls:DockPanel.Dock)" Value="Bottom" />
-            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 32 16 24" />
+            <Setter Target="TextBlock_PageHeader.Margin" Value="32 24 32 16" />
+            <Setter Target="Grid_ContentContainer.Margin" Value="32 0" />
+            <Setter Target="ItemsControl_SettingItems.Margin" Value="0" />
+            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 16 0 0" />
+            <Setter Target="ItemsControl_SettingItems.(Grid.RowSpan)" Value="1" />
+            <Setter Target="ItemsControl_SettingItems.(Grid.ColumnSpan)" Value="2" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.Row)" Value="1" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.RowSpan)" Value="1" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.Column)" Value="0" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.ColumnSpan)" Value="2" />
           </VisualState.Setters>
         </VisualState>
         <VisualState>
@@ -257,9 +280,14 @@
           </VisualState.StateTriggers>
           <VisualState.Setters>
             <Setter Target="TextBlock_PageHeader.Margin" Value="16 24 16 16" />
-            <Setter Target="StackPanel_PageContentContainer.Margin" Value="16 0 16 24" />
-            <Setter Target="StackPanel_OtherInformationContainer.(tkControls:DockPanel.Dock)" Value="Bottom" />
-            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 32 16 24" />
+            <Setter Target="Grid_ContentContainer.Margin" Value="16 0 16 24" />
+            <Setter Target="StackPanel_OtherInformationContainer.Margin" Value="0 16 0 0" />
+            <Setter Target="ItemsControl_SettingItems.(Grid.RowSpan)" Value="1" />
+            <Setter Target="ItemsControl_SettingItems.(Grid.ColumnSpan)" Value="2" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.Row)" Value="1" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.RowSpan)" Value="1" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.Column)" Value="0" />
+            <Setter Target="StackPanel_OtherInformationContainer.(Grid.ColumnSpan)" Value="2" />
           </VisualState.Setters>
         </VisualState>
       </VisualStateGroup>

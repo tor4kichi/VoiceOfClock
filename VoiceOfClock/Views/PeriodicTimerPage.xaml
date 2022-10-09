@@ -13,6 +13,7 @@
   xmlns:i="using:Microsoft.Xaml.Interactivity"
   xmlns:core="using:Microsoft.Xaml.Interactions.Core"
   xmlns:behaviors="using:CommunityToolkit.WinUI.UI.Behaviors"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
   mc:Ignorable="d"
   Background="{ThemeResource ApplicationContentBackgroundBrush}"
   >
@@ -32,27 +33,21 @@
 
         <i:Interaction.Behaviors>
           <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
-            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_StartTime}" PropertyName="Opacity" Value="0.5" />
-            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_EndTime}" PropertyName="Opacity" Value="0.5" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_Time}" PropertyName="Opacity" Value="0.5" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="0.5" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="0.5" />
           </core:DataTriggerBehavior>
           <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
-            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_StartTime}" PropertyName="Opacity" Value="1.0" />
-            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_EndTime}" PropertyName="Opacity" Value="1.0" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_Time}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="1.0" />
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
      
         <Grid x:Name="Grid_Content">
-          <StackPanel Spacing="4" HorizontalAlignment="Left">
-            <TextBlock x:Name="TextBlock_StartTime" FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
-                <Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Minutes), Mode=OneWay}" />から
-            </TextBlock>
-
-            <TextBlock x:Name="TextBlock_EndTime" FontSize="40" FontWeight="SemiBold" TextLineBounds="TrimToCapHeight" VerticalAlignment="Stretch" TextAlignment="Right">
-                <Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Minutes), Mode=OneWay}" />まで
+          <StackPanel Spacing="8" HorizontalAlignment="Left">
+            <TextBlock x:Name="TextBlock_Time" FontSize="40" FontWeight="SemiBold" TextLineBounds="Tight" VerticalAlignment="Stretch" >
+                <Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Minutes), Mode=OneWay}" /> - <Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Minutes), Mode=OneWay}" />
             </TextBlock>
 
             <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7">
@@ -66,11 +61,15 @@
               </TextBlock>
             </Grid>
 
-            <TextBlock x:Name="TextBlock_TimerTitle" Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="4 0 0 0" />
+            <TextBlock x:Name="TextBlock_TimerTitle" Text="{x:Bind Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" 
+                       Margin="4 0 0 0"
+                       MaxWidth="320"
+                       MaxLines="1"
+                       />
 
           </StackPanel>
 
-          <TextBlock x:Name="TextBlock_TimerIntervalTime" HorizontalAlignment="Right" Margin="0 48 0 0" FontSize="24">
+          <TextBlock x:Name="TextBlock_TimerIntervalTime" HorizontalAlignment="Right" Margin="0 40 0 0" FontSize="24">
             <Run Text="{x:Bind IntervalTime.TotalMinutes, Mode=OneWay}" />分毎に
           </TextBlock>
 
@@ -105,8 +104,8 @@
                                  ItemClickCommand="{x:Bind _vm.EditTimerCommand}"                                 
                                  IsItemClickEnabled="True"
                                  SelectionMode="None"
-                                 ItemHeight="180"
-                                 DesiredWidth="360"
+                                 ItemHeight="120"
+                                 DesiredWidth="300"
                                  >
       <uiControls:AdaptiveGridView.ItemContainerStyle>
         <Style TargetType="GridViewItem" BasedOn="{StaticResource GridViewItemMicaStyle}">
@@ -134,7 +133,7 @@
           <Grid Background="{ThemeResource MicaBackgroundBrush}"
               CornerRadius="6"   
               Padding="12" 
-              Translation="0, 0, 16"                  
+              Translation="0, 0, 8"                  
               HorizontalAlignment="Center"
               Margin="32"
               >
@@ -142,21 +141,15 @@
               <ThemeShadow />
             </Grid.Shadow>
 
-            <StackPanel Orientation="Horizontal" Spacing="8">
-
-
+            <StackPanel Orientation="Vertical" Spacing="8">
               <StackPanel Spacing="4">
-
-
-                <TextBlock Text="間隔を指定して時報を開始する" />
-
                 <Grid>
                   <TimePicker x:Name="TimePicker_ImmidiateRunTimer"
                         SelectedTime="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=TwoWay}"      
                         FontSize="48"        
                           ClockIdentifier="24HourClock"
+                              IsEnabled="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
                         >
-
                   </TimePicker>
                   <Grid HorizontalAlignment="Stretch" Opacity="0.5">
                     <Grid.ColumnDefinitions>
@@ -170,8 +163,6 @@
                     </TextBlock>
                   </Grid>
                 </Grid>
-
-
               </StackPanel>
 
               <StackPanel VerticalAlignment="Center">
@@ -191,20 +182,35 @@
                     >
 
                 </Button>
+              </StackPanel>
 
-                <TextBlock x:Name="TextBlock_ImmidiateStartTime" Text="{x:Bind _vm.ImmidiateTimerStartTime, Mode=OneWay}" 
+              <Grid Visibility="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock x:Name="TextBlock_ImmidiateElapsedTime" 
                            Opacity="0.7"
                            >
-                  
+                  <Run Text="経過" /> <Run Text="{x:Bind _vm.ConvertElapsedTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.ElapsedTime), Mode=OneWay}" />
                 </TextBlock>
-                <TextBlock x:Name="TextBlock_ImmidiateNextTime" Text="{x:Bind _vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.NextTime, Mode=OneWay}"
+                
+                <StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right">
+                  <SymbolIcon x:Name="SymbolIcon_NextTimeIcon" Symbol="Clock" RenderTransformOrigin="0.25, 0.6" Width="20" HorizontalAlignment="Left">
+                    <SymbolIcon.RenderTransform>
+                      <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
+                    </SymbolIcon.RenderTransform>
+                  </SymbolIcon>
+
+                  <TextBlock x:Name="TextBlock_ImmidiateNextTime" 
                            Opacity="0.7"
-                           />
-              </StackPanel>
+                           >
+                    <Run Text="{x:Bind _vm.ConvertDateTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.NextTime), Mode=OneWay}" />
+                  </TextBlock>
+                </StackPanel>
+              </Grid>
             </StackPanel>
           </Grid>
 
-          <TextBlock Text="スケジュールされた時報" Style="{StaticResource SubtitleTextBlockStyle}" />
+          <TextBlock Text="スケジュールされた時報" Style="{StaticResource SubtitleTextBlockStyle}" Margin="8 0"
+                     x:Name="TextBlock_ScheduleTitle"
+                     />
         </StackPanel>
       </uiControls:AdaptiveGridView.Header>
     </uiControls:AdaptiveGridView>

@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using I18NPortable;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -61,9 +63,7 @@ namespace VoiceOfClock.ViewModels
             foreach (var timer in Timers)
             {
                 timer.RefrectValue();
-            }
-
-            ImmidiateTimerStartTime = DateTime.Today + _timerLifetimeManager.InstantPeriodicTimer.StartTime;
+            }            
         }
 
         [RelayCommand]
@@ -125,20 +125,11 @@ namespace VoiceOfClock.ViewModels
             }
         }
 
-        private DateTime _immidiateTimerStartTime;
-        public DateTime ImmidiateTimerStartTime
-        {
-            get => _immidiateTimerStartTime;
-            private set => SetProperty(ref _immidiateTimerStartTime, value);
-        }
-
         [RelayCommand]
         void StartImmidiateTimer(TimeSpan intervalTime)
         {
             _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);            
-            ImmidiateTimerStartTime = DateTime.Today + _timerLifetimeManager.InstantPeriodicTimer.StartTime;
-
-            InstantPeriodicTimer.IsEnabled = true;
+            InstantPeriodicTimer.IsEnabled = true;            
         }
 
         [RelayCommand]
@@ -146,6 +137,32 @@ namespace VoiceOfClock.ViewModels
         {
             _timerLifetimeManager.StopInstantPeriodicTimer();
             InstantPeriodicTimer.IsEnabled = false;
+        }
+
+        public string ConvertDateTime(DateTime dateTime)
+        {
+            var d = dateTime;
+            return "DateTime_Month_Day_Hour_Minite".Translate(d.Minute, d.Hour, d.Day, d.Month);
+        }
+
+        public string ConvertElapsedTime(TimeSpan timeSpan)
+        {
+            if (timeSpan.Days >= 1)
+            {
+                return "ElapsedTime_Days_Hours_Minutes_Seconds".Translate(timeSpan.Seconds, timeSpan.Minutes, timeSpan.Hours, timeSpan.Days);
+            }
+            else if (timeSpan.Hours >= 1)
+            {
+                return "ElapsedTime_Hours_Minutes_Seconds".Translate(timeSpan.Seconds, timeSpan.Minutes, timeSpan.Hours);
+            }
+            else if (timeSpan.Minutes >= 1)
+            {
+                return "ElapsedTime_Minutes_Seconds".Translate(timeSpan.Seconds, timeSpan.Minutes);
+            }
+            else
+            {
+                return "ElapsedTime_Seconds".Translate(timeSpan.Seconds);
+            }            
         }
     }
 }
