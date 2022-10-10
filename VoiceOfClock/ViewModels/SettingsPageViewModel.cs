@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Helpers;
+using I18NPortable;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Reactive.Bindings;
@@ -49,7 +50,7 @@ namespace VoiceOfClock.ViewModels
         {
             Items = new ObservableCollection<ISettingContent>()
             {
-                new SettingHeader("読み上げ"),
+                new SettingHeader("Speech".Translate()),
                 CreateSpeechSettingContent(),
             };
 
@@ -111,13 +112,13 @@ namespace VoiceOfClock.ViewModels
             var selectedVoice = allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
             return new ExpanderSettingContent(new ISettingContent[]
             {
-                CreateComboBoxContent(allVoices, selectedVoice, (voice) => _timerSettings.SpeechActorId = voice.Id, label: "話者"),
-                CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "話速"),
-                CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "ピッチ"),
+                CreateComboBoxContent(allVoices, selectedVoice, (voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate()),
+                CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate()),
+                CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate()),
             }
-            , label: "話者の設定"
-            , description: "合成音声、話速、ピッチ"
-            , content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "未選択"))
+            , label: "SpeechSettings_Title".Translate()
+            , description: "SpeechSettings_Description".Translate()
+            , content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
             );            
         }
 
@@ -207,7 +208,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return $"{Language} - {Name} - Windows.Media";
+            return "VoiceInfomation_Language_Name_SpeechSource".Translate(Language, Name, "SpeechSource_WindowsMedia".Translate());
         }
     }
 
@@ -230,7 +231,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return $"{Language} - {Name} - System.Speech";
+            return "VoiceInfomation_Language_Name_SpeechSource".Translate(Language, Name, "SpeechSource_SystemSpeech".Translate());
         }
     }
 

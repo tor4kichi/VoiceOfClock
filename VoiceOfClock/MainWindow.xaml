@@ -5,6 +5,7 @@
     xmlns:local="using:VoiceOfClock"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
     mc:Ignorable="d">
   
   <Grid>
@@ -26,12 +27,12 @@
     <NavigationView     
       Background="{ThemeResource ApplicationContentBackgroundBrush}"
       IsBackButtonVisible="Collapsed"
-      ItemInvoked="NavigationView_ItemInvoked"
+      ItemInvoked="NavigationView_ItemInvoked"      
       >
       <NavigationView.MenuItems>
-        <NavigationViewItem x:Name="NVI_Alerm" Content="アラーム" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed" />
-        <NavigationViewItem x:Name="NVI_Timer" Content="タイマー" Tapped="NVI_Timer_Tapped" Visibility="Collapsed" />
-        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="時刻読み上げ" Tapped="NVI_PeriodicTimer_Tapped" />
+        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed" />
+        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed" />
+        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped" />
       </NavigationView.MenuItems>
       <NavigationView.Content>
         <Frame x:Name="ContentFrame" CacheSize="5" />

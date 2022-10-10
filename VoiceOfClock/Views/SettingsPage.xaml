@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
   mc:Ignorable="d"
   Background="{StaticResource ApplicationContentBackgroundBrush}"
     >
@@ -194,7 +195,7 @@
     <tkControls:DockPanel>
 
       <Border MaxWidth="1200" tkControls:DockPanel.Dock="Top">
-        <TextBlock x:Name="TextBlock_PageHeader" Text="設定" Style="{StaticResource SubheaderTextBlockStyle}" 
+        <TextBlock x:Name="TextBlock_PageHeader" Text="{i18n:Localize Key=Settings}" Style="{StaticResource SubheaderTextBlockStyle}" 
                  Margin="48 24 48 16"                                  
                  />
       </Border>
@@ -222,7 +223,7 @@
                       >
 
           </ItemsControl>
-          
+
           <StackPanel x:Name="StackPanel_OtherInformationContainer" tkControls:DockPanel.Dock="Right" Margin="48 16 0 0"                                            
                         Spacing="16"
                         MinWidth="160"
@@ -231,17 +232,17 @@
                         Grid.Row="0"
                         Grid.RowSpan="2"
                       >
-              <StackPanel>
-                <TextBlock Text="このアプリについて" />
-                <TextBlock IsTextSelectionEnabled="True">
+            <StackPanel>
+              <TextBlock Text="{i18n:Localize Key=AboutThiApplication}" />
+              <TextBlock IsTextSelectionEnabled="True">
                   <Run Text="{x:Bind _vm.AppName}" /> <Run Text="{x:Bind _vm.AppVersion}" />
-                </TextBlock>
-              </StackPanel>
-
-              <HyperlinkButton Content="プロジェクトサイト" Margin="0" Padding="0" />
-
-              <Button Content="フィードバックを送信" />
+              </TextBlock>
             </StackPanel>
+
+            <HyperlinkButton Content="{i18n:Localize Key=ProjectSite}" Margin="0" Padding="0" NavigateUri="https://github.com/tor4kichi/VoiceOfClock" IsEnabled="False" />
+
+            <Button Content="{i18n:Localize Key=SendFeedback}" IsEnabled="False" />
+          </StackPanel>
 
 
 

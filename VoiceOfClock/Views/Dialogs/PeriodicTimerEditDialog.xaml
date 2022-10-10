@@ -6,10 +6,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
     mc:Ignorable="d"
-  PrimaryButtonText="保存"
-    CloseButtonText="キャンセル"
-    Title="タイマーを編集"
+  PrimaryButtonText="{i18n:Localize Key=Save}"
+    CloseButtonText="{i18n:Localize Key=Cancel}"
+    Title=""
     PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
     CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"           
   >
@@ -21,7 +22,7 @@
       <TimePicker x:Name="TimePicker_StartTime" SelectedTime="00:00:00" 
                     LightDismissOverlayMode="On"
                       HorizontalAlignment="Stretch"
-                      Header="開始"
+                      Header="{i18n:Localize Key=Start}"
                     >
 
       </TimePicker>
@@ -31,9 +32,9 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="時" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
-        <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
       </Grid>
     </Grid>
@@ -42,7 +43,7 @@
       <TimePicker x:Name="TimePicker_EndTime" SelectedTime="00:00:00" 
                     LightDismissOverlayMode="On"
                       HorizontalAlignment="Stretch"
-                      Header="終了"
+                      Header="{i18n:Localize Key=End}"
                     >
 
       </TimePicker>
@@ -52,9 +53,9 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="時" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
-        <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
       </Grid>
     </Grid>
@@ -63,7 +64,7 @@
       <TimePicker x:Name="TimePicker_IntervalTime" SelectedTime="00:00:00" 
                     LightDismissOverlayMode="On"
                       HorizontalAlignment="Stretch"
-                      Header="時報の間隔"
+                      Header="{i18n:Localize Key=PeriodicTimerInterval_Title}"
                     >
 
       </TimePicker>
@@ -73,15 +74,15 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="時間" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
-        <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
       </Grid>
     </Grid>
 
-    <TextBox x:Name="TextBox_EditTitle" PlaceholderText="ラベル"
-                 Header="タイトル"
+    <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=PeriodicTimerLabel_Placeholder}"
+                 Header="{i18n:Localize Key=PeriodicTimerLabel_Title}"
                  />
 
   </StackPanel>

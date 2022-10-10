@@ -69,7 +69,7 @@ namespace VoiceOfClock.ViewModels
         [RelayCommand]
         async Task AddTimer()
         {
-            var result = await _dialogService.ShowEditTimerAsync("タイマーを追加", "", TimeSpan.Zero, TimeSpan.FromHours(1), TimeSpan.FromMinutes(5));
+            var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerAddDialog_Title".Translate(), "", TimeSpan.Zero, TimeSpan.FromHours(1), TimeSpan.FromMinutes(5));
             if (result?.IsConfirmed is true)
             {
                 var runningTimer = _timerLifetimeManager.CreatePeriodicTimer(
@@ -92,7 +92,7 @@ namespace VoiceOfClock.ViewModels
         [RelayCommand]
         async Task EditTimer(PeriodicTimerViewModel timerVM)
         {
-            var result = await _dialogService.ShowEditTimerAsync("タイマーを編集", timerVM.Title, timerVM.StartTime, timerVM.EndTime, timerVM.IntervalTime);
+            var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerEditDialog_Title".Translate(), timerVM.Title, timerVM.StartTime, timerVM.EndTime, timerVM.IntervalTime);
             if (result?.IsConfirmed is true)
             {
                 var timerInfo = timerVM.PeriodicTimerRunningInfo;

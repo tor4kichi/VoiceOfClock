@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using I18NPortable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,4 +66,15 @@ public partial class PeriodicTimerViewModel : ObservableObject
     private string _title;
 
     public ICommand DeleteCommand { get; }
+
+
+    public string LocalizeTime(TimeSpan timeSpan)
+    {
+        return "Time_Hours_Minutes".Translate(timeSpan.Minutes, timeSpan.Hours);
+    }
+
+    public string LocalizeIntervalTime(TimeSpan timeSpan)
+    {
+        return "IntervalTime_PerMinutes".Translate(timeSpan.TotalMinutes);
+    }
 }

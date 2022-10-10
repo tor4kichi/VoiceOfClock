@@ -47,7 +47,7 @@
         <Grid x:Name="Grid_Content">
           <StackPanel Spacing="8" HorizontalAlignment="Left">
             <TextBlock x:Name="TextBlock_Time" FontSize="40" FontWeight="SemiBold" TextLineBounds="Tight" VerticalAlignment="Stretch" >
-                <Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', StartTime.Minutes), Mode=OneWay}" /> - <Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Hours), Mode=OneWay}" />:<Run Text="{x:Bind sys:String.Format('{0:d2}', EndTime.Minutes), Mode=OneWay}" />
+                <Run Text="{x:Bind LocalizeTime(StartTime), Mode=OneWay}" /> - <Run Text="{x:Bind LocalizeTime(EndTime), Mode=OneWay}" />
             </TextBlock>
 
             <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7">
@@ -70,7 +70,7 @@
           </StackPanel>
 
           <TextBlock x:Name="TextBlock_TimerIntervalTime" HorizontalAlignment="Right" Margin="0 40 0 0" FontSize="24">
-            <Run Text="{x:Bind IntervalTime.TotalMinutes, Mode=OneWay}" />分毎に
+            <Run Text="{x:Bind LocalizeIntervalTime(IntervalTime), Mode=OneWay}" />
           </TextBlock>
 
           <ToggleSwitch x:Name="ToggleSwitch_IsEnabled" HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
@@ -120,8 +120,8 @@
           <Setter Property="ContextFlyout">
             <Setter.Value>
               <MenuFlyout x:Name="MenuFlyout_TimerItem" Opening="MenuFlyout_TimerItem_Opening">
-                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerEdit" Text="編集" Icon="Edit" Command="{x:Bind _vm.EditTimerCommand}" CommandParameter="{Binding}" />
-                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerDelete" Text="削除" Icon="Delete" Command="{x:Bind _vm.DeleteTimerCommand}" CommandParameter="{Binding}" />
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerEdit" Text="{i18n:Localize Key=Edit}" Icon="Edit" Command="{x:Bind _vm.EditTimerCommand}" CommandParameter="{Binding}" />
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_TimerDelete" Text="{i18n:Localize Key=Delete}" Icon="Delete" Command="{x:Bind _vm.DeleteTimerCommand}" CommandParameter="{Binding}" />
               </MenuFlyout>
             </Setter.Value>
           </Setter>
@@ -157,30 +157,41 @@
                       <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="時間" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                    <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
                     </TextBlock>
-                    <TextBlock Text="分" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                    <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
                     </TextBlock>
                   </Grid>
                 </Grid>
               </StackPanel>
 
               <StackPanel VerticalAlignment="Center">
-                <Button Content="時報を開始" 
+                <Button 
                     x:Name="Button_ImmidiateStart"
                         Command="{x:Bind _vm.StartImmidiateTimerCommand}"
                         CommandParameter="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=OneWay}"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
                         Visibility="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
-                    />
+                    >
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <SymbolIcon Symbol="Play">
+                      
+                    </SymbolIcon>
 
-                <Button Content="時報を停止"
-                    x:Name="Button_ImmidiateStop"
+                    <TextBlock Text="{i18n:Localize Key=InstantPeriodicTimer_Start}" />
+                  </StackPanel>
+                </Button>
+
+                <Button x:Name="Button_ImmidiateStop"
                     Command="{x:Bind _vm.StopImmidiateTimerCommand}"
                     Style="{ThemeResource AccentButtonStyle}"  HorizontalAlignment="Stretch"                    
                     Visibility="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                     >
 
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <SymbolIcon Symbol="Pause" />
+                    <TextBlock Text="{i18n:Localize Key=InstantPeriodicTimer_End}" />
+                  </StackPanel>
                 </Button>
               </StackPanel>
 
@@ -188,7 +199,7 @@
                 <TextBlock x:Name="TextBlock_ImmidiateElapsedTime" 
                            Opacity="0.7"
                            >
-                  <Run Text="経過" /> <Run Text="{x:Bind _vm.ConvertElapsedTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.ElapsedTime), Mode=OneWay}" />
+                  <Run Text="{i18n:Localize Key=Elapsed}" /> <Run Text="{x:Bind _vm.ConvertElapsedTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.ElapsedTime), Mode=OneWay}" />
                 </TextBlock>
                 
                 <StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right">
@@ -208,7 +219,7 @@
             </StackPanel>
           </Grid>
 
-          <TextBlock Text="スケジュールされた時報" Style="{StaticResource SubtitleTextBlockStyle}" Margin="8 0"
+          <TextBlock Text="{i18n:Localize Key=ScheduledPeriodicTimer}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="8 0"
                      x:Name="TextBlock_ScheduleTitle"
                      />
         </StackPanel>

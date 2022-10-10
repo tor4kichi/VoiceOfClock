@@ -4,6 +4,47 @@
 Start = 開始
 End = 終了
 
+Save = 保存
+Cancel = キャンセル
+Edit = 編集
+Delete = 削除
+
+UnitOfMonth = 月
+UnitOfDay = 日
+UnitOfHour = 時間
+UnitOfMinute = 分
+UnitOfSecond = 秒
+
+Elapsed = 経過
+
+NotSelected = 未選択
+
+#### Settings 
+
+Settings = 設定
+AboutThiApplication = このアプリについて
+SendFeedback = フィードバックを送信
+ProjectSite = プロジェクトサイト
+
+
+Speech = 読み上げ
+
+SpeechSettings_Title = 話者の設定
+SpeechSettings_Description = 合成音声、話速、ピッチ
+SpeechRate = 話速
+SpeechPitch = ピッチ
+SpeechActor = 話者
+
+SpeechSource_WindowsMedia = Windows.Media
+SpeechSource_SystemSpeech = System.Speech
+VoiceInfomation_Language_Name_SpeechSource = {0} - {1} - {2}
+
+
+#### App Menu
+
+AlermMenuTitle = アラーム
+TimerMenuTitle = タイマー
+PeriodicTimerMenuTitle = 時刻読み上げ
 
 
 #### Periodic Timer 
@@ -17,3 +58,23 @@ ElapsedTime_Minutes_Seconds = {1:d2}分{0:d2}秒
 ElapsedTime_Seconds = {0:d2}秒
 
 DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
+
+InstantPeriodicTimer_Start = 時報を開始
+InstantPeriodicTimer_End = 時報を終了 
+
+Time_Hours_Minutes = {1:d2}:{0:d2}
+
+IntervalTime_PerHours = {0:#}時間毎に
+IntervalTime_PerMinutes = {0:#}分毎に
+IntervalTime_PerSeconds = {0:#}秒毎に
+IntervalTime_PerHoursAndMinutes = {1:#}時間 {1:#}分毎に
+
+ScheduledPeriodicTimer = スケジュールされた時報
+
+
+PeriodicTimerInterval_Title = 時報の間隔
+PeriodicTimerLabel_Title = ラベル
+PeriodicTimerLabel_Placeholder = 例）朝の時報
+
+PeriodicTimerEditDialog_Title = タイマーを編集
+PeriodicTimerAddDialog_Title = タイマーを追加
