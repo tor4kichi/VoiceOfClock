@@ -6,33 +6,55 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-    mc:Ignorable="d">
-  
-  <Grid>
+    mc:Ignorable="d"
+  xmlns:tkTiggers="using:CommunityToolkit.WinUI.UI.Triggers"
+  >
+
+  <Grid Background="{ThemeResource SolidBackgroundFillColorBase}">
     <Grid.Resources>
       <ResourceDictionary>
         <ResourceDictionary.ThemeDictionaries>
           <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SystemChromeMediumColor}" />
-            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemChromeMediumColor}" />
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
           </ResourceDictionary>
           <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SystemChromeMediumColor}" />
-            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SystemChromeMediumColor}" />
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
           </ResourceDictionary>
         </ResourceDictionary.ThemeDictionaries>
+
+        <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+        <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
       </ResourceDictionary>
     </Grid.Resources>
     
-    <NavigationView     
-      Background="{ThemeResource ApplicationContentBackgroundBrush}"
+    <NavigationView 
+      x:Name="MyNavigationView"
       IsBackButtonVisible="Collapsed"
       ItemInvoked="NavigationView_ItemInvoked"      
+      CornerRadius="0"
+      OpenPaneLength="300"          
+      IsPaneToggleButtonVisible="False"
+      PaneDisplayMode="Auto"                    
+      DisplayModeChanged="MyNavigationView_DisplayModeChanged"
       >
       <NavigationView.MenuItems>
-        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed" />
-        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed" />
-        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped" />
+        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
+        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
+        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
       </NavigationView.MenuItems>
       <NavigationView.Content>
         <Frame x:Name="ContentFrame" CacheSize="5" />

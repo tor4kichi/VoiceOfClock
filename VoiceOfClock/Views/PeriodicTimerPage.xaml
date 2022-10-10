@@ -15,7 +15,7 @@
   xmlns:behaviors="using:CommunityToolkit.WinUI.UI.Behaviors"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
   mc:Ignorable="d"
-  Background="{ThemeResource ApplicationContentBackgroundBrush}"
+  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
   >
 
   <Page.Resources>

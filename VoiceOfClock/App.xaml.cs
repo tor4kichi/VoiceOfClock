@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI.UI.Helpers;
 using DryIoc;
 using I18NPortable;
 using LiteDB;
@@ -35,7 +36,7 @@ public partial class App : Application
 {
     public new static App Current => (App)Application.Current;
 
-    public Container Container { get; }
+    public Container Container { get; }    
 
     private readonly ImmutableArray<IApplicationLifeCycleAware> _lifeCycleAwareInstances;
 
@@ -62,6 +63,7 @@ public partial class App : Application
         container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={Path.Combine(ApplicationData.Current.LocalFolder.Path, "user.db")}; Async=false;"));
 
         container.Register<TimerSettings>(reuse: new SingletonReuse());
+        container.Register<ApplicationSettings>(reuse: new SingletonReuse());
 
         container.Register<TimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<VoicePlayer>(reuse: new SingletonReuse());
@@ -94,8 +96,8 @@ public partial class App : Application
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
             .SetNotFoundSymbol("🍣")
-            ;
-    }    
+            ;        
+    }
 
     /// <summary>
     /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -117,7 +119,14 @@ public partial class App : Application
     }
 
     private MainWindow _window;
-    
+
+    public ElementTheme WindowContentRequestedTheme
+    {
+        get => (_window.Content as FrameworkElement).RequestedTheme;
+        set => (_window.Content as FrameworkElement).RequestedTheme = value;
+    }
+
+
     public void InitializeWithWindow(object target)
     {
         var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);

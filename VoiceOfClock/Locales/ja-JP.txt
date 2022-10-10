@@ -35,9 +35,14 @@ SpeechRate = 話速
 SpeechPitch = ピッチ
 SpeechActor = 話者
 
-SpeechSource_WindowsMedia = Windows.Media
-SpeechSource_SystemSpeech = System.Speech
-VoiceInfomation_Language_Name_SpeechSource = {0} - {1} - {2}
+VoiceInfomationDisplayName = {0} - {1}
+
+
+GeneralSettings = 一般
+ColorTheme = アプリ テーマ
+ElementTheme.Default = デフォルト
+ElementTheme.Light = ライト
+ElementTheme.Dark = ダーク
 
 
 #### App Menu

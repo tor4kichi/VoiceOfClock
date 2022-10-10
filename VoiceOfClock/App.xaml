@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:VoiceOfClock" 
   xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters"
-  xmlns:myDialog="using:VoiceOfClock.Views.Dialogs"
+  xmlns:myDialog="using:VoiceOfClock.Views.Dialogs"  
   >
   <Application.Resources>
     <ResourceDictionary>
@@ -22,13 +22,15 @@
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
           <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
-          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemBaseMediumLowColor}" Opacity="0.1" />
+          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
+          <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
           <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
-          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemBaseMediumLowColor}" Opacity="0.1" />
+          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemChromeAltMediumHighColor}"  />
+          <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 

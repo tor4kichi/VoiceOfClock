@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Helpers;
+using CommunityToolkit.WinUI.UI.Helpers;
 using I18NPortable;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Reactive.Bindings;
@@ -29,6 +31,7 @@ namespace VoiceOfClock.ViewModels
     public sealed partial class SettingsPageViewModel : ObservableRecipient
     {
         private readonly TimerSettings _timerSettings;
+        private readonly ApplicationSettings _applicationSettings;
 
         public string AppName { get; }
         public string AppVersion { get; }
@@ -36,12 +39,13 @@ namespace VoiceOfClock.ViewModels
 
         public SettingsPageViewModel(
             IMessenger messenger,
-            TimerSettings timerSettings
+            TimerSettings timerSettings,
+            ApplicationSettings applicationSettings
             )
             : base(messenger)
         {
             _timerSettings = timerSettings;
-
+            _applicationSettings = applicationSettings;
             AppName = Package.Current.DisplayName;
             AppVersion = Package.Current.Id.Version.ToFormattedString(4);
         }
@@ -52,11 +56,29 @@ namespace VoiceOfClock.ViewModels
             {
                 new SettingHeader("Speech".Translate()),
                 CreateSpeechSettingContent(),
+                new SettingHeader("GeneralSettings".Translate()),
+                CreateAppearanceColorThemeSettingContent(),
             };
 
             InitializeItemContainerPosition(Items);
 
             base.OnActivated();
+        }
+
+        private ISettingContent CreateAppearanceColorThemeSettingContent()
+        {
+            var themeItems = new[]
+            {
+                ElementTheme.Default,
+                ElementTheme.Light,
+                ElementTheme.Dark,
+            }
+            .Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString()))
+            .ToList();
+
+            using var themeListener = new ThemeListener();
+            var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
+            return CreateComboBoxContent(themeItems, currentThemeItem, (theme) => _applicationSettings.Theme = App.Current.WindowContentRequestedTheme = (ElementTheme)theme.Source, label: "ColorTheme".Translate());
         }
 
         protected override void OnDeactivated()
@@ -208,7 +230,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return "VoiceInfomation_Language_Name_SpeechSource".Translate(Language, Name, "SpeechSource_WindowsMedia".Translate());
+            return "VoiceInfomationDisplayName".Translate(Name, Language);
         }
     }
 
@@ -231,7 +253,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return "VoiceInfomation_Language_Name_SpeechSource".Translate(Language, Name, "SpeechSource_SystemSpeech".Translate());
+            return "VoiceInfomationDisplayName".Translate(Name, Language);
         }
     }
 

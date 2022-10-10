@@ -8,8 +8,8 @@
   xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-  mc:Ignorable="d"
-  Background="{StaticResource ApplicationContentBackgroundBrush}"
+  mc:Ignorable="d"  
+  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     >
 
   <Page.Resources>
