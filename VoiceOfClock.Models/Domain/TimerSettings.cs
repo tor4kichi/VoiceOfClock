@@ -16,6 +16,8 @@ namespace VoiceOfClock.Models.Domain
             _speechActorId = Read("", nameof(SpeechActorId));
             _speechRate = Read(1.0d, nameof(SpeechRate));
             _speechPitch = Read(1.0d, nameof(SpeechPitch));
+            _isTimeSpeechWith24h = Read(true, nameof(IsTimeSpeechWith24h));
+            _useSsml = Read(true, nameof(UseSsml));
         }
 
         private TimeSpan _instantPeriodicTimerInterval;
@@ -25,14 +27,36 @@ namespace VoiceOfClock.Models.Domain
             set => SetProperty(ref _instantPeriodicTimerInterval, value);
         }
 
-
-
         private string _speechActorId;
         public string SpeechActorId
         {
             get => _speechActorId;
             set => SetProperty(ref _speechActorId, value);
         }
+
+        private bool _isTimeSpeechWith24h;
+
+        /// <summary>
+        /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
+        /// </summary>
+        public bool IsTimeSpeechWith24h
+        {
+            get => _isTimeSpeechWith24h;
+            set => SetProperty(ref _isTimeSpeechWith24h, value);
+        }
+
+
+        private bool _useSsml;
+
+        /// <summary>
+        /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
+        /// </summary>
+        public bool UseSsml
+        {
+            get => _useSsml;
+            set => SetProperty(ref _useSsml, value);
+        }
+
 
         public const double MinSpeechRate = 0.5d;
         public const double MaxSpeechRate = 4.0d;

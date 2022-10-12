@@ -23,6 +23,7 @@ using System.Speech.Synthesis;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.UseCases;
 using Windows.ApplicationModel;
 using Windows.Media.SpeechSynthesis;
 
@@ -132,11 +133,21 @@ namespace VoiceOfClock.ViewModels
                 _timerSettings.SpeechActorId = allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Language == CultureInfo.CurrentCulture.Name, allVoices.First()).Id;
             }
             var selectedVoice = allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
+
+
+            var speechWith24hComboBoxItems = new[] 
+            {
+                new ComboBoxSettingContentItem(true, "SpeechWith24h".Translate(), "true"),
+                new ComboBoxSettingContentItem(false, "SpeechWithAM_PM".Translate(), "false"),
+            };
             return new ExpanderSettingContent(new ISettingContent[]
             {
                 CreateComboBoxContent(allVoices, selectedVoice, (voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate()),
                 CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate()),
                 CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate()),
+                CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), x => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate()),
+                //CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"),
+                CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(new (DateTime.Now)))),
             }
             , label: "SpeechSettings_Title".Translate()
             , description: "SpeechSettings_Description".Translate()

@@ -34,9 +34,13 @@ SpeechSettings_Description = 合成音声、話速、ピッチ
 SpeechRate = 話速
 SpeechPitch = ピッチ
 SpeechActor = 話者
+IsTimeSpeechWith24h = 時間の読み方
+SpeechWith24h = 24時間
+SpeechWithAM_PM = 午前午後
 
 VoiceInfomationDisplayName = {0} - {1}
 
+SpeechSettingsTest = 音声をテスト
 
 GeneralSettings = 一般
 ColorTheme = アプリ テーマ
@@ -54,7 +58,11 @@ PeriodicTimerMenuTitle = 時刻読み上げ
 
 #### Periodic Timer 
 
-TimeOfDayToSpeechText = 時刻は {0}時 {1}分 です
+TimeOfDayToSpeechText = 時刻は {0} です
+TimeOfDayToSpeechText_Hour_Minute = {0}時 {1}分
+TimeOfDayToSpeechText_AMPM_Hour_Minute = {0}{1}時 {2}分
+Clock_AM = 午前
+Clock_PM = 午前
 
 
 ElapsedTime_Days_Hours_Minutes_Seconds = {3}日{2:d2}時間{1:d2}分{0:d2}秒

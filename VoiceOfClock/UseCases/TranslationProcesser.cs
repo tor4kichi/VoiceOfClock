@@ -16,10 +16,25 @@ namespace VoiceOfClock.UseCases
         }
 
 
-        public string TranslateTimeOfDay(DateTime time)
+        public string TranslateTimeOfDay(DateTime time, bool is24h)
         {
             TimeSpan timeOfDay = time.TimeOfDay;
-            return "TimeOfDayToSpeechText".Translate(timeOfDay.Hours, timeOfDay.Minutes);
+            if (is24h)
+            {
+                return "TimeOfDayToSpeechText_Hour_Minute".Translate(timeOfDay.Hours, timeOfDay.Minutes);
+            }
+            else
+            {                
+                if (timeOfDay.Hours < 12)
+                {
+                    return "TimeOfDayToSpeechText_AMPM_Hour_Minute".Translate("Clock_AM".Translate(), timeOfDay.Hours, timeOfDay.Minutes);
+                }
+                else
+                {
+                    return "TimeOfDayToSpeechText_AMPM_Hour_Minute".Translate("Clock_PM".Translate(), timeOfDay.Hours - 12, timeOfDay.Minutes);
+                }
+                
+            }
         }
     }
 }
