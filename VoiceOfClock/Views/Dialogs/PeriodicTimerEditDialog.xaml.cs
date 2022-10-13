@@ -45,7 +45,7 @@ namespace VoiceOfClock.Views.Dialogs
             TextBox_EditTitle.Text = timerTitle;
             TimePicker_StartTime.SelectedTime = startTime;
             TimePicker_EndTime.SelectedTime = endTime;
-            TimePicker_IntervalTime.SelectedTime = intervalTime;
+            TimePicker_IntervalTime.SelectedTime = intervalTime;            
 
             if (await base.ShowAsync() is ContentDialogResult.Primary)
             {

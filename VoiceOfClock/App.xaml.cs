@@ -112,7 +112,7 @@ public partial class App : Application
             item.Initialize();
         }
 
-        _window = new MainWindow();        
+        _window = new MainWindow();
         _window.Activate();
 
         _window.NavigateFirstPage(args.Arguments);
@@ -126,7 +126,6 @@ public partial class App : Application
         set => (_window.Content as FrameworkElement).RequestedTheme = value;
     }
 
-
     public void InitializeWithWindow(object target)
     {
         var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -136,5 +135,6 @@ public partial class App : Application
     public void InitializeDialog(ContentDialog dialog)
     {
         dialog.XamlRoot = _window.Content.XamlRoot;
+        dialog.RequestedTheme = WindowContentRequestedTheme;
     }
 }
