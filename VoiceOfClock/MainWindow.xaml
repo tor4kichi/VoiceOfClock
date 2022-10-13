@@ -7,10 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
     mc:Ignorable="d"
-  xmlns:tkTiggers="using:CommunityToolkit.WinUI.UI.Triggers"
+  xmlns:tkTiggers="using:CommunityToolkit.WinUI.UI.Triggers" 
+  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"  
   >
-
-  <Grid Background="{ThemeResource SolidBackgroundFillColorBase}">
+  <Grid Background="{ThemeResource SolidBackgroundFillColorBase}" >
+    
     <Grid.Resources>
       <ResourceDictionary>
         <ResourceDictionary.ThemeDictionaries>
@@ -26,39 +27,86 @@
 
         <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
         <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+
       </ResourceDictionary>
     </Grid.Resources>
+
+
+    <tkControls:DockPanel>
+      <tkControls:DockPanel x:Name="AppTitleBar" Height="32" VerticalAlignment="Top"          
+          tkControls:DockPanel.Dock="Top"      
+          Grid.Row="0"
+        >
+        <Button x:Name="Button_ToggleNavigationMenu" 
+              tkControls:DockPanel.Dock="Left"
+              Click="Button_ToggleNavigationMenu_Click"              
+              Background="Transparent"
+              BorderThickness="0"              
+              Height="28"
+              Width="40"
+              Margin="3 2"
+              Padding="0"
+              >
+          <SymbolIcon Symbol="GlobalNavigationButton" RenderTransformOrigin="0.5,0.5">
+            <SymbolIcon.RenderTransform>
+              <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+            </SymbolIcon.RenderTransform>
+          </SymbolIcon>
+        </Button>
+
+        <Grid x:Name="AppTitleBarDraggableArea">
+          <TextBlock x:Name="TextBlock_AppTitle"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Left"
+                  Margin="16 0"
+                  FontSize="13"
+                  />
+        </Grid>
+
+      </tkControls:DockPanel>
+
+      <NavigationView 
+    x:Name="MyNavigationView"
+      Grid.Row="1"
+    IsBackButtonVisible="Collapsed"
+    CornerRadius="0"
+    OpenPaneLength="300"          
+    IsPaneToggleButtonVisible="False"
+    PaneDisplayMode="Auto"                    
+    DisplayModeChanged="MyNavigationView_DisplayModeChanged"                   
+        IsSettingsVisible="False"
+    >
+        <NavigationView.MenuItems>
+          <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
+            <NavigationViewItem.Icon>
+              <SymbolIcon Symbol="Clock" />
+            </NavigationViewItem.Icon>
+          </NavigationViewItem>
+          <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
+            <NavigationViewItem.Icon>
+              <SymbolIcon Symbol="Clock" />
+            </NavigationViewItem.Icon>
+          </NavigationViewItem>
+          <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
+            <NavigationViewItem.Icon>
+              <SymbolIcon Symbol="Clock" />
+            </NavigationViewItem.Icon>
+          </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <NavigationView.FooterMenuItems>
+          <NavigationViewItem x:Name="NVI_Settings" Icon="Setting" Content="{i18n:Localize Key=Settings}" Tapped="NVI_Settings_Tapped" />
+        </NavigationView.FooterMenuItems>
+        
+        <NavigationView.Content>
+          <Frame x:Name="ContentFrame" CacheSize="5" />
+        </NavigationView.Content>
+      </NavigationView>
+
+
+    </tkControls:DockPanel>
+   
     
-    <NavigationView 
-      x:Name="MyNavigationView"
-      IsBackButtonVisible="Collapsed"
-      ItemInvoked="NavigationView_ItemInvoked"      
-      CornerRadius="0"
-      OpenPaneLength="300"          
-      IsPaneToggleButtonVisible="False"
-      PaneDisplayMode="Auto"                    
-      DisplayModeChanged="MyNavigationView_DisplayModeChanged"
-      >
-      <NavigationView.MenuItems>
-        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
-          <NavigationViewItem.Icon>
-            <SymbolIcon Symbol="Clock" />
-          </NavigationViewItem.Icon>
-        </NavigationViewItem>
-        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
-          <NavigationViewItem.Icon>
-            <SymbolIcon Symbol="Clock" />
-          </NavigationViewItem.Icon>
-        </NavigationViewItem>
-        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
-          <NavigationViewItem.Icon>
-            <SymbolIcon Symbol="Clock" />
-          </NavigationViewItem.Icon>
-        </NavigationViewItem>
-      </NavigationView.MenuItems>
-      <NavigationView.Content>
-        <Frame x:Name="ContentFrame" CacheSize="5" />
-      </NavigationView.Content>
-    </NavigationView>
   </Grid>
 </Window>

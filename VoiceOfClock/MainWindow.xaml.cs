@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.WinUI.Helpers;
 using CommunityToolkit.WinUI.UI.Helpers;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
@@ -32,6 +33,10 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();        
         (this.Content as FrameworkElement).RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme;
+        TextBlock_AppTitle.Text = SystemInformation.Instance.ApplicationName;
+
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBarDraggableArea);
     }
 
     public bool IsPageLoaded => ContentFrame.Content != null;
@@ -62,23 +67,29 @@ public sealed partial class MainWindow : Window
         Navigate(typeof(Views.PeriodicTimerPage), null);
     }
 
-    private void NavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+
+    private void NVI_Settings_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        if (args.IsSettingsInvoked)
-        {
-            Navigate(typeof(Views.SettingsPage), null);
-        }
+        Navigate(typeof(Views.SettingsPage), null);
     }
 
+
     private void MyNavigationView_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
-    {        
+    {
         if (args.DisplayMode == NavigationViewDisplayMode.Expanded)
         {
-            MyNavigationView.IsPaneToggleButtonVisible = false;
+            Button_ToggleNavigationMenu.Visibility = Visibility.Collapsed;
         }
         else
         {
-            MyNavigationView.IsPaneToggleButtonVisible = true;
+            Button_ToggleNavigationMenu.Visibility = Visibility.Visible;
         }
     }
+
+
+    private void Button_ToggleNavigationMenu_Click(object sender, RoutedEventArgs e)
+    {
+        MyNavigationView.IsPaneOpen = !MyNavigationView.IsPaneOpen;
+    }
+
 }

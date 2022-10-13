@@ -20,6 +20,7 @@
     <None Remove="Views\Dialogs\PeriodicTimerEditDialog.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\Styles\SettingsItemStyle.xaml" />
+    <None Remove="Views\Styles\WindowChromeStyle.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +68,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Models\VoiceOfClock.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Styles\WindowChromeStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Styles\SettingsItemStyle.xaml">

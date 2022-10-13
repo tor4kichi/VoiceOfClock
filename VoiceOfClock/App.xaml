@@ -11,6 +11,7 @@
       <ResourceDictionary.MergedDictionaries>
         <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
         <!-- Other merged dictionaries here -->
+        <ResourceDictionary Source="Views/Styles/WindowChromeStyle.xaml" />
         <ResourceDictionary Source="Views/Styles/SettingsItemStyle.xaml" />
         <ResourceDictionary Source="Views/Styles/ContentDialogButtonWithIconStylesDictionary.xaml" />
         <ResourceDictionary Source="Views/Styles/GridViewItemMicaStyle.xaml" />
@@ -33,7 +34,7 @@
           <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-
+      
       <uwpConverters:BoolNegationConverter x:Name="BoolNegationConverter" />
 
       <uwpConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -78,7 +79,7 @@
       <!-- bug on the ContentDialog derived -->
       <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
       <Style TargetType="myDialog:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
-      
+            
     </ResourceDictionary>
   </Application.Resources>
 </Application>
