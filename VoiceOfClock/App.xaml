@@ -23,14 +23,14 @@
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
           <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
-          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
+          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource CardBackgroundFillColorDefault}" />
           <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="ApplicationHeaderBackgroundBrush" Color="{ThemeResource SystemChromeMediumColor}" />
           <SolidColorBrush x:Key="ApplicationContentBackgroundBrush" Color="{ThemeResource SystemChromeMediumLowColor}" />
           <SolidColorBrush x:Key="MicaBorderBrush" Color="{ThemeResource SystemBaseLowColor}" />
-          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource SystemChromeAltMediumHighColor}"  />
+          <SolidColorBrush x:Key="MicaBackgroundBrush" Color="{ThemeResource CardBackgroundFillColorDefault}" />
           <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>

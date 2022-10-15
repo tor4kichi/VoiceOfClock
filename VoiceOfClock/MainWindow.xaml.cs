@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI.Helpers;
 using CommunityToolkit.WinUI.UI.Helpers;
+using DryIoc;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,7 +28,7 @@ namespace VoiceOfClock;
 /// <summary>
 /// An empty window that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class MainWindow : Window
+public sealed partial class MainWindow : SystemBackdropWindow
 {
     public MainWindow()
     {
@@ -37,8 +38,17 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBarDraggableArea);
+
+        if (TrySetSystemBackdrop() is false)
+        {
+            
+        }
     }
 
+    #region Backdrop
+
+
+    #endregion
     public bool IsPageLoaded => ContentFrame.Content != null;
 
 
@@ -78,11 +88,15 @@ public sealed partial class MainWindow : Window
     {
         if (args.DisplayMode == NavigationViewDisplayMode.Expanded)
         {
-            Button_ToggleNavigationMenu.Visibility = Visibility.Collapsed;
+            //Button_ToggleNavigationMenu.Visibility = Visibility.Collapsed;
+            MyNavigationView.IsPaneToggleButtonVisible = false;
+            AppTitleBarDraggableArea.Margin = new Thickness(16, 0, 0, 0);
         }
         else
         {
-            Button_ToggleNavigationMenu.Visibility = Visibility.Visible;
+            //Button_ToggleNavigationMenu.Visibility = Visibility.Visible;
+            MyNavigationView.IsPaneToggleButtonVisible = true;
+            AppTitleBarDraggableArea.Margin = new Thickness(60, 0, 0, 0);
         }
     }
 
@@ -91,5 +105,4 @@ public sealed partial class MainWindow : Window
     {
         MyNavigationView.IsPaneOpen = !MyNavigationView.IsPaneOpen;
     }
-
 }

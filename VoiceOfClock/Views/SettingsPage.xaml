@@ -8,8 +8,7 @@
   xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-  mc:Ignorable="d"  
-  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+  mc:Ignorable="d"    
     >
 
   <Page.Resources>
@@ -153,10 +152,12 @@
 
       <local:SettingContentDataTemplateSelector.ComboBoxSettingContent>
         <DataTemplate x:DataType="viewModels:ComboBoxSettingContent">
+          
           <ComboBox ItemsSource="{x:Bind Items}"    
                     SelectedItem="{x:Bind FirstSelect, Mode=OneTime}"
                     SelectionChanged="{x:Bind ComboBoxSelectionChanged}"
                     HorizontalAlignment="Right"
+                    Header="{x:Bind Description, Mode=OneWay}"
                     >
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="viewModels:ComboBoxSettingContentItem">

@@ -79,7 +79,13 @@ namespace VoiceOfClock.ViewModels
 
             using var themeListener = new ThemeListener();
             var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
-            return CreateComboBoxContent(themeItems, currentThemeItem, (theme) => _applicationSettings.Theme = App.Current.WindowContentRequestedTheme = (ElementTheme)theme.Source, label: "ColorTheme".Translate());
+
+            void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
+            {
+                _applicationSettings.Theme = (ElementTheme)selected.Source;
+                sender.Description = "ThemeApplyRequireRestartApp".Translate();
+            }
+            return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
         }
 
         protected override void OnDeactivated()
@@ -142,10 +148,10 @@ namespace VoiceOfClock.ViewModels
             };
             return new ExpanderSettingContent(new ISettingContent[]
             {
-                CreateComboBoxContent(allVoices, selectedVoice, (voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate()),
+                CreateComboBoxContent(allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate()),
                 CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate()),
                 CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate()),
-                CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), x => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate()),
+                CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), (s, x) => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate()),
                 //CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"),
                 CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(new (DateTime.Now)))),
             }
@@ -155,7 +161,7 @@ namespace VoiceOfClock.ViewModels
             );            
         }
 
-        static ISettingContent CreateComboBoxContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelection, Action<ComboBoxSettingContentItem> selectedAction, string label = "", string description = "")
+        static ISettingContent CreateComboBoxContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelection, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction, string label = "", string description = "")
         {
             return new SettingContentWithHeader(new ComboBoxSettingContent(items, firstSelection, selectedAction), label, description);
         }
@@ -486,9 +492,9 @@ namespace VoiceOfClock.ViewModels
         }
     }
 
-    public sealed partial class ComboBoxSettingContent : ISettingContent
+    public sealed partial class ComboBoxSettingContent : ObservableObject, ISettingContent
     {
-        public ComboBoxSettingContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelect, Action<ComboBoxSettingContentItem> selectedAction)
+        public ComboBoxSettingContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelect, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction)
         {
             Items = items;
             FirstSelect = firstSelect;
@@ -497,13 +503,23 @@ namespace VoiceOfClock.ViewModels
 
         public ICollection<ComboBoxSettingContentItem> Items { get; }
         public ComboBoxSettingContentItem FirstSelect { get; }
-        public Action<ComboBoxSettingContentItem> SelectedAction { get; }
+        public Action<ComboBoxSettingContent, ComboBoxSettingContentItem> SelectedAction { get; }
+
+        bool _skipOnFirst = true;
+
+        [ObservableProperty]
+        private string _description;
 
         public void ComboBoxSelectionChanged(object sender, SelectionChangedEventArgs args)
         {
             if (!args.AddedItems.Any()) { return; }
+            if (_skipOnFirst)
+            {
+                _skipOnFirst = false;
+                return;
+            }
 
-            SelectedAction(args.AddedItems[0] as ComboBoxSettingContentItem);
+            SelectedAction(this, args.AddedItems[0] as ComboBoxSettingContentItem);
         }
     }
 

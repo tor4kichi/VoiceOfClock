@@ -56,6 +56,7 @@ ColorTheme = アプリ テーマ
 ElementTheme.Default = デフォルト
 ElementTheme.Light = ライト
 ElementTheme.Dark = ダーク
+ThemeApplyRequireRestartApp = テーマ変更を適用するにはアプリを再起動します
 
 
 #### App Menu

@@ -1,27 +1,29 @@
-﻿<Window
-    x:Class="VoiceOfClock.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:VoiceOfClock"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+﻿<local:SystemBackdropWindow
+  x:Class="VoiceOfClock.MainWindow"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:VoiceOfClock"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:i="using:Microsoft.Xaml.Interactivity"
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-    mc:Ignorable="d"
+  mc:Ignorable="d"
   xmlns:tkTiggers="using:CommunityToolkit.WinUI.UI.Triggers" 
   xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"  
   >
-  <Grid Background="{ThemeResource SolidBackgroundFillColorBase}" >
-    
+  <Grid  >
+
     <Grid.Resources>
       <ResourceDictionary>
         <ResourceDictionary.ThemeDictionaries>
           <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
-            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" Opacity="0.5" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" Opacity="0.5"  />
           </ResourceDictionary>
           <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
-            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" Opacity="0.5" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource SolidBackgroundFillColorBase}" Opacity="0.2"  />
           </ResourceDictionary>
         </ResourceDictionary.ThemeDictionaries>
 
@@ -32,12 +34,59 @@
     </Grid.Resources>
 
 
-    <tkControls:DockPanel>
-      <tkControls:DockPanel x:Name="AppTitleBar" Height="32" VerticalAlignment="Top"          
+
+
+    <NavigationView
+      x:Name="MyNavigationView"
+      Grid.Row="1"
+      IsBackButtonVisible="Collapsed"
+      CornerRadius="0"
+      OpenPaneLength="300"          
+      IsPaneToggleButtonVisible="True"
+      PaneDisplayMode="Auto"                    
+      DisplayModeChanged="MyNavigationView_DisplayModeChanged"                   
+      IsSettingsVisible="False"          
+      >
+
+      <NavigationView.PaneHeader>
+        <Border x:Name="PaneContent" Margin="0 32 0 0" />
+      </NavigationView.PaneHeader>
+      
+      <NavigationView.MenuItems>
+        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
+        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
+        <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
+          <NavigationViewItem.Icon>
+            <SymbolIcon Symbol="Clock" />
+          </NavigationViewItem.Icon>
+        </NavigationViewItem>
+      </NavigationView.MenuItems>
+
+      <NavigationView.FooterMenuItems>
+        <NavigationViewItem x:Name="NVI_Settings" Icon="Setting" Content="{i18n:Localize Key=Settings}" Tapped="NVI_Settings_Tapped" />
+      </NavigationView.FooterMenuItems>
+
+      <NavigationView.Content>
+        <Frame x:Name="ContentFrame" CacheSize="5" Margin="0 32 0 0" />
+      </NavigationView.Content>
+    </NavigationView>
+
+
+
+
+    <tkControls:DockPanel x:Name="AppTitleBar" Height="32" VerticalAlignment="Top"          
           tkControls:DockPanel.Dock="Top"      
-          Grid.Row="0"
+          Grid.Row="0"                            
         >
-        <Button x:Name="Button_ToggleNavigationMenu" 
+      <Button x:Name="Button_ToggleNavigationMenu" 
               tkControls:DockPanel.Dock="Left"
               Click="Button_ToggleNavigationMenu_Click"              
               Background="Transparent"
@@ -46,67 +95,26 @@
               Width="40"
               Margin="3 2"
               Padding="0"
+              Visibility="Collapsed"
               >
-          <SymbolIcon Symbol="GlobalNavigationButton" RenderTransformOrigin="0.5,0.5">
-            <SymbolIcon.RenderTransform>
-              <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
-            </SymbolIcon.RenderTransform>
-          </SymbolIcon>
-        </Button>
+        <SymbolIcon Symbol="GlobalNavigationButton" RenderTransformOrigin="0.5,0.5">
+          <SymbolIcon.RenderTransform>
+            <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+          </SymbolIcon.RenderTransform>
+        </SymbolIcon>
+      </Button>
 
-        <Grid x:Name="AppTitleBarDraggableArea">
-          <TextBlock x:Name="TextBlock_AppTitle"
+      <Grid x:Name="AppTitleBarDraggableArea">
+        <TextBlock x:Name="TextBlock_AppTitle"
                   Grid.Column="2"
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Left"
-                  Margin="16 0"
+                  VerticalAlignment="Bottom"
+                  HorizontalAlignment="Left"                  
                   FontSize="13"
                   />
-        </Grid>
-
-      </tkControls:DockPanel>
-
-      <NavigationView 
-    x:Name="MyNavigationView"
-      Grid.Row="1"
-    IsBackButtonVisible="Collapsed"
-    CornerRadius="0"
-    OpenPaneLength="300"          
-    IsPaneToggleButtonVisible="False"
-    PaneDisplayMode="Auto"                    
-    DisplayModeChanged="MyNavigationView_DisplayModeChanged"                   
-        IsSettingsVisible="False"
-    >
-        <NavigationView.MenuItems>
-          <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
-            <NavigationViewItem.Icon>
-              <SymbolIcon Symbol="Clock" />
-            </NavigationViewItem.Icon>
-          </NavigationViewItem>
-          <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
-            <NavigationViewItem.Icon>
-              <SymbolIcon Symbol="Clock" />
-            </NavigationViewItem.Icon>
-          </NavigationViewItem>
-          <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
-            <NavigationViewItem.Icon>
-              <SymbolIcon Symbol="Clock" />
-            </NavigationViewItem.Icon>
-          </NavigationViewItem>
-        </NavigationView.MenuItems>
-
-        <NavigationView.FooterMenuItems>
-          <NavigationViewItem x:Name="NVI_Settings" Icon="Setting" Content="{i18n:Localize Key=Settings}" Tapped="NVI_Settings_Tapped" />
-        </NavigationView.FooterMenuItems>
-        
-        <NavigationView.Content>
-          <Frame x:Name="ContentFrame" CacheSize="5" />
-        </NavigationView.Content>
-      </NavigationView>
-
+      </Grid>
 
     </tkControls:DockPanel>
-   
-    
+
+
   </Grid>
-</Window>
+</local:SystemBackdropWindow>
