@@ -11,13 +11,27 @@ namespace VoiceOfClock.UseCases
 {
     public sealed class TranslationProcesser 
     {
+        private readonly II18N _localize;
+
         public TranslationProcesser()
         {
+            _localize = new I18N().Init(typeof(App).Assembly)
+                .SetFallbackLocale("en-US")
+                .SetNotFoundSymbol("🍣")
+#if DEBUG
+                .SetThrowWhenKeyNotFound(true)
+#endif
+                ;
         }
 
+        public void SetLocale(string language)
+        {
+            _localize.Locale = language;
+        }
 
         public string TranslateTimeOfDay(DateTime time, bool is24h)
         {
+            
             TimeSpan timeOfDay = time.TimeOfDay;
             if (is24h)
             {
@@ -35,6 +49,17 @@ namespace VoiceOfClock.UseCases
                 }
                 
             }
+        }
+
+
+        public string Translate(string key)
+        {
+            return _localize.Translate(key);
+        }
+
+        public string Translate(string key, params object[] args)
+        {
+            return _localize.Translate(key, args);
         }
     }
 }

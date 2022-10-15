@@ -1,4 +1,13 @@
 ﻿
+#### Voice Reading
+
+TimeOfDayToSpeechText = 時刻は {0} です
+TimeOfDayToSpeechText_Hour_Minute = {0}時 {1}分
+TimeOfDayToSpeechText_AMPM_Hour_Minute = {0}{1}時 {2}分
+TimeOfDayToSpeechTextForSSML_AMPM_Hour_Minute = {1}:{2} {0}
+Clock_AM = 午前
+Clock_PM = 午前
+
 #### Generic 
 
 Start = 開始
@@ -58,13 +67,6 @@ PeriodicTimerMenuTitle = 時刻読み上げ
 
 #### Periodic Timer 
 
-TimeOfDayToSpeechText = 時刻は {0} です
-TimeOfDayToSpeechText_Hour_Minute = {0}時 {1}分
-TimeOfDayToSpeechText_AMPM_Hour_Minute = {0}{1}時 {2}分
-Clock_AM = 午前
-Clock_PM = 午前
-
-
 ElapsedTime_Days_Hours_Minutes_Seconds = {3}日{2:d2}時間{1:d2}分{0:d2}秒
 ElapsedTime_Hours_Minutes_Seconds = {2:d2}時間{1:d2}分{0:d2}秒
 ElapsedTime_Minutes_Seconds = {1:d2}分{0:d2}秒
@@ -91,3 +93,4 @@ PeriodicTimerLabel_Placeholder = 例）朝の時報
 
 PeriodicTimerEditDialog_Title = タイマーを編集
 PeriodicTimerAddDialog_Title = タイマーを追加
+

@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI;
-using I18NPortable;
 using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.Generic;
@@ -29,6 +28,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 {
     private readonly SystemVoicePlayer _systemVoicePlayer;
     private readonly WindowsVoicePlayer _windowsVoicePlayer;
+    private readonly TranslationProcesser _translationProcesser;
     private readonly IMessenger _messenger;
     private readonly TimerSettings _timerSettings;
     private readonly IVoicePlayer[] _supportedVoicePlayers;
@@ -38,12 +38,14 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
     public VoicePlayer(
         SystemVoicePlayer systemVoicePlayer, 
         WindowsVoicePlayer windowsVoicePlayer,
+        TranslationProcesser translationProcesser,
         IMessenger messenger,
         TimerSettings timerSettings
         )
     {
         _systemVoicePlayer = systemVoicePlayer;
         _windowsVoicePlayer = windowsVoicePlayer;
+        _translationProcesser = translationProcesser;
         _messenger = messenger;
         _timerSettings = timerSettings;
 
@@ -77,42 +79,56 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
         {
             _timerSettings.SpeechActorId = "";
             currentVoicePlayer = FallbackVoicePlayer;
+            voiceId = null;
         }
+
+        string voiceLanguage = currentVoicePlayer.SetVoice(voiceId);
+        CultureInfo cutureInfo = CultureInfo.GetCultureInfo(voiceLanguage);
+
+        _translationProcesser.SetLocale(voiceLanguage);
 
         if (_timerSettings.UseSsml)
         {
-            message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(request.Time, voiceId, _timerSettings.IsTimeSpeechWith24h, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+            if (currentVoicePlayer is SystemVoicePlayer)
+            {
+                string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", SsmlHelpers.ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat)), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+            }
+            else if (currentVoicePlayer is WindowsVoicePlayer)
+            {
+                string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", SsmlHelpers.ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat)), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+            }            
         }
         else
         {
-            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(request.Time, voiceId, _timerSettings.IsTimeSpeechWith24h, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+            string speechData = _translationProcesser.Translate("TimeOfDayToSpeechText", _translationProcesser.TranslateTimeOfDay(request.Time, _timerSettings.IsTimeSpeechWith24h));
+            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
         }
     }
 }
 
 public interface IVoicePlayer
 {
+    IReadOnlyCollection<string> GetAllVoiceId();
     bool CanPlayVoice(string voiceId);
-    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(DateTime time, string voiceId = null, bool is24h = true, double speechRate = 1, double speechPitch = 1);
-    Task<PlayVoiceResult> PlayVoiceWithTextAsync(DateTime time, string voiceId = null, bool is24h = true, double speechRate = 1, double speechPitch = 1);
+    string SetVoice(string voiceId);
+    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1);
+    Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1);
 }
 
 public class SystemVoicePlayer : IVoicePlayer
 {
-    private readonly TranslationProcesser _translationProcesser;
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly SystemSpeechSynthesizer _speechSynthesiser;
     private readonly Dictionary<string, InstalledVoice> _installedVoices;
 
-    public SystemVoicePlayer(
-        TranslationProcesser translationProcesser
-        )
+    public SystemVoicePlayer()
     {
-        _translationProcesser = translationProcesser;
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _speechSynthesiser = new SystemSpeechSynthesizer();
 
-        _installedVoices = _speechSynthesiser.GetInstalledVoices().ToDictionary(x => x.VoiceInfo.Id);
+        _installedVoices = _speechSynthesiser.GetInstalledVoices().Where(x => x.Enabled).ToDictionary(x => x.VoiceInfo.Id);
     }
 
     public bool CanPlayVoice(string voiceId)
@@ -120,43 +136,24 @@ public class SystemVoicePlayer : IVoicePlayer
         return _installedVoices.ContainsKey(voiceId);
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(DateTime dateTime, string voiceId = null, bool is24h = true, double speechRate = 1.0, double speechPitch = 1.0)
+    public IReadOnlyCollection<string> GetAllVoiceId()
     {
-        _installedVoices.TryGetValue(voiceId, out var voice);
-        string speechData = SsmlHelpers.ToSsml1_0Format("TimeOfDayToSpeechText".Translate(SsmlHelpers.ToSsmlTimeFormat_HM(dateTime, is24h)), speechRate, speechPitch, voice.VoiceInfo.Culture.Name);
-
-        try
-        {
-            return await _dispatcherQueue.EnqueueAsync(async () =>
-            {
-                var speakCompletedObservable = Observable.FromEventPattern<SpeakCompletedEventArgs>(
-                    h => _speechSynthesiser.SpeakCompleted += h,
-                    h => _speechSynthesiser.SpeakCompleted -= h
-                    ).Take(1);
-
-                if (voice is not null)
-                {
-                    _speechSynthesiser.SelectVoice(voice.VoiceInfo.Name);
-                }
-
-                var p = _speechSynthesiser.SpeakSsmlAsync(speechData);
-
-                await speakCompletedObservable;
-
-                return PlayVoiceResult.Success();
-            });
-        }
-        catch
-        {
-            return await PlayVoiceWithTextAsync(dateTime, voiceId, is24h, speechRate, speechPitch);
-        }
+        return _installedVoices.Keys;
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(DateTime dateTime, string voiceId = null, bool is24h = true, double speechRate = 1.0, double speechPitch = 1.0)
+    public string SetVoice(string voiceId)
     {
-        _installedVoices.TryGetValue(voiceId, out var voice);
-        string speechData = "TimeOfDayToSpeechText".Translate(_translationProcesser.TranslateTimeOfDay(dateTime, is24h));
+        if(_installedVoices.TryGetValue(voiceId, out var voice) is false)
+        {
+            voice = _installedVoices.First().Value;
+        }
 
+        _speechSynthesiser.SelectVoice(voice.VoiceInfo.Name);
+        return voice.VoiceInfo.Culture.Name;
+    }
+
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1)
+    {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
             var speakCompletedObservable = Observable.FromEventPattern<SpeakCompletedEventArgs>(
@@ -164,31 +161,50 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
 
-            if (voice is not null)
-            {
-                _speechSynthesiser.SelectVoice(voice.VoiceInfo.Name);
-            }
-
-            if (speechRate < 1.0)
-            {
-                // 0.5を-10 0.9を -2   0.0 を0
-                _speechSynthesiser.Rate = -(int)Math.Floor((1.0 - speechRate) * 20);
-            }
-            else if (speechRate > 1.0)
-            {
-                // 2.0 を10 1.5 を5 
-                _speechSynthesiser.Rate = Math.Clamp((int)Math.Floor((speechRate - 1.0) * 10), -10, 10);
-            }
-
-            var p = _speechSynthesiser.SpeakAsync(speechData);
+            SetupSpeechSynsesiser(speechRate, speechPitch);
+            var p = _speechSynthesiser.SpeakAsync(content);
 
             await speakCompletedObservable;
 
             return PlayVoiceResult.Success();
         });
-
     }
 
+
+
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1)
+    {
+        return await _dispatcherQueue.EnqueueAsync(async () =>
+        {
+            var speakCompletedObservable = Observable.FromEventPattern<SpeakCompletedEventArgs>(
+                h => _speechSynthesiser.SpeakCompleted += h,
+                h => _speechSynthesiser.SpeakCompleted -= h
+                ).Take(1);
+
+            SetupSpeechSynsesiser(speechRate, speechPitch);
+
+            var p = _speechSynthesiser.SpeakSsmlAsync(content);
+
+            await speakCompletedObservable;
+
+            return PlayVoiceResult.Success();
+        });
+    }
+
+
+    private void SetupSpeechSynsesiser(double speechRate, double speechPitch)
+    {
+        if (speechRate < 1.0)
+        {
+            // 0.5を-10 0.9を -2   0.0 を0
+            _speechSynthesiser.Rate = -(int)Math.Floor((1.0 - speechRate) * 20);
+        }
+        else if (speechRate > 1.0)
+        {
+            // 2.0 を10 1.5 を5 
+            _speechSynthesiser.Rate = Math.Clamp((int)Math.Floor((speechRate - 1.0) * 10), -10, 10);
+        }
+    }
 
 
     //async ValueTask PlayOrAddQueueMediaSource(MediaSource source)
@@ -249,55 +265,61 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         return _allVoices.ContainsKey(voiceId);
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(DateTime dateTime, string voiceId = null, bool is24h = true, double speechRate = 1.0, double speechPitch = 1.0)
+    public IReadOnlyCollection<string> GetAllVoiceId()
     {
-        _allVoices.TryGetValue(voiceId, out VoiceInformation voiceInfo);
+        return _allVoices.Keys;
+    }
 
-        string speechData = SsmlHelpers.ToSsml1_1Format("TimeOfDayToSpeechText".Translate(SsmlHelpers.ToSsmlTimeFormat_HM(dateTime, is24h)), speechRate, speechPitch, voiceInfo.Language);
+    public string SetVoice(string voiceId)
+    {
+        if (_allVoices.TryGetValue(voiceId, out var voice) is false)
+        {
+            voice = _allVoices.First().Value;
+        }
 
+        _currentVoiceInfo = voice;
+        return _currentVoiceInfo.Language;
+    }
+
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1)
+    {
         var stream = await Task.Run(async () =>
         {
             using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
             {
-                synthesizer.Voice = voiceInfo ?? _currentVoiceInfo;
-                return await synthesizer.SynthesizeSsmlToStreamAsync(speechData);
+                synthesizer.Voice = _currentVoiceInfo;
+                synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
+                synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
+                return await synthesizer.SynthesizeSsmlToStreamAsync(content);
             }
         });
-        try
+
+        return await _dispatcherQueue.EnqueueAsync(async () =>
         {
-            return await _dispatcherQueue.EnqueueAsync(async () =>
-            {                
-                await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType));
-                return PlayVoiceResult.Success();
-            });
-        }
-        catch
-        {
-            return await PlayVoiceWithTextAsync(dateTime, voiceId, is24h, speechRate, speechPitch);
-        }
+            await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType));
+            return PlayVoiceResult.Success();
+        });
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(DateTime dateTime, string voiceId = null, bool is24h = true, double speechRate = 1.0, double speechPitch = 1.0)
+
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1)
     {
-        _allVoices.TryGetValue(voiceId, out VoiceInformation voiceInfo);
-
-        string speechData = "TimeOfDayToSpeechText".Translate(_translationProcesser.TranslateTimeOfDay(dateTime, is24h));
-
         var stream = await Task.Run(async () =>
         {
             // https://learn.microsoft.com/ja-jp/uwp/api/windows.media.speechsynthesis.speechsynthesizeroptions?view=winrt-22621#properties
             using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
             {
-                synthesizer.Voice = voiceInfo ?? _currentVoiceInfo;
+                synthesizer.Voice = _currentVoiceInfo;
                 synthesizer.Options.SpeakingRate = Math.Clamp(speechRate, 0.5, 6.0);
                 synthesizer.Options.AudioPitch = Math.Clamp(speechPitch, 0.0, 2.0);
                 synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
-                return await synthesizer.SynthesizeTextToStreamAsync(speechData);
+                synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
+                return await synthesizer.SynthesizeTextToStreamAsync(content);
             }
         });
 
         return await _dispatcherQueue.EnqueueAsync(async () =>
-        {            
+        {
             await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType));
             return PlayVoiceResult.Success();
         });

@@ -1,0 +1,8 @@
+﻿
+#### Voice Reading
+
+TimeOfDayToSpeechText = It's {0}
+TimeOfDayToSpeechText_Hour_Minute = {0}:{1}
+TimeOfDayToSpeechText_AMPM_Hour_Minute = {1}:{2} {0}
+Clock_AM = AM
+Clock_PM = PM
