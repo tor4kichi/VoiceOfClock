@@ -5,12 +5,13 @@
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
-  IgnorableNamespaces="uap rescap uap3">
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  IgnorableNamespaces="uap rescap uap3 mp">
 
   <Identity
-    Name="556866ec-63f9-4558-a035-c2ef16024e70"
-    Publisher="CN=tor4k"
-    Version="1.0.1.0" />
+    Name="18803tor4kichi.475944D1EDD78"
+    Publisher="CN=DFF1CEA0-5963-4197-8676-6105C5E8CE4B"
+    Version="1.0.0.0" />
 
   <Properties>
     <DisplayName>VoiceOfClock</DisplayName>
@@ -52,4 +53,6 @@
     <rescap:Capability Name="runFullTrust" />
     <uap3:Capability Name="backgroundMediaPlayback"/>
   </Capabilities>
+
+  <mp:PhoneIdentity PhoneProductId="bba0c42c-0ade-4bec-bc25-681d859a8e89" PhonePublisherId="DFF1CEA0-5963-4197-8676-6105C5E8CE4B" />
 </Package>
