@@ -39,6 +39,8 @@ public sealed partial class MainWindow : SystemBackdropWindow
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBarDraggableArea);
 
+        Title = SystemInformation.Instance.ApplicationName;
+
         if (TrySetSystemBackdrop() is false)
         {
             
