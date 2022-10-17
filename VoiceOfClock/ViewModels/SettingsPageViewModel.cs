@@ -51,6 +51,16 @@ namespace VoiceOfClock.ViewModels
             AppVersion = Package.Current.Id.Version.ToFormattedString(4);
         }
 
+        protected override void OnDeactivated()
+        {
+            foreach (var item in Items)
+            {
+                (item as IDisposable)?.Dispose();
+            }
+
+            base.OnDeactivated();
+        }
+
         protected override void OnActivated()
         {
             Items = new ObservableCollection<ISettingContent>()
@@ -65,6 +75,9 @@ namespace VoiceOfClock.ViewModels
 
             base.OnActivated();
         }
+
+
+
 
         private ISettingContent CreateAppearanceColorThemeSettingContent()
         {
@@ -88,17 +101,6 @@ namespace VoiceOfClock.ViewModels
             return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
         }
 
-        protected override void OnDeactivated()
-        {
-            foreach (var item in Items)
-            {
-                (item as IDisposable)?.Dispose(); 
-            }            
-
-            base.OnDeactivated();
-        }
-
-        
 
         static void InitializeItemContainerPosition(IEnumerable<ISettingContent> items)
         {
