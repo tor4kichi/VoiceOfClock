@@ -278,7 +278,7 @@ namespace VoiceOfClock.UseCases
 
         async Task SendCurrentTimeVoiceAsync(DateTime time)
         {
-            var result = await _messenger.Send(new TimeOfDayPlayVoiceRequest(new(time)));            
+            var result = await _messenger.Send(new TimeOfDayPlayVoiceRequest(time));            
         }
 
         IEnumerable<PeriodicTimerRunningInfo> GetInsideEnablingTimeTimers()

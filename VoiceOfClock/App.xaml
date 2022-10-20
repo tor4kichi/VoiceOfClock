@@ -5,6 +5,8 @@
     xmlns:local="using:VoiceOfClock" 
   xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters"
   xmlns:myDialog="using:VoiceOfClock.Views.Dialogs"  
+  xmlns:views="using:VoiceOfClock.Views"
+  xmlns:i18n="using:I18NPortable.Converters"
   >
   <Application.Resources>
     <ResourceDictionary>
@@ -34,7 +36,9 @@
           <SolidColorBrush x:Key="MicaBackgroundPointerOverBrush" Color="{ThemeResource SystemChromeMediumHighColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      
+
+      <i18n:LocalizeConverter x:Name="LocalizeConverter" />
+
       <uwpConverters:BoolNegationConverter x:Name="BoolNegationConverter" />
 
       <uwpConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -79,7 +83,10 @@
       <!-- bug on the ContentDialog derived -->
       <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
       <Style TargetType="myDialog:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
-            
+      <Style TargetType="views:OneShotTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+      
+      
+      
     </ResourceDictionary>
   </Application.Resources>
 </Application>

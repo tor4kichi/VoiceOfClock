@@ -23,8 +23,10 @@ using SystemSpeechSynthesizer = System.Speech.Synthesis.SpeechSynthesizer;
 using WindowsSpeechSynthesizer = Windows.Media.SpeechSynthesis.SpeechSynthesizer;
 namespace VoiceOfClock.UseCases;
 
-public sealed class VoicePlayer : IApplicationLifeCycleAware,
-    IRecipient<TimeOfDayPlayVoiceRequest>
+public sealed class VoicePlayer : IApplicationLifeCycleAware,    
+    IRecipient<TimeOfDayPlayVoiceRequest>,
+    IRecipient<TextPlayVoiceRequest>,
+    IRecipient<SsmlPlayVoiceRequest>
 {
     private readonly SystemVoicePlayer _systemVoicePlayer;
     private readonly WindowsVoicePlayer _windowsVoicePlayer;
@@ -105,6 +107,41 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             string speechData = _translationProcesser.Translate("TimeOfDayToSpeechText", _translationProcesser.TranslateTimeOfDay(request.Time, _timerSettings.IsTimeSpeechWith24h));
             message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
         }
+    }
+
+    void IRecipient<TextPlayVoiceRequest>.Receive(TextPlayVoiceRequest message)
+    {
+        var request = message.Text;
+        string voiceId = _timerSettings.SpeechActorId;
+        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
+        if (currentVoicePlayer is null)
+        {
+            _timerSettings.SpeechActorId = "";
+            currentVoicePlayer = FallbackVoicePlayer;
+            voiceId = null;
+        }
+
+        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+    }
+
+    void IRecipient<SsmlPlayVoiceRequest>.Receive(SsmlPlayVoiceRequest message)
+    {
+        var request = message.Ssml;
+        string voiceId = _timerSettings.SpeechActorId;
+        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
+        if (currentVoicePlayer is null)
+        {
+            _timerSettings.SpeechActorId = "";
+            currentVoicePlayer = FallbackVoicePlayer;
+            voiceId = null;
+        }
+
+        string voiceLanguage = currentVoicePlayer.SetVoice(voiceId);
+        CultureInfo cutureInfo = CultureInfo.GetCultureInfo(voiceLanguage);
+
+        _translationProcesser.SetLocale(voiceLanguage);
+
+        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
     }
 }
 
@@ -411,12 +448,32 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
 
 public sealed class TimeOfDayPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
 {
-    public TimeOfDayPlayVoiceRequest(TimeOfDayPlayVoiceRequestData data)
+    public TimeOfDayPlayVoiceRequest(DateTime data)
     {
-        Data = data;
+        Data = new TimeOfDayPlayVoiceRequestData(data);
     }
 
     public TimeOfDayPlayVoiceRequestData Data { get; }
+}
+
+public sealed class TextPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
+{
+    public TextPlayVoiceRequest(string text)
+    {
+        Text = text;
+    }
+
+    public string Text { get; }
+}
+
+public sealed class SsmlPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
+{
+    public SsmlPlayVoiceRequest(string ssml)
+    {
+        Ssml = ssml;
+    }
+
+    public string Ssml { get; }
 }
 
 public sealed class PlayVoiceResult

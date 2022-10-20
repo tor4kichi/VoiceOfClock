@@ -1,0 +1,72 @@
+﻿<ContentDialog
+  x:Class="VoiceOfClock.Views.OneShotTimerEditDialog"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:VoiceOfClock.Views"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  xmlns:i="using:Microsoft.Xaml.Interactivity"
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
+  PrimaryButtonText="{i18n:Localize Key=Save}"
+  CloseButtonText="{i18n:Localize Key=Cancel}"
+  PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
+  CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"    
+  xmlns:models="using:VoiceOfClock.Models.Domain" xmlns:useCases="using:VoiceOfClock.UseCases" xmlns:sys="using:System" xmlns:x1="using:Microsoft.UI.Xaml">
+  <StackPanel Spacing="8">
+
+
+    <Grid>
+      <TimePicker x:Name="TimePicker_Time" SelectedTime="00:00:00" 
+                  LightDismissOverlayMode="On"
+                  HorizontalAlignment="Stretch"
+                  Header="{i18n:Localize Key=OneShotTimer_Duration}"                  
+                  >
+      </TimePicker>
+      <Grid HorizontalAlignment="Stretch" Opacity="0.5">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        </TextBlock>
+        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        </TextBlock>
+        <TextBlock Text="{i18n:Localize Key=UnitOfSecond}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        </TextBlock>
+      </Grid>
+    </Grid>
+
+    <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=OneShotTimerLabel_Placeholder}"
+                 Header="{i18n:Localize Key=OneShotTimerLabel_Title}"
+                 />
+
+    <ComboBox x:Name="ComboBox_SoundSourceType"
+      ItemsSource="{x:Bind _soundSourceTypes}"               
+              SelectionChanged="ComboBox_SoundSourceType_SelectionChanged"
+              Header="{i18n:Localize Key=SoundSourceType_SelectionTitle}"
+              >
+      <ComboBox.ItemTemplate>
+        <DataTemplate x:DataType="models:SoundSourceType">
+          <TextBlock Text="{x:Bind Converter={StaticResource LocalizeConverter}}" />
+        </DataTemplate>
+      </ComboBox.ItemTemplate>
+    </ComboBox>
+
+    <ComboBox x:Name="ComboBox_SoundSource_WindowsSystem" ItemsSource="{x:Bind _windowsSystemParameters}" Header="{i18n:Localize Key=SoundSource_Parameter_System}" 
+              SelectionChanged="ComboBox_SoundSource_WindowsSystem_SelectionChanged"
+              SelectionChangedTrigger="Always"
+              />
+    <TextBox x:Name="TextBox_SoundParameter_Tts" Header="{i18n:Localize Key=SoundSource_Parameter_Tts}" />
+    <TextBox x:Name="TextBox_SoundParameter_TtsWithSsml" Header="{i18n:Localize Key=SoundSource_Parameter_TtsWithSsml}" />
+
+    <Button x:Name="Button_TestPlaySound"
+            Content="{i18n:Localize Key=SpeechSettingsTest}"
+            Command="{x:Bind TestPlaySoundCommand}"
+            >
+      
+    </Button>
+  </StackPanel>
+</ContentDialog>

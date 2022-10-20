@@ -27,6 +27,7 @@
     <None Remove="Locales\ja-JP.txt" />
     <None Remove="Views\Controls\NumberBox.xaml" />
     <None Remove="Views\Dialogs\PeriodicTimerEditDialog.xaml" />
+    <None Remove="Views\OneShotTimerEditDialog.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\Styles\SettingsItemStyle.xaml" />
     <None Remove="Views\Styles\WindowChromeStyle.xaml" />
@@ -78,6 +79,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Models\VoiceOfClock.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\OneShotTimerEditDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Styles\WindowChromeStyle.xaml">

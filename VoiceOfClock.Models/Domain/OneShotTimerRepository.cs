@@ -15,6 +15,21 @@ public sealed class OneShotTimerRepository : LiteDBRepositoryBase<OneShotTimerEn
     }
 }
 
+public sealed class OneShotTimerRunningRepository : LiteDBRepositoryBase<OneShotTimerRunningEntity>
+{
+    public OneShotTimerRunningRepository(ILiteDatabase liteDatabase) : base(liteDatabase)
+    {
+    }
+}
+
+public sealed class OneShotTimerRunningEntity
+{
+    [BsonId(autoId: false)]
+    public Guid Id { get; init; }
+
+    public TimeSpan Time { get; set; }
+}
+
 public sealed class OneShotTimerEntity
 {
     [BsonId(autoId: true)]
@@ -22,11 +37,9 @@ public sealed class OneShotTimerEntity
 
     public TimeSpan Time { get; set; }
 
-    public bool IsEnabled { get; set; }
-
     public string Title { get; set; }
 
-    public SoundSourceType SoundSourceType { get; set; }
+    public SoundSourceType SoundType { get; set; }
 
-    public string SoundContent { get; set; }
+    public string SoundParameter { get; set; }
 }

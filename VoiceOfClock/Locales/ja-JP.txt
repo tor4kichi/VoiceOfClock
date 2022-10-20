@@ -8,6 +8,17 @@ TimeOfDayToSpeechTextForSSML_AMPM_Hour_Minute = {1}:{2} {0}
 Clock_AM = 午前
 Clock_PM = 午前
 
+
+#### Sound Source
+
+SoundSourceType_SelectionTitle = 音声タイプ
+SoundSourceType.System = システム音
+SoundSourceType.Tts = テキスト読み上げ
+SoundSourceType.TtsWithSSML = SSML（上級者向け）
+SoundSource_Parameter_System = 音の種類
+SoundSource_Parameter_Tts = 読み上げるテキスト
+SoundSource_Parameter_TtsWithSsml = 読み上げるSSML
+
 #### Generic 
 
 Start = 開始
@@ -62,7 +73,7 @@ ThemeApplyRequireRestartApp = テーマ変更を適用するにはアプリを�
 #### App Menu
 
 AlermMenuTitle = アラーム
-TimerMenuTitle = タイマー
+OneShotTimerMenuTitle = タイマー
 PeriodicTimerMenuTitle = 時刻読み上げ
 
 
@@ -95,3 +106,14 @@ PeriodicTimerLabel_Placeholder = 例）朝の時報
 PeriodicTimerEditDialog_Title = タイマーを編集
 PeriodicTimerAddDialog_Title = タイマーを追加
 
+
+
+#### OneShot Timer
+
+OneShotTimer_Duration = 長さ
+
+OneShotTimerLabel_Title = ラベル
+OneShotTimerLabel_Placeholder = 例）洗濯物回収
+
+OneShotTimerEditDialog_Title = タイマーを編集
+OneShotTimerAddDialog_Title = タイマーを追加

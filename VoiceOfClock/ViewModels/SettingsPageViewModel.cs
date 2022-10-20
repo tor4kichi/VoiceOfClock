@@ -155,7 +155,7 @@ namespace VoiceOfClock.ViewModels
                 CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate()),
                 CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), (s, x) => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate()),
                 //CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"),
-                CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(new (DateTime.Now)))),
+                CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(DateTime.Now))),
             }
             , label: "SpeechSettings_Title".Translate()
             , description: "SpeechSettings_Description".Translate()

@@ -66,19 +66,25 @@ public partial class App : Application
         container.Register<ApplicationSettings>(reuse: new SingletonReuse());
 
         container.Register<TimerLifetimeManager>(reuse: new SingletonReuse());
+        container.Register<OneShotTimerLifetimeManager>(reuse: new SingletonReuse());
+        container.Register<SystemSoundPlayer>(reuse: new SingletonReuse());
         container.Register<VoicePlayer>(reuse: new SingletonReuse());
 
         container.RegisterMapping<IApplicationLifeCycleAware, TimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IApplicationLifeCycleAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IApplicationLifeCycleAware, SystemSoundPlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
-        container.Register<PeriodicTimerPageViewModel>();
         container.Register<SettingsPageViewModel>();
+        container.Register<PeriodicTimerPageViewModel>();
+        container.Register<OneShotTimerPageViewModel>();
     }
 
     private static void RegisterTypes(Container container)
     {
         container.RegisterInstance<IMessenger>(WeakReferenceMessenger.Default);
         container.Register<IPeriodicTimerDialogService, PeriodicTimerEditDialogService>();
+        container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
     }
 
     /// <summary>

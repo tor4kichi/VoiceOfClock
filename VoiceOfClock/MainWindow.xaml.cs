@@ -56,7 +56,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
 
     public void NavigateFirstPage(string argument)
     {
-        Navigate(typeof(Views.PeriodicTimerPage), null);
+        Navigate(typeof(Views.OneShotTimerPage), null);
     }
 
     public void Navigate(Type pageType, object argument)
@@ -69,9 +69,9 @@ public sealed partial class MainWindow : SystemBackdropWindow
         Navigate(typeof(Views.AlermPage), null);
     }
 
-    private void NVI_Timer_Tapped(object sender, TappedRoutedEventArgs e)
+    private void NVI_OneShotTimer_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        Navigate(typeof(Views.TimerPage), null);
+        Navigate(typeof(Views.OneShotTimerPage), null);
     }
 
     private void NVI_PeriodicTimer_Tapped(object sender, TappedRoutedEventArgs e)

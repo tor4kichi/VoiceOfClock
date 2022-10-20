@@ -12,20 +12,16 @@ namespace VoiceOfClock.Models.Domain
     {
         public TimerSettings()
         {
-            _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
             _speechActorId = Read("", nameof(SpeechActorId));
             _speechRate = Read(1.0d, nameof(SpeechRate));
             _speechPitch = Read(1.0d, nameof(SpeechPitch));
             _isTimeSpeechWith24h = Read(true, nameof(IsTimeSpeechWith24h));
             _useSsml = Read(true, nameof(UseSsml));
+
+            _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
         }
 
-        private TimeSpan _instantPeriodicTimerInterval;
-        public TimeSpan InstantPeriodicTimerInterval
-        {
-            get => _instantPeriodicTimerInterval;
-            set => SetProperty(ref _instantPeriodicTimerInterval, value);
-        }
+        #region Timer Generic Settings
 
         private string _speechActorId;
         public string SpeechActorId
@@ -89,6 +85,19 @@ namespace VoiceOfClock.Models.Domain
             get => _speechPitch;
             set => SetProperty(ref _speechPitch, Math.Clamp(value, MinSpeechPitch, MaxSpeechPitch));
         }
+
+        #endregion
+
+        #region Periodic Timer Settings
+
+        private TimeSpan _instantPeriodicTimerInterval;
+        public TimeSpan InstantPeriodicTimerInterval
+        {
+            get => _instantPeriodicTimerInterval;
+            set => SetProperty(ref _instantPeriodicTimerInterval, value);
+        }
+
+        #endregion
     }
 }
 

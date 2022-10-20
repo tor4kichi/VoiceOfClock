@@ -58,7 +58,7 @@
             <SymbolIcon Symbol="Clock" />
           </NavigationViewItem.Icon>
         </NavigationViewItem>
-        <NavigationViewItem x:Name="NVI_Timer" Content="{i18n:Localize Key=TimerMenuTitle}" Tapped="NVI_Timer_Tapped" Visibility="Collapsed">
+        <NavigationViewItem x:Name="NVI_OneShotTimer" Content="{i18n:Localize Key=OneShotTimerMenuTitle}" Tapped="NVI_OneShotTimer_Tapped" >
           <NavigationViewItem.Icon>
             <SymbolIcon Symbol="Clock" />
           </NavigationViewItem.Icon>
