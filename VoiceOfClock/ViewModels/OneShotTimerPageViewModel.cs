@@ -75,7 +75,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
                 timerVM.Title = result.Title;
                 timerVM.Time = result.Time;
                 timerVM.RunningInfo.SoundSourceType = result.SoundSourceType;
-                timerVM.RunningInfo.Parameter = result.SoundParameter;
+                timerVM.RunningInfo.Parameter = result.SoundParameter;                
             }
         }
     }
@@ -131,6 +131,7 @@ public sealed partial class OneShotTimerViewModel : ObservableObject
     partial void OnTimeChanged(TimeSpan value)
     {
         RunningInfo.Time = value;
+        RemainingTime = value;
     }
 
 
