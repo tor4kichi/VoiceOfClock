@@ -94,7 +94,12 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         ComboBox_SoundSource_WindowsSystem.SelectedItem = _SystemSoundSource_InitParameter ?? _windowsSystemParameters[0];
     }
 
-    private SoundSourceType[] _soundSourceTypes = Enum.GetValues<SoundSourceType>();
+    private SoundSourceType[] _soundSourceTypes = new[] 
+    {
+        SoundSourceType.System,
+        SoundSourceType.Tts,
+        //SoundSourceType.TtsWithSSML,
+    };
 
     private string[] _windowsSystemParameters = Enum.GetNames<WindowsNotificationSoundType>();
 
