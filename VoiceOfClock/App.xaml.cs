@@ -6,6 +6,7 @@ using I18NPortable;
 using LiteDB;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -85,7 +86,7 @@ public partial class App : Application
         container.RegisterInstance<IMessenger>(WeakReferenceMessenger.Default);
         container.Register<IPeriodicTimerDialogService, PeriodicTimerEditDialogService>();
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
-    }
+    }    
 
     /// <summary>
     /// Initializes the singleton application object.  This is the first line of authored code
@@ -102,26 +103,36 @@ public partial class App : Application
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
             .SetNotFoundSymbol("🍣")
-            ;                
+            ;        
     }
 
+    
     /// <summary>
     /// Invoked when the application is launched normally by the end user.  Other entry points
     /// will be used such as when the application is launched to open a specific file.
     /// </summary>
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-    {
-        // ライフサイクル対応のインスタンスに対して初期化を実行
-        foreach (var item in _lifeCycleAwareInstances)
+    {        
+        if (_window == null)
         {
-            item.Initialize();
+            // ライフサイクル対応のインスタンスに対して初期化を実行
+            foreach (var item in _lifeCycleAwareInstances)
+            {
+                item.Initialize();
+            }
+
+            _window = new MainWindow();
+            _window.Activate();
+
+            _window.NavigateFirstPage(args.Arguments);
         }
+    }    
 
-        _window = new MainWindow();
-        _window.Activate();
 
-        _window.NavigateFirstPage(args.Arguments);
+    internal void OnRedirectActiavated(AppActivationArguments args)
+    {
+
     }
 
     private MainWindow _window;
