@@ -41,7 +41,7 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _oneShotTimerRunningEntity = oneShotTimerRunningRepository.FindById(_entity.Id);
         if (_oneShotTimerRunningEntity is null)
         {
-            _oneShotTimerRunningEntity = new OneShotTimerRunningEntity() { Id = _entity.Id, Time = TimeSpan.Zero };
+            _oneShotTimerRunningEntity = new OneShotTimerRunningEntity() { Id = _entity.Id, Time = _entity.Time };
         }
 
         _remainingTime = _oneShotTimerRunningEntity.Time.TrimMilliSeconds();
