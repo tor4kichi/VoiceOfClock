@@ -7,44 +7,45 @@ using System.Threading.Tasks;
 using VoiceOfClock.Models.Infrastructure;
 
 namespace VoiceOfClock.Models.Domain;
-    
-    public sealed class TimerSettings : SettingsBase
+
+public sealed class TimerSettings : SettingsBase
+{
+    public TimerSettings()
     {
-        public TimerSettings()
-        {
-            _speechActorId = Read("", nameof(SpeechActorId));
-            _speechRate = Read(1.0d, nameof(SpeechRate));
-            _speechPitch = Read(1.0d, nameof(SpeechPitch));
-            _isTimeSpeechWith24h = Read(true, nameof(IsTimeSpeechWith24h));
-            _useSsml = Read(true, nameof(UseSsml));
+        _speechActorId = Read("", nameof(SpeechActorId));
+        _speechRate = Read(1.0d, nameof(SpeechRate));
+        _speechPitch = Read(1.0d, nameof(SpeechPitch));
+        _speechVolume = Read(1.0d, nameof(SpeechVolume));
+        _isTimeSpeechWith24h = Read(true, nameof(IsTimeSpeechWith24h));
+        _useSsml = Read(true, nameof(UseSsml));
 
-            _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
+        _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
         _ampmPositionByLanguageCode = Read(_defaultAmpmPositionByLanguage, nameof(AmpmPositionByLanguageCode));
-        }
+    }
 
-        #region Timer Generic Settings
+    #region Timer Generic Settings
 
-        private string _speechActorId;
-        public string SpeechActorId
-        {
-            get => _speechActorId;
-            set => SetProperty(ref _speechActorId, value);
-        }
+    private string _speechActorId;
+    public string SpeechActorId
+    {
+        get => _speechActorId;
+        set => SetProperty(ref _speechActorId, value);
+    }
 
 
 
     public const double MinSpeechRate = 0.5d;
     public const double MaxSpeechRate = 4.0d;   
     private double _speechRate;
-        /// <summary>
+    /// <summary>
     /// スピーチの話速設定（デフォルトは1.0）
-        /// </summary>
+    /// </summary>
     /// <example>0.5 ~ 4.0</example>
     public double SpeechRate
-        {
+    {
         get => _speechRate;
         set => SetProperty(ref _speechRate, Math.Clamp(value, MinSpeechRate, MaxSpeechRate));
-        }
+    }
 
 
     public const double MinSpeechPitch = 0.5d;
@@ -61,23 +62,38 @@ namespace VoiceOfClock.Models.Domain;
     }
 
 
-        private bool _useSsml;
 
-        /// <summary>
-        /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
-        /// </summary>
-        public bool UseSsml
-        {
-            get => _useSsml;
-            set => SetProperty(ref _useSsml, value);
-        }
+
+    public const double MinSpeechVolume = 0.0d;
+    public const double MaxSpeechVolume = 1.0d;
+    private double _speechVolume;
+    /// <summary>
+    /// スピーチの音量（デフォルトは1.0）
+    /// </summary>
+    /// <remarks>Min 0.0 , Max 1.0</remarks>
+    public double SpeechVolume
+    {
+        get => _speechVolume;
+        set => SetProperty(ref _speechVolume, Math.Clamp(value, MinSpeechVolume, MaxSpeechVolume));
+    }
+
+    private bool _useSsml;
+
+    /// <summary>
+    /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
+    /// </summary>
+    public bool UseSsml
+    {
+        get => _useSsml;
+        set => SetProperty(ref _useSsml, value);
+    }
 
 
     private bool _isTimeSpeechWith24h;
-        
-        /// <summary>
+
+    /// <summary>
     /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
-        /// </summary>
+    /// </summary>
     public bool IsTimeSpeechWith24h
     {
         get => _isTimeSpeechWith24h;
@@ -128,25 +144,25 @@ namespace VoiceOfClock.Models.Domain;
     }
 
     public void SetAmpmPosition(string languageCode, AMPMPosition position)
-        {
+    {
         _ampmPositionByLanguageCode.Remove(languageCode);
         _ampmPositionByLanguageCode.Add(languageCode, position);
         Save(AmpmPositionByLanguageCode, nameof(AmpmPositionByLanguageCode));
-        }
-
-        #endregion
-
-        #region Periodic Timer Settings
-
-        private TimeSpan _instantPeriodicTimerInterval;
-        public TimeSpan InstantPeriodicTimerInterval
-        {
-            get => _instantPeriodicTimerInterval;
-            set => SetProperty(ref _instantPeriodicTimerInterval, value);
-        }
-
-        #endregion
     }
+
+    #endregion
+
+    #region Periodic Timer Settings
+
+    private TimeSpan _instantPeriodicTimerInterval;
+    public TimeSpan InstantPeriodicTimerInterval
+    {
+        get => _instantPeriodicTimerInterval;
+        set => SetProperty(ref _instantPeriodicTimerInterval, value);
+    }
+
+    #endregion
+}
 
 public enum AMPMPosition
 {

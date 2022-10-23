@@ -120,18 +120,18 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             if (currentVoicePlayer is SystemVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
             }
             else if (currentVoicePlayer is WindowsVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
             }            
         }
         else
         {
             string speechData = _translationProcesser.Translate("TimeOfDayToSpeechText", _translationProcesser.TranslateTimeOfDay(request.Time, _timerSettings.IsTimeSpeechWith24h));
-            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
         }
     }
 
@@ -147,7 +147,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             voiceId = null;
         }
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
     }
 
     void IRecipient<SsmlPlayVoiceRequest>.Receive(SsmlPlayVoiceRequest message)
@@ -167,7 +167,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 
         _translationProcesser.SetLocale(voiceLanguage);
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
+        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
     }
 }
 
@@ -176,8 +176,8 @@ public interface IVoicePlayer
     IReadOnlyCollection<string> GetAllVoiceId();
     bool CanPlayVoice(string voiceId);
     string SetVoice(string voiceId);
-    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1);
-    Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1);
+    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
+    Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
 }
 
 public class SystemVoicePlayer : IVoicePlayer
@@ -215,7 +215,7 @@ public class SystemVoicePlayer : IVoicePlayer
         return voice.VoiceInfo.Culture.Name;
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -224,7 +224,7 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
 
-            SetupSpeechSynsesiser(speechRate, speechPitch);
+            SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
             var p = _speechSynthesiser.SpeakAsync(content);
 
             await speakCompletedObservable;
@@ -235,7 +235,7 @@ public class SystemVoicePlayer : IVoicePlayer
 
 
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -244,7 +244,7 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
 
-            SetupSpeechSynsesiser(speechRate, speechPitch);
+            SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
 
             var p = _speechSynthesiser.SpeakSsmlAsync(content);
 
@@ -255,8 +255,10 @@ public class SystemVoicePlayer : IVoicePlayer
     }
 
 
-    private void SetupSpeechSynsesiser(double speechRate, double speechPitch)
+    private void SetupSpeechSynsesiser(double speechRate, double speechPitch, double speechVolume)
     {
+        // Rate 
+        // -10 ~ 10
         if (speechRate < 1.0)
         {
             // 0.5を-10 0.9を -2   0.0 を0
@@ -267,6 +269,11 @@ public class SystemVoicePlayer : IVoicePlayer
             // 2.0 を10 1.5 を5 
             _speechSynthesiser.Rate = Math.Clamp((int)Math.Floor((speechRate - 1.0) * 10), -10, 10);
         }
+        
+        // Volume
+        // 0 ~ 100
+        // https://learn.microsoft.com/ja-jp/dotnet/api/system.speech.synthesis.speechsynthesizer.volume?view=netframework-4.8
+        _speechSynthesiser.Volume = Math.Clamp((int)(speechVolume * 100), 0, 100);
     }
 
 
@@ -344,13 +351,14 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         return _currentVoiceInfo.Language;
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
     {
         var stream = await Task.Run(async () =>
         {
             using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
             {
                 synthesizer.Voice = _currentVoiceInfo;
+                synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
                 synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
                 synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
                 return await synthesizer.SynthesizeSsmlToStreamAsync(content);
@@ -365,7 +373,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     }
 
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
     {
         var stream = await Task.Run(async () =>
         {
@@ -373,6 +381,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
             using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
             {
                 synthesizer.Voice = _currentVoiceInfo;
+                synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
                 synthesizer.Options.SpeakingRate = Math.Clamp(speechRate, 0.5, 6.0);
                 synthesizer.Options.AudioPitch = Math.Clamp(speechPitch, 0.0, 2.0);
                 synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;

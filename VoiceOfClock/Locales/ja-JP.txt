@@ -51,6 +51,7 @@ Speech = 読み上げ
 
 SpeechRate = 話速
 SpeechPitch = ピッチ
+SpeechVolume = 音量
 SpeechActor = 話者
 IsTimeSpeechWith24h = 時間の読み方
 SpeechWith24h = 24時間

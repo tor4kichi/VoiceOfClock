@@ -65,11 +65,9 @@ namespace VoiceOfClock.ViewModels
         {
             Items = new ObservableCollection<ISettingContent>(
                 new[]
-            {
-                new SettingHeader("Speech".Translate()),
-                CreateSpeechSettingContent(),
-                new SettingHeader("GeneralSettings".Translate()),
-                CreateAppearanceColorThemeSettingContent(),
+                {
+                    CreateSpeechSettingContent(),
+                    CreateAppearanceColorThemeSettingContent(),
                 }
                 .SelectMany(x => x)
                 );
@@ -115,17 +113,17 @@ namespace VoiceOfClock.ViewModels
             {
                 if (_allVoices == null)
                 {
-            var voices = new System.Speech.Synthesis.SpeechSynthesizer().GetInstalledVoices().Where(x => x.Enabled).Select(x => new LegacyVoiceInformation(x.VoiceInfo));
-            var winVoices = Windows.Media.SpeechSynthesis.SpeechSynthesizer.AllVoices.Select(x => new WindowsVoiceInformation(x));
+                    var voices = new System.Speech.Synthesis.SpeechSynthesizer().GetInstalledVoices().Where(x => x.Enabled).Select(x => new LegacyVoiceInformation(x.VoiceInfo));
+                    var winVoices = Windows.Media.SpeechSynthesis.SpeechSynthesizer.AllVoices.Select(x => new WindowsVoiceInformation(x));
 
-            // TODO: CurrentCultureのボイスを先頭に表示するようにしたい
+                    // TODO: CurrentCultureのボイスを先頭に表示するようにしたい
                     _allVoices = Enumerable.Concat<IVoiceInformation>(voices, winVoices).Select(x => new ComboBoxSettingContentItem(x, x.ToString(), x.Id)).ToArray();
                 }
 
-            if (string.IsNullOrEmpty(_timerSettings.SpeechActorId))
-            {
+                if (string.IsNullOrEmpty(_timerSettings.SpeechActorId))
+                {
                     _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
-            }
+                }
 
                 var selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
                 yield return CreateComboBoxContent(_allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate());
@@ -133,13 +131,14 @@ namespace VoiceOfClock.ViewModels
 
             yield return CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate());
             yield return CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate());
+            yield return CreateSliderContent(_timerSettings.SpeechVolume, x => _timerSettings.SpeechVolume = x, TimerSettings.MinSpeechVolume, TimerSettings.MaxSpeechVolume, converter: ParcentageValueConverter.Default, label: "SpeechVolume".Translate());
 
             {
-            var speechWith24hComboBoxItems = new[] 
-            {
-                new ComboBoxSettingContentItem(true, "SpeechWith24h".Translate(), "true"),
-                new ComboBoxSettingContentItem(false, "SpeechWithAM_PM".Translate(), "false"),
-            };
+                var speechWith24hComboBoxItems = new[]
+                {
+                    new ComboBoxSettingContentItem(true, "SpeechWith24h".Translate(), "true"),
+                    new ComboBoxSettingContentItem(false, "SpeechWithAM_PM".Translate(), "false"),
+                };
 
                 yield return CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), (s, x) => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate());
             }
@@ -162,7 +161,7 @@ namespace VoiceOfClock.ViewModels
                 , label: "SpeechSettings_AmpmPositionByLanguage_Title".Translate()
                 , description: "SpeechSettings_AmpmPositionByLanguage_Description".Translate()
                 //, content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => _allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
-            );            
+                );
         }
 
 
