@@ -91,14 +91,40 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 
         if (_timerSettings.UseSsml)
         {
+            static string ToSsmlTimeFormat_HM(DateTime dateTime, bool is24h, IFormatProvider formatProvider, AMPMPosition ampmPosition)
+            {
+                if (is24h)
+                {
+                    return $"<say-as interpret-as=\"time\" format=\"hms24\">{dateTime:H:m}</say-as>";
+                }
+                else
+                {
+                    if (ampmPosition == AMPMPosition.Prefix)
+                    {
+                        var ampm = dateTime.ToString("tt", formatProvider);
+                        return $"<say-as interpret-as=\"time\" format=\"hms12\">{ampm}{dateTime:h:m}</say-as>";
+                    }
+                    else if (ampmPosition == AMPMPosition.Postfix)
+                    {
+                        var ampm = dateTime.ToString("tt", formatProvider);
+                        return $"<say-as interpret-as=\"time\" format=\"hms12\">{dateTime:h:m}{ampm}</say-as>";
+                    }
+                    else
+                    {
+                        var timeWithAmpm = dateTime.ToString("t", formatProvider);
+                        return $"<say-as interpret-as=\"time\" format=\"hms12\">{timeWithAmpm}</say-as>";
+                    }
+                }
+            }
+            
             if (currentVoicePlayer is SystemVoicePlayer)
             {
-                string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", SsmlHelpers.ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat)), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
+                string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
                 message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
             }
             else if (currentVoicePlayer is WindowsVoicePlayer)
             {
-                string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", SsmlHelpers.ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat)), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
+                string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
                 message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch));
             }            
         }

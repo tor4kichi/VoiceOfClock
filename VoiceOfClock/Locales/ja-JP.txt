@@ -49,14 +49,18 @@ ProjectSite = プロジェクトサイト
 
 Speech = 読み上げ
 
-SpeechSettings_Title = 話者の設定
-SpeechSettings_Description = 合成音声、話速、ピッチ
 SpeechRate = 話速
 SpeechPitch = ピッチ
 SpeechActor = 話者
 IsTimeSpeechWith24h = 時間の読み方
 SpeechWith24h = 24時間
 SpeechWithAM_PM = 午前午後
+SpeechSettings_AmpmPositionByLanguage_Title = 言語毎のAM/PMの読み上げ位置
+SpeechSettings_AmpmPositionByLanguage_Description = AM/PMが読まれない場合、前置・後置を指定してください
+
+AMPMPosition.NoChange = 変更しない
+AMPMPosition.Prefix = 前置
+AMPMPosition.Postfix = 後置
 
 VoiceInfomationDisplayName = {0} - {1}
 

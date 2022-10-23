@@ -63,43 +63,22 @@ namespace VoiceOfClock.ViewModels
 
         protected override void OnActivated()
         {
-            Items = new ObservableCollection<ISettingContent>()
+            Items = new ObservableCollection<ISettingContent>(
+                new[]
             {
                 new SettingHeader("Speech".Translate()),
                 CreateSpeechSettingContent(),
                 new SettingHeader("GeneralSettings".Translate()),
                 CreateAppearanceColorThemeSettingContent(),
-            };
+                }
+                .SelectMany(x => x)
+                );
 
             InitializeItemContainerPosition(Items);
 
             base.OnActivated();
         }
 
-
-
-
-        private ISettingContent CreateAppearanceColorThemeSettingContent()
-        {
-            var themeItems = new[]
-            {
-                ElementTheme.Default,
-                ElementTheme.Light,
-                ElementTheme.Dark,
-            }
-            .Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString()))
-            .ToList();
-
-            using var themeListener = new ThemeListener();
-            var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
-
-            void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
-            {
-                _applicationSettings.Theme = (ElementTheme)selected.Source;
-                sender.Description = "ThemeApplyRequireRestartApp".Translate();
-            }
-            return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
-        }
 
 
         static void InitializeItemContainerPosition(IEnumerable<ISettingContent> items)
@@ -129,39 +108,91 @@ namespace VoiceOfClock.ViewModels
         [ObservableProperty]
         private ObservableCollection<ISettingContent> _items;
 
-        private ISettingContent CreateSpeechSettingContent()
+        private ComboBoxSettingContentItem[] _allVoices;
+        private IEnumerable<ISettingContent> CreateSpeechSettingContent()
         {
+            yield return new SettingHeader("Speech".Translate());
+            {
+                if (_allVoices == null)
+                {
             var voices = new System.Speech.Synthesis.SpeechSynthesizer().GetInstalledVoices().Where(x => x.Enabled).Select(x => new LegacyVoiceInformation(x.VoiceInfo));
             var winVoices = Windows.Media.SpeechSynthesis.SpeechSynthesizer.AllVoices.Select(x => new WindowsVoiceInformation(x));
 
             // TODO: CurrentCultureのボイスを先頭に表示するようにしたい
-            var allVoices = Enumerable.Concat<IVoiceInformation>(voices, winVoices).Select(x => new ComboBoxSettingContentItem(x, x.ToString(), x.Id)).ToArray();
+                    _allVoices = Enumerable.Concat<IVoiceInformation>(voices, winVoices).Select(x => new ComboBoxSettingContentItem(x, x.ToString(), x.Id)).ToArray();
+                }
+
             if (string.IsNullOrEmpty(_timerSettings.SpeechActorId))
             {
-                _timerSettings.SpeechActorId = allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Language == CultureInfo.CurrentCulture.Name, allVoices.First()).Id;
+                    _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
             }
-            var selectedVoice = allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
 
+                var selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
+                yield return CreateComboBoxContent(_allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate());
+            }
 
+            yield return CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate());
+            yield return CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate());
+
+            {
             var speechWith24hComboBoxItems = new[] 
             {
                 new ComboBoxSettingContentItem(true, "SpeechWith24h".Translate(), "true"),
                 new ComboBoxSettingContentItem(false, "SpeechWithAM_PM".Translate(), "false"),
             };
-            return new ExpanderSettingContent(new ISettingContent[]
-            {
-                CreateComboBoxContent(allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate()),
-                CreateSliderContent(_timerSettings.SpeechRate, x => _timerSettings.SpeechRate = x, TimerSettings.MinSpeechRate, TimerSettings.MaxSpeechRate, converter: ParcentageValueConverter.Default, label: "SpeechRate".Translate()),
-                CreateSliderContent(_timerSettings.SpeechPitch, x => _timerSettings.SpeechPitch = x, TimerSettings.MinSpeechPitch, TimerSettings.MaxSpeechPitch, converter: ParcentageValueConverter.Default, label: "SpeechPitch".Translate()),
-                CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), (s, x) => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate()),
-                //CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"),
-                CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(DateTime.Now))),
+
+                yield return CreateComboBoxContent(speechWith24hComboBoxItems, speechWith24hComboBoxItems.First(x => (bool)x.Source == _timerSettings.IsTimeSpeechWith24h), (s, x) => _timerSettings.IsTimeSpeechWith24h = (bool)x.Source, label: "IsTimeSpeechWith24h".Translate());
             }
-            , label: "SpeechSettings_Title".Translate()
-            , description: "SpeechSettings_Description".Translate()
-            , content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
+
+            //items.Add(CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"));
+            yield return CreateButtonContent("SpeechSettingsTest".Translate(), async () => await Messenger.Send(new TimeOfDayPlayVoiceRequest(DateTime.Now)));
+
+
+
+            List<ISettingContent> ampmPositionByLanguageItems = new List<ISettingContent>();
+            var ampmPositionItems = Enum.GetValues<AMPMPosition>().Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString())).ToArray();
+            foreach (var language in _allVoices.Select(x => (x.Source as IVoiceInformation).Language).Distinct())
+            {
+                CultureInfo cultureInfo = CultureInfo.GetCultureInfo(language);
+                var pos = _timerSettings.GetAmpmPosition(language);
+                ampmPositionByLanguageItems.Add(CreateComboBoxContent(ampmPositionItems, ampmPositionItems.FirstOrDefault(x => (AMPMPosition)x.Source == pos), (container, selected) => _timerSettings.SetAmpmPosition(language, (AMPMPosition)selected.Source), language, $"{cultureInfo.DisplayName} - {cultureInfo.DateTimeFormat.AMDesignator}/{cultureInfo.DateTimeFormat.PMDesignator}"));
+            }
+
+            yield return new ExpanderSettingContent(ampmPositionByLanguageItems
+                , label: "SpeechSettings_AmpmPositionByLanguage_Title".Translate()
+                , description: "SpeechSettings_AmpmPositionByLanguage_Description".Translate()
+                //, content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => _allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
             );            
         }
+
+
+
+        private IEnumerable<ISettingContent> CreateAppearanceColorThemeSettingContent()
+        {
+            yield return new SettingHeader("GeneralSettings".Translate());
+
+            var themeItems = new[]
+            {
+                ElementTheme.Default,
+                ElementTheme.Light,
+                ElementTheme.Dark,
+            }
+            .Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString()))
+            .ToList();
+
+            using var themeListener = new ThemeListener();
+            var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
+
+            void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
+            {
+                _applicationSettings.Theme = (ElementTheme)selected.Source;
+                sender.Description = "ThemeApplyRequireRestartApp".Translate();
+            }
+
+            yield return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
+        }
+
+
 
         static ISettingContent CreateComboBoxContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelection, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction, string label = "", string description = "")
         {

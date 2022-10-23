@@ -47,13 +47,6 @@ xml:lang=""{lang}""
 ";
         }
 
-        public static string ToSsmlTimeFormat_HM(DateTime dateTime, bool is24h, IFormatProvider formatProvider)
-        {            
-            string speechData = !is24h ? dateTime.ToString("t", formatProvider) : dateTime.ToString("H:m");
-            return is24h 
-                ? $"<say-as interpret-as=\"time\" format=\"hms24\">{speechData}</say-as>"
-                : $"<say-as interpret-as=\"time\" format=\"hms12\">{speechData}</say-as>"
-                ;
-        }
+        
     }
 }

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Infrastructure;
 
-namespace VoiceOfClock.Models.Domain
-{
+namespace VoiceOfClock.Models.Domain;
     
     public sealed class TimerSettings : SettingsBase
     {
@@ -19,6 +19,7 @@ namespace VoiceOfClock.Models.Domain
             _useSsml = Read(true, nameof(UseSsml));
 
             _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
+        _ampmPositionByLanguageCode = Read(_defaultAmpmPositionByLanguage, nameof(AmpmPositionByLanguageCode));
         }
 
         #region Timer Generic Settings
@@ -30,16 +31,34 @@ namespace VoiceOfClock.Models.Domain
             set => SetProperty(ref _speechActorId, value);
         }
 
-        private bool _isTimeSpeechWith24h;
 
+
+    public const double MinSpeechRate = 0.5d;
+    public const double MaxSpeechRate = 4.0d;   
+    private double _speechRate;
         /// <summary>
-        /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
+    /// スピーチの話速設定（デフォルトは1.0）
         /// </summary>
-        public bool IsTimeSpeechWith24h
+    /// <example>0.5 ~ 4.0</example>
+    public double SpeechRate
         {
-            get => _isTimeSpeechWith24h;
-            set => SetProperty(ref _isTimeSpeechWith24h, value);
+        get => _speechRate;
+        set => SetProperty(ref _speechRate, Math.Clamp(value, MinSpeechRate, MaxSpeechRate));
         }
+
+
+    public const double MinSpeechPitch = 0.5d;
+    public const double MaxSpeechPitch = 2.0d;
+    private double _speechPitch;
+    /// <summary>
+    /// スピーチのピッチ（デフォルトは1.0）
+    /// </summary>
+    /// <example>+1.0Hz, -2Hz, </example>
+    public double SpeechPitch
+    {
+        get => _speechPitch;
+        set => SetProperty(ref _speechPitch, Math.Clamp(value, MinSpeechPitch, MaxSpeechPitch));
+    }
 
 
         private bool _useSsml;
@@ -54,36 +73,65 @@ namespace VoiceOfClock.Models.Domain
         }
 
 
-        public const double MinSpeechRate = 0.5d;
-        public const double MaxSpeechRate = 4.0d;
+    private bool _isTimeSpeechWith24h;
         
-
-        private double _speechRate;
         /// <summary>
-        /// スピーチの話速設定（デフォルトは1.0）
+    /// trueの場合、24時間表記でスピーチさせる。<br /> falseの場合、AM/PM表記でスピーチさせる。
         /// </summary>
-        /// <example>0.5 ~ 4.0</example>
-        /// <see cref="https://www.asahi-net.or.jp/~ax2s-kmtn/ref/accessibility/REC-speech-synthesis11-20100907.html#edef_prosody"/>
-        public double SpeechRate
+    public bool IsTimeSpeechWith24h
+    {
+        get => _isTimeSpeechWith24h;
+        set => SetProperty(ref _isTimeSpeechWith24h, value);
+    }
+
+
+
+    private readonly Dictionary<string, AMPMPosition> _defaultAmpmPositionByLanguage = new ()
+    {
+        { "ja", AMPMPosition.Prefix },
+        { "ko", AMPMPosition.Prefix },
+        { "zh", AMPMPosition.Prefix },
+    };
+
+    private Dictionary<string, AMPMPosition> _ampmPositionByLanguageCode;
+
+    public Dictionary<string, AMPMPosition> AmpmPositionByLanguageCode
+    {
+        get => _ampmPositionByLanguageCode;
+        set => SetProperty(ref _ampmPositionByLanguageCode, value);
+    }
+
+
+    public AMPMPosition GetAmpmPosition(CultureInfo cultureInfo)
+    {
+        return GetAmpmPosition(cultureInfo.Name);
+    }
+
+    public AMPMPosition GetAmpmPosition(string languageCode)
+    {
+        if (_ampmPositionByLanguageCode.TryGetValue(languageCode, out var result))
         {
-            get => _speechRate;
-            set => SetProperty(ref _speechRate, Math.Clamp(value, MinSpeechRate, MaxSpeechRate));
+            return result;
         }
 
-
-        public const double MinSpeechPitch = 0.5d;
-        public const double MaxSpeechPitch = 2.0d;
-
-        private double _speechPitch;
-        /// <summary>
-        /// スピーチのピッチ（デフォルトは1.0）
-        /// </summary>
-        /// <example>+1.0Hz, -2Hz, </example>
-        /// <see cref="https://www.asahi-net.or.jp/~ax2s-kmtn/ref/accessibility/REC-speech-synthesis11-20100907.html#edef_prosody"/>
-        public double SpeechPitch
+        if (languageCode.Contains('-'))
         {
-            get => _speechPitch;
-            set => SetProperty(ref _speechPitch, Math.Clamp(value, MinSpeechPitch, MaxSpeechPitch));
+            var countryCode = new string(languageCode.TakeWhile(c => c != '-').ToArray());
+            _ampmPositionByLanguageCode.TryGetValue(countryCode, out result);
+
+            return result;
+        }
+        else
+        {
+            return AMPMPosition.NoChange;
+        }        
+    }
+
+    public void SetAmpmPosition(string languageCode, AMPMPosition position)
+        {
+        _ampmPositionByLanguageCode.Remove(languageCode);
+        _ampmPositionByLanguageCode.Add(languageCode, position);
+        Save(AmpmPositionByLanguageCode, nameof(AmpmPositionByLanguageCode));
         }
 
         #endregion
@@ -99,5 +147,10 @@ namespace VoiceOfClock.Models.Domain
 
         #endregion
     }
-}
 
+public enum AMPMPosition
+{
+    NoChange,
+    Prefix,
+    Postfix,    
+}

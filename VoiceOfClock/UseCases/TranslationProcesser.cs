@@ -3,9 +3,11 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using I18NPortable;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VoiceOfClock.Models.Domain;
 
 namespace VoiceOfClock.UseCases
 {
@@ -14,7 +16,7 @@ namespace VoiceOfClock.UseCases
         private readonly II18N _localize;
 
         public TranslationProcesser()
-        {
+        {            
             _localize = new I18N().Init(typeof(App).Assembly)
                 .SetFallbackLocale("en-US")
                 .SetNotFoundSymbol("🍣")
@@ -40,17 +42,27 @@ namespace VoiceOfClock.UseCases
             else
             {                
                 if (timeOfDay.Hours < 12)
-                {
+                {                    
                     return "TimeOfDayToSpeechText_AMPM_Hour_Minute".Translate("Clock_AM".Translate(), timeOfDay.Hours, timeOfDay.Minutes);
                 }
                 else
                 {
                     return "TimeOfDayToSpeechText_AMPM_Hour_Minute".Translate("Clock_PM".Translate(), timeOfDay.Hours - 12, timeOfDay.Minutes);
-                }
-                
+                }                
             }
         }
 
+        public (string TimeText, string AMPMText) TranslateAMPM(DateTime dateTime)
+        {
+            var cultureInfo = CultureInfo.GetCultureInfo(_localize.Locale);
+            return (dateTime.ToString("h:m"), dateTime.ToString("tt", cultureInfo.DateTimeFormat));
+        }
+
+        public string TranslateAMPMWithNormalFormat(DateTime dateTime)
+        {
+            var cultureInfo = CultureInfo.GetCultureInfo(_localize.Locale);
+            return dateTime.ToString("t", cultureInfo.DateTimeFormat);
+        }
 
         public string Translate(string key)
         {
