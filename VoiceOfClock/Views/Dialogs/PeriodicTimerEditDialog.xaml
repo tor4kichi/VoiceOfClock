@@ -6,8 +6,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-  xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-    mc:Ignorable="d"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions" 
+  xmlns:viewModels="using:VoiceOfClock.ViewModels" 
+  xmlns:globalization="using:System.Globalization"
+  mc:Ignorable="d"
   PrimaryButtonText="{i18n:Localize Key=Save}"
     CloseButtonText="{i18n:Localize Key=Cancel}"
     Title=""
@@ -15,7 +17,7 @@
     CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"           
   >
 
-  <StackPanel Spacing="8">
+  <StackPanel Spacing="16">
 
 
     <Grid>
@@ -85,6 +87,45 @@
                  Header="{i18n:Localize Key=PeriodicTimerLabel_Title}"
                  />
 
+
+    <StackPanel Spacing="4">
+
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <CheckBox 
+          x:Name="CheckBox_IsRepeat" 
+          IsChecked="{x:Bind IsRepeat, Mode=TwoWay}"                  
+          HorizontalAlignment="Stretch"
+          HorizontalContentAlignment="Stretch"
+          VerticalContentAlignment="Stretch"    
+          Tapped="CheckBox_IsRepeat_Tapped"
+          >
+          <TextBlock Text="{i18n:Localize Key=RepeatDayOfWeek}" TextLineBounds="TrimToCapHeight" />
+        </CheckBox>
+      </StackPanel>
+
+      <ItemsControl ItemsSource="{x:Bind EnabledDayOfWeeks}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="8" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="viewModels:EnabledDayOfWeekViewModel">
+            <ToggleButton 
+                    Content="{x:Bind globalization:CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(DayOfWeek)}" 
+                    IsChecked="{x:Bind IsEnabled, Mode=TwoWay}" 
+                    CornerRadius="32"                              
+                    Width="30"
+                    Height="30"
+                    FontSize="12"
+                    Padding="0"
+                    VerticalContentAlignment="Center"
+                    />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+    
   </StackPanel>
 
 </ContentDialog>

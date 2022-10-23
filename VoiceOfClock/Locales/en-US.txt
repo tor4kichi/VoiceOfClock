@@ -1,8 +1,115 @@
-﻿
-#### Voice Reading
+﻿#### Voice Reading
 
 TimeOfDayToSpeechText = It's {0}
 TimeOfDayToSpeechText_Hour_Minute = {0}:{1}
 TimeOfDayToSpeechText_AMPM_Hour_Minute = {1}:{2} {0}
 Clock_AM = AM
 Clock_PM = PM
+
+
+
+#### Sound Source
+
+SoundSourceType_SelectionTitle = Voice type
+SoundSourceType.System = System sound
+SoundSourceType.Tts = Text-to-speech
+SoundSourceType.TtsWithSSML = SSML (for advanced users)
+SoundSource_Parameter_System = Type of sound
+SoundSource_Parameter_Tts = Text to read
+SoundSource_Parameter_TtsWithSsml = SSML to read
+
+
+
+#### Generic
+
+Start = Start
+End = End
+Save = Save
+Cancel = Cancel
+Edit = Edit
+Delete = Delete
+UnitOfMonth = Month
+UnitOfDay = Day
+UnitOfHour = Hour
+UnitOfMinute = Minute
+UnitOfSecond = Second
+Elapsed = Progress
+NotSelected = Unselected
+
+#### Calender
+
+FirstDayOfWeek = First day of the week
+RepeatDayOfWeek = Repetition
+
+
+
+#### Settings
+
+Settings = Settings
+AboutThiApplication = About this app
+SendFeedback = Send feedback
+ProjectSite = Project site
+Speech = Read aloud
+SpeechRate = Speed of speech
+SpeechPitch = Pitch
+SpeechVolume = Volume
+SpeechActor = Speaker
+IsTimeSpeechWith24h = How to read time
+SpeechWith24h = 24hours
+SpeechWithAM_PM = AMPM
+SpeechSettings_AmpmPositionByLanguage_Title = AM/PM reading position for each language
+SpeechSettings_AmpmPositionByLanguage_Description = If AM/PM is not read, please specify prefix/suffix
+AMPMPosition.NoChange = It does not change
+AMPMPosition.Prefix = Prefix
+AMPMPosition.Postfix = Postfix
+SpeechSettingsTest = Test the audio
+GeneralSettings = General
+ColorTheme = App theme
+ElementTheme.Default = Default
+ElementTheme.Light = Light
+ElementTheme.Dark = Dark
+ThemeApplyRequireRestartApp = Restart the app to apply theme changes
+CalenderSettings = Calendar settings
+Language = Language
+LanguageApplyRequireRestartApp = Restart the app to apply the language change
+
+
+
+#### App Menu
+
+AlermMenuTitle = Alarm
+OneShotTimerMenuTitle = Timer
+PeriodicTimerMenuTitle = Read out time
+
+
+
+#### Periodic Timer
+
+ElapsedTime_Days_Hours_Minutes_Seconds = {3} days {2:d2} hours {1:d2} minutes {0:d2} seconds
+ElapsedTime_Hours_Minutes_Seconds = {2:d2} hours {1:d2} minutes {0:d2} seconds
+ElapsedTime_Minutes_Seconds = {1:d2} minutes {0:d2} seconds
+ElapsedTime_Seconds = {0:d2} seconds
+DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
+InstantPeriodicTimer_Start = Start time signal
+InstantPeriodicTimer_End = End time signal
+Time_Hours_Minutes = {1:d2}:{0:d2}
+IntervalTime_PerHours = every {0:#} hours
+IntervalTime_PerMinutes = every {0:#} minutes
+IntervalTime_PerSeconds = every {0:#} seconds
+IntervalTime_PerHoursAndMinutes = every {1:#} hours {1:#} minutes
+ScheduledPeriodicTimer = Scheduled time signal
+PeriodicTimerInterval_Title = Time interval
+PeriodicTimerLabel_Title = Label
+PeriodicTimerLabel_Placeholder = Example) Morning time signal
+PeriodicTimerEditDialog_Title = Edit timer
+PeriodicTimerAddDialog_Title = Add timer
+
+
+
+#### OneShot Timer
+
+OneShotTimer_Duration = Length
+OneShotTimerLabel_Title = Label
+OneShotTimerLabel_Placeholder = Example) Laundry collection
+OneShotTimerEditDialog_Title = Edit timer
+OneShotTimerAddDialog_Title = Add timer

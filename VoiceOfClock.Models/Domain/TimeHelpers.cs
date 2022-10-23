@@ -27,16 +27,30 @@ public static class TimeHelpers
 
         if (startTimeOfDay < endTimeOfDay)
         {
-            return startTimeOfDay < targetTimeOfDay && targetTimeOfDay < endTimeOfDay;
+            return startTimeOfDay <= targetTimeOfDay && targetTimeOfDay <= endTimeOfDay;
         }
         else
         {
-            return !(endTimeOfDay < targetTimeOfDay && targetTimeOfDay < startTimeOfDay);
+            return !(endTimeOfDay <= targetTimeOfDay && targetTimeOfDay <= startTimeOfDay);
         }        
     }
 
     public static TimeSpan TrimMilliSeconds(this TimeSpan ts)
     {        
         return new TimeSpan(ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+    }
+
+    public static IEnumerable<DayOfWeek> ToWeek(this DayOfWeek firstDayOfWeek)
+    {        
+        foreach (var i in Enumerable.Range((int)firstDayOfWeek, 7))
+        {
+            int index = i;
+            if (index >= 7)
+            {
+                index = 7 - index;
+            }
+
+            yield return (DayOfWeek)index;
+        }
     }
 }

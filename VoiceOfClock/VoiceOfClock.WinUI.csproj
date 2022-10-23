@@ -25,12 +25,16 @@
   <ItemGroup>
     <None Remove="Locales\en-US.txt" />
     <None Remove="Locales\ja-JP.txt" />
+    <None Remove="Locales\zh-CHS.txt" />
     <None Remove="Views\Controls\NumberBox.xaml" />
     <None Remove="Views\Dialogs\PeriodicTimerEditDialog.xaml" />
     <None Remove="Views\OneShotTimerEditDialog.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\Styles\SettingsItemStyle.xaml" />
     <None Remove="Views\Styles\WindowChromeStyle.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Locales\zh-CHS.txt" />
   </ItemGroup>
 
   <ItemGroup>

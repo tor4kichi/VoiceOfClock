@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace VoiceOfClock.Models.Domain
         public ApplicationSettings()
         {
             _themeName = Enum.Parse<ElementTheme>(Read(ElementTheme.Default.ToString(), nameof(Theme)));
+            _displayLanguage = Read(CultureInfo.CurrentCulture.Name, nameof(DisplayLanguage));
         }
 
         private ElementTheme _themeName;
@@ -29,6 +31,13 @@ namespace VoiceOfClock.Models.Domain
                     OnPropertyChanged();
                 }
             }
+        }
+
+        private string _displayLanguage;
+        public string DisplayLanguage
+        {
+            get => _displayLanguage;
+            set => SetProperty(ref _displayLanguage, value);
         }
     }
 }

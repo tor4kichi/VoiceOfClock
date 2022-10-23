@@ -17,7 +17,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
 {
     public PeriodicTimerRunningInfo PeriodicTimerRunningInfo { get; }
 
-    public PeriodicTimerViewModel(PeriodicTimerRunningInfo timerInfo, ICommand deleteCommand)
+    public PeriodicTimerViewModel(PeriodicTimerRunningInfo timerInfo, ICommand deleteCommand, DayOfWeek firstDayOfWeek)
     {
         PeriodicTimerRunningInfo = timerInfo;
         DeleteCommand = deleteCommand;
@@ -27,6 +27,9 @@ public partial class PeriodicTimerViewModel : ObservableObject
         _startTime = PeriodicTimerRunningInfo.StartTime;
         _endTime = PeriodicTimerRunningInfo.EndTime;
         _title = PeriodicTimerRunningInfo.Title;
+        
+        EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
+            .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = timerInfo.EnabledDayOfWeeks.Contains(x) }).ToArray();
     }
 
     public void RefrectValue()
@@ -36,6 +39,10 @@ public partial class PeriodicTimerViewModel : ObservableObject
         StartTime = PeriodicTimerRunningInfo.StartTime;
         EndTime = PeriodicTimerRunningInfo.EndTime;
         Title = PeriodicTimerRunningInfo.Title;
+        foreach (var dayOfWeekVM in EnabledDayOfWeeks)
+        {
+            dayOfWeekVM.IsEnabled = PeriodicTimerRunningInfo.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
+        }
     }
 
     public bool IsRemovable => PeriodicTimerRunningInfo.IsInstantTimer is false;
@@ -48,7 +55,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
 
     partial void OnIsEnabledChanged(bool value)
     {        
-        if (IsRemovable) { return; }
+        if (!IsRemovable) { return; }
         PeriodicTimerRunningInfo.IsEnabled = value;
     }
 
@@ -67,6 +74,8 @@ public partial class PeriodicTimerViewModel : ObservableObject
 
     public ICommand DeleteCommand { get; }
 
+
+    public EnabledDayOfWeekViewModel[] EnabledDayOfWeeks { get; }
 
     public string LocalizeTime(TimeSpan timeSpan)
     {

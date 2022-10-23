@@ -67,6 +67,7 @@ namespace VoiceOfClock.ViewModels
                 new[]
                 {
                     CreateSpeechSettingContent(),
+                    CreateCalenderSettingContent(),
                     CreateAppearanceColorThemeSettingContent(),
                 }
                 .SelectMany(x => x)
@@ -164,31 +165,54 @@ namespace VoiceOfClock.ViewModels
                 );
         }
 
+        private IEnumerable<ISettingContent> CreateCalenderSettingContent()
+        {
+            yield return new SettingHeader("CalenderSettings".Translate());
 
+            var items = CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek.ToWeek()
+                .Select(x => new ComboBoxSettingContentItem(x, CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(x), x.ToString()))
+                .ToArray();
+
+            yield return CreateComboBoxContent(items, items.First(x => (DayOfWeek)x.Source == _timerSettings.FirstDayOfWeek), (sender, selected) => _timerSettings.FirstDayOfWeek = (DayOfWeek)selected.Source, "FirstDayOfWeek".Translate());
+        }
 
         private IEnumerable<ISettingContent> CreateAppearanceColorThemeSettingContent()
         {
             yield return new SettingHeader("GeneralSettings".Translate());
 
-            var themeItems = new[]
             {
-                ElementTheme.Default,
-                ElementTheme.Light,
-                ElementTheme.Dark,
+                var themeItems = new[]
+                {
+                    ElementTheme.Default,
+                    ElementTheme.Light,
+                    ElementTheme.Dark,
+                }
+                .Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString()))
+                .ToList();
+
+                using var themeListener = new ThemeListener();
+                var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
+
+                void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
+                {
+                    _applicationSettings.Theme = (ElementTheme)selected.Source;
+                    sender.Description = "ThemeApplyRequireRestartApp".Translate();
+                }
+
+                yield return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
             }
-            .Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString()))
-            .ToList();
 
-            using var themeListener = new ThemeListener();
-            var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
-
-            void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
             {
-                _applicationSettings.Theme = (ElementTheme)selected.Source;
-                sender.Description = "ThemeApplyRequireRestartApp".Translate();
-            }
+                var items = I18N.Current.Languages.Select(x => new ComboBoxSettingContentItem(x, x.DisplayName, x.Locale)).ToList();
 
-            yield return CreateComboBoxContent(themeItems, currentThemeItem, ThemeChanged, label: "ColorTheme".Translate());
+                void LangugageChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
+                {
+                    _applicationSettings.DisplayLanguage = selected.Id;
+                    sender.Description = "LanguageApplyRequireRestartApp".Translate();
+                }
+
+                yield return CreateComboBoxContent(items, items.First(x => x.Id == I18N.Current.Locale), LangugageChanged, label: "Language".Translate());
+            }
         }
 
 
@@ -279,7 +303,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return "VoiceInfomationDisplayName".Translate(Name, Language);
+            return $"{Name} ({Language})";
         }
     }
 
@@ -302,7 +326,7 @@ namespace VoiceOfClock.ViewModels
 
         public override string ToString()
         {
-            return "VoiceInfomationDisplayName".Translate(Name, Language);
+            return $"{Name} ({Language})";
         }
     }
 

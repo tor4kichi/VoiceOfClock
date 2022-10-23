@@ -1,0 +1,115 @@
+﻿#### Voice Reading
+
+TimeOfDayToSpeechText = 時間是{0}
+TimeOfDayToSpeechText_Hour_Minute = {0}:{1}
+TimeOfDayToSpeechText_AMPM_Hour_Minute = {1}:{2} {0}
+Clock_AM = 上午
+Clock_PM = 下午
+
+
+
+#### Sound Source
+
+SoundSourceType_SelectionTitle = 语音类型
+SoundSourceType.System = 系统声音
+SoundSourceType.Tts = 文字转语音
+SoundSourceType.TtsWithSSML = SSML（适用于高级用户）
+SoundSource_Parameter_System = 声音类型
+SoundSource_Parameter_Tts = 要阅读的文本
+SoundSource_Parameter_TtsWithSsml = SSML 读取
+
+
+
+#### Generic
+
+Start = 开始
+End = 结尾
+Save = 保持
+Cancel = 取消
+Edit = 编辑
+Delete = 删除
+UnitOfMonth = 月
+UnitOfDay = 天
+UnitOfHour = 时间
+UnitOfMinute = 分钟
+UnitOfSecond = 秒
+Elapsed = 进步
+NotSelected = 未选中
+
+#### Calender
+
+FirstDayOfWeek = 一周的第一天
+RepeatDayOfWeek = 重复
+
+
+
+#### Settings
+
+Settings = 环境
+AboutThiApplication = 关于这个应用程序
+SendFeedback = 发送反馈
+ProjectSite = 项目现场
+Speech = 大声朗读
+SpeechRate = 语速
+SpeechPitch = 沥青
+SpeechVolume = 体积
+SpeechActor = 扬声器
+IsTimeSpeechWith24h = 如何阅读时间
+SpeechWith24h = 24小时
+SpeechWithAM_PM = 上午下午
+SpeechSettings_AmpmPositionByLanguage_Title = 每种语言的上午/下午阅读位置
+SpeechSettings_AmpmPositionByLanguage_Description = 如果未读取 AM/PM，请指定前缀/后缀
+AMPMPosition.NoChange = 它没有改变
+AMPMPosition.Prefix = 字首
+AMPMPosition.Postfix = 后缀
+SpeechSettingsTest = 测试音频
+GeneralSettings = 一般的
+ColorTheme = 应用主题
+ElementTheme.Default = 默认
+ElementTheme.Light = 光
+ElementTheme.Dark = 黑暗的
+ThemeApplyRequireRestartApp = 重新启动应用程序以应用主题更改
+CalenderSettings = 日历设置
+Language = 语
+LanguageApplyRequireRestartApp = 重新启动应用程序以应用语言更改
+
+
+
+#### App Menu
+
+AlermMenuTitle = 警报
+OneShotTimerMenuTitle = 计时器
+PeriodicTimerMenuTitle = 读出时间
+
+
+
+#### Periodic Timer
+
+ElapsedTime_Days_Hours_Minutes_Seconds = {3} 天 {2:d2} 小时 {1:d2} 分钟 {0:d2} 秒
+ElapsedTime_Hours_Minutes_Seconds = {2:d2} 小时 {1:d2} 分钟 {0:d2} 秒
+ElapsedTime_Minutes_Seconds = {1:d2} 分钟{0:d2} 秒
+ElapsedTime_Seconds = {0:d2} 秒
+DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
+InstantPeriodicTimer_Start = 开始时间信号
+InstantPeriodicTimer_End = 结束时间信号
+Time_Hours_Minutes = {1:d2}:{0:d2}
+IntervalTime_PerHours = 每 {0:#} 小时
+IntervalTime_PerMinutes = 每 {0:#} 分钟
+IntervalTime_PerSeconds = 每 {0:#} 秒
+IntervalTime_PerHoursAndMinutes = 每 {1:#} 小时 {1:#} 分钟
+ScheduledPeriodicTimer = 预定时间信号
+PeriodicTimerInterval_Title = 时间间隔
+PeriodicTimerLabel_Title = 标签
+PeriodicTimerLabel_Placeholder = 示例）早晨时间信号
+PeriodicTimerEditDialog_Title = 编辑计时器
+PeriodicTimerAddDialog_Title = 添加计时器
+
+
+
+#### OneShot Timer
+
+OneShotTimer_Duration = 长度
+OneShotTimerLabel_Title = 标签
+OneShotTimerLabel_Placeholder = 示例）洗衣收集
+OneShotTimerEditDialog_Title = 编辑计时器
+OneShotTimerAddDialog_Title = 添加计时器

@@ -29,4 +29,6 @@ public sealed class PeriodicTimerEntity
     public bool IsEnabled { get; set; }
 
     public string Title { get; set; }
+
+    public DayOfWeek[] EnabledDayOfWeeks { get; set; } = Enum.GetValues<DayOfWeek>();
 }

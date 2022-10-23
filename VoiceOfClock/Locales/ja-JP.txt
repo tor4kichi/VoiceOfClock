@@ -1,12 +1,11 @@
-﻿
-#### Voice Reading
+﻿#### Voice Reading
 
 TimeOfDayToSpeechText = 時刻は {0} です
 TimeOfDayToSpeechText_Hour_Minute = {0}時 {1}分
 TimeOfDayToSpeechText_AMPM_Hour_Minute = {0}{1}時 {2}分
-TimeOfDayToSpeechTextForSSML_AMPM_Hour_Minute = {1}:{2} {0}
 Clock_AM = 午前
-Clock_PM = 午前
+Clock_PM = 午後
+
 
 
 #### Sound Source
@@ -19,36 +18,38 @@ SoundSource_Parameter_System = 音の種類
 SoundSource_Parameter_Tts = 読み上げるテキスト
 SoundSource_Parameter_TtsWithSsml = 読み上げるSSML
 
-#### Generic 
+
+
+#### Generic
 
 Start = 開始
 End = 終了
-
 Save = 保存
 Cancel = キャンセル
 Edit = 編集
 Delete = 削除
-
 UnitOfMonth = 月
 UnitOfDay = 日
 UnitOfHour = 時間
 UnitOfMinute = 分
 UnitOfSecond = 秒
-
 Elapsed = 経過
-
 NotSelected = 未選択
 
-#### Settings 
+#### Calender
+
+FirstDayOfWeek = 最初の曜日
+RepeatDayOfWeek = 繰り返し
+
+
+
+#### Settings
 
 Settings = 設定
 AboutThiApplication = このアプリについて
 SendFeedback = フィードバックを送信
 ProjectSite = プロジェクトサイト
-
-
 Speech = 読み上げ
-
 SpeechRate = 話速
 SpeechPitch = ピッチ
 SpeechVolume = 音量
@@ -58,21 +59,20 @@ SpeechWith24h = 24時間
 SpeechWithAM_PM = 午前午後
 SpeechSettings_AmpmPositionByLanguage_Title = 言語毎のAM/PMの読み上げ位置
 SpeechSettings_AmpmPositionByLanguage_Description = AM/PMが読まれない場合、前置・後置を指定してください
-
 AMPMPosition.NoChange = 変更しない
 AMPMPosition.Prefix = 前置
 AMPMPosition.Postfix = 後置
-
-VoiceInfomationDisplayName = {0} - {1}
-
 SpeechSettingsTest = 音声をテスト
-
 GeneralSettings = 一般
 ColorTheme = アプリ テーマ
 ElementTheme.Default = デフォルト
 ElementTheme.Light = ライト
 ElementTheme.Dark = ダーク
 ThemeApplyRequireRestartApp = テーマ変更を適用するにはアプリを再起動します
+CalenderSettings = カレンダー設定
+Language = 言語
+LanguageApplyRequireRestartApp = 言語変更を適用するにはアプリを再起動します
+
 
 
 #### App Menu
@@ -82,32 +82,25 @@ OneShotTimerMenuTitle = タイマー
 PeriodicTimerMenuTitle = 時刻読み上げ
 
 
-#### Periodic Timer 
+
+#### Periodic Timer
 
 ElapsedTime_Days_Hours_Minutes_Seconds = {3}日{2:d2}時間{1:d2}分{0:d2}秒
 ElapsedTime_Hours_Minutes_Seconds = {2:d2}時間{1:d2}分{0:d2}秒
 ElapsedTime_Minutes_Seconds = {1:d2}分{0:d2}秒
 ElapsedTime_Seconds = {0:d2}秒
-
 DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
-
 InstantPeriodicTimer_Start = 時報を開始
-InstantPeriodicTimer_End = 時報を終了 
-
+InstantPeriodicTimer_End = 時報を終了
 Time_Hours_Minutes = {1:d2}:{0:d2}
-
 IntervalTime_PerHours = {0:#}時間毎に
 IntervalTime_PerMinutes = {0:#}分毎に
 IntervalTime_PerSeconds = {0:#}秒毎に
 IntervalTime_PerHoursAndMinutes = {1:#}時間 {1:#}分毎に
-
 ScheduledPeriodicTimer = スケジュールされた時報
-
-
 PeriodicTimerInterval_Title = 時報の間隔
 PeriodicTimerLabel_Title = ラベル
 PeriodicTimerLabel_Placeholder = 例）朝の時報
-
 PeriodicTimerEditDialog_Title = タイマーを編集
 PeriodicTimerAddDialog_Title = タイマーを追加
 
@@ -116,9 +109,7 @@ PeriodicTimerAddDialog_Title = タイマーを追加
 #### OneShot Timer
 
 OneShotTimer_Duration = 長さ
-
 OneShotTimerLabel_Title = ラベル
 OneShotTimerLabel_Placeholder = 例）洗濯物回収
-
 OneShotTimerEditDialog_Title = タイマーを編集
 OneShotTimerAddDialog_Title = タイマーを追加

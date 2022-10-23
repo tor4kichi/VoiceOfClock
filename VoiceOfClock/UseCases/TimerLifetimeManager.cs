@@ -57,6 +57,7 @@ namespace VoiceOfClock.UseCases
             _endTime = entity.EndTime;
             _intervalTime = entity.IntervalTime;
             _title = entity.Title;
+            _enabledDayOfWeeks = entity.EnabledDayOfWeeks;
 
             CalcNextTime();
         }
@@ -107,6 +108,7 @@ namespace VoiceOfClock.UseCases
             if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
+                CalcNextTime();
             }
         }
 
@@ -119,6 +121,7 @@ namespace VoiceOfClock.UseCases
             if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
+                CalcNextTime();
             }
         }
 
@@ -131,6 +134,7 @@ namespace VoiceOfClock.UseCases
             if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
+                CalcNextTime();
             }
         }
 
@@ -146,6 +150,19 @@ namespace VoiceOfClock.UseCases
             }
         }
 
+        [ObservableProperty]
+        private DayOfWeek[] _enabledDayOfWeeks;
+
+        partial void OnEnabledDayOfWeeksChanged(DayOfWeek[] value)
+        {
+            _entity.EnabledDayOfWeeks = value;
+            if (!NowDeferUpdateRequested && !IsInstantTimer)
+            {
+                _repository.UpdateItem(_entity);
+                CalcNextTime();
+            }
+        }
+
         public void UpdateEntity(PeriodicTimerEntity entity)
         {
             _entity.Title = entity.Title;
@@ -153,6 +170,7 @@ namespace VoiceOfClock.UseCases
             _entity.EndTime = entity.EndTime;
             _entity.IntervalTime = entity.IntervalTime;
             _entity.IsEnabled = entity.IsEnabled;
+            _entity.EnabledDayOfWeeks = entity.EnabledDayOfWeeks.ToArray();
             if (!NowDeferUpdateRequested && !IsInstantTimer)
             {
                 _repository.UpdateItem(_entity);
@@ -170,7 +188,7 @@ namespace VoiceOfClock.UseCases
 
         void CalcNextTime()
         {
-            DateTime now = DateTime.Now;
+            DateTime now = DateTime.Now;             
             IsInsidePeriod = TimeHelpers.IsInsideTime(now.TimeOfDay, _entity.StartTime, _entity.EndTime);
             if (IsInsidePeriod)
             {
@@ -189,15 +207,43 @@ namespace VoiceOfClock.UseCases
             }
             else
             {
+                DateTime canidateNextTime;
                 if (_entity.StartTime > now.TimeOfDay)
                 {
-                    NextTime = DateTime.Today + _entity.StartTime;
+                    canidateNextTime = DateTime.Today + _entity.StartTime;
                 }
                 else
                 {
-                    NextTime = DateTime.Today + _entity.StartTime + TimeSpan.FromDays(1);
+                    canidateNextTime = DateTime.Today + _entity.StartTime + TimeSpan.FromDays(1);
+                }
+
+                if (EnabledDayOfWeeks.Any() is false || EnabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
+                {
+                    NextTime = canidateNextTime;
+                }
+                else if (EnabledDayOfWeeks.Any())
+                {
+                    foreach (var i in Enumerable.Range(0, 7))
+                    {
+                        canidateNextTime += TimeSpan.FromDays(1);
+                        if (EnabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
+                        {
+                            NextTime = canidateNextTime;
+                            break;
+                        }
+                    }
                 }
             }
+        }
+
+        public void OnEnded()
+        {
+            if (EnabledDayOfWeeks.Any() is false)
+            {
+                IsEnabled = false;
+            }
+
+            CalcNextTime();
         }
 
         public void IncrementNextTime()
@@ -207,7 +253,7 @@ namespace VoiceOfClock.UseCases
 
         public void UpdateElapsedTime()
         {
-            if (TimeHelpers.IsInsideTime(DateTime.Now.TimeOfDay, _entity.StartTime, _entity.EndTime))
+            if (IsInsidePeriod = TimeHelpers.IsInsideTime(DateTime.Now.TimeOfDay, _entity.StartTime, _entity.EndTime))
             {                
                 ElapsedTime = (DateTime.Now - StartDateTime).TrimMilliSeconds();
             }
@@ -246,7 +292,7 @@ namespace VoiceOfClock.UseCases
             {
                 IsEnabled = false,
                 Id = Guid.Empty,
-                Title = "InstantPeriodicTimer_Title".Translate(),
+                Title = "InstantPeriodicTimer_Title".Translate(),                
             }, _periodicTimerRepository);
         }
 
@@ -260,12 +306,30 @@ namespace VoiceOfClock.UseCases
                     // 次に通知すべき時間を割り出す
                     if (timer.NextTime < DateTime.Now)
                     {
-                        var time = timer.NextTime;
-                        _ = SendCurrentTimeVoiceAsync(time);
-                        timer.IncrementNextTime();
+                        if (timer.NextTime.TimeOfDay == timer.StartTime)
+                        {
+                            _ = SendCurrentTimeVoiceAsync(timer.NextTime);
+                            Debug.WriteLine($"ピリオドダイマー： {timer.Title} を開始");
+                            
+                            timer.IncrementNextTime();
+                            //_messenger.Send(new PeriodicTimerUpdated(timer._entity));
+                        }
+                        else if (timer.NextTime.TimeOfDay == timer.EndTime)
+                        {
+                            _ = SendCurrentTimeVoiceAsync(timer.NextTime);
+                            Debug.WriteLine($"ピリオドダイマー： {timer.Title} が完了");
+                            
+                            timer.OnEnded();
+                            _messenger.Send(new PeriodicTimerUpdated(timer._entity));
+                        }
+                        else
+                        {
+                            _ = SendCurrentTimeVoiceAsync(timer.NextTime);
+                            Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
 
-                        Debug.WriteLine($"{timer.Title} の再生を開始");
-                        _messenger.Send(new PeriodicTimerUpdated(timer._entity));
+                            timer.IncrementNextTime();
+                            //_messenger.Send(new PeriodicTimerUpdated(timer._entity));
+                        }
                     }
 
                     timer.UpdateElapsedTime();
@@ -288,7 +352,7 @@ namespace VoiceOfClock.UseCases
                 yield return InstantPeriodicTimer;
             }
 
-            TimeSpan timeOfDay = DateTime.Now.TimeOfDay;
+            TimeSpan timeOfDay = DateTime.Now.TimeOfDay.TrimMilliSeconds();
             foreach (var timer in _periodicTimers.Where(x => x.IsEnabled && TimeHelpers.IsInsideTime(timeOfDay, x.StartTime, x.EndTime)))
             {
                 yield return timer;
@@ -309,7 +373,7 @@ namespace VoiceOfClock.UseCases
         {
         }
 
-        public PeriodicTimerRunningInfo CreatePeriodicTimer(string title, TimeSpan startTime, TimeSpan endTime, TimeSpan intervalTime, bool isEnabled = true)
+        public PeriodicTimerRunningInfo CreatePeriodicTimer(string title, TimeSpan startTime, TimeSpan endTime, TimeSpan intervalTime, DayOfWeek[] enabledDayOfWeeks, bool isEnabled = true)
         {
             var entity = _periodicTimerRepository.CreateItem(new PeriodicTimerEntity 
             {
@@ -318,6 +382,7 @@ namespace VoiceOfClock.UseCases
                 StartTime = startTime,
                 IntervalTime = intervalTime,
                 IsEnabled = isEnabled,
+                EnabledDayOfWeeks = enabledDayOfWeeks,
             });
 
             var runningTimerInfo = new PeriodicTimerRunningInfo(entity, _periodicTimerRepository);

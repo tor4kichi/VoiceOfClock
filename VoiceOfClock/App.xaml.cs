@@ -10,6 +10,7 @@ using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -102,8 +103,8 @@ public partial class App : Application
 
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
-            .SetNotFoundSymbol("🍣")
-            ;        
+            .SetNotFoundSymbol("🍣")            
+            ;
     }
 
     
@@ -116,6 +117,14 @@ public partial class App : Application
     {        
         if (_window == null)
         {
+            // 言語の指定
+            if (Container.Resolve<ApplicationSettings>() is not null and var appSettings
+                && I18N.Current.Languages.FirstOrDefault(x => x.Locale == appSettings.DisplayLanguage) is not null and var language)
+            {
+                I18N.Current.Locale = language.Locale;
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(language.Locale);
+            }
+
             // ライフサイクル対応のインスタンスに対して初期化を実行
             foreach (var item in _lifeCycleAwareInstances)
             {
