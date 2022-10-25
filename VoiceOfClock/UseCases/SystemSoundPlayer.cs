@@ -145,6 +145,19 @@ public static class SystemSoundConstants
     {
         return new[]
         {
+            Default,
+            IM,
+            Mail,
+            Reminder,
+            SMS,
+
+        };
+    }
+
+    public static string[] GetNotificationLoopingSoundUris()
+    {
+        return new[]
+        {
             Looping_Alarm,
             Looping_Alarm2,
             Looping_Alarm3,
@@ -165,18 +178,6 @@ public static class SystemSoundConstants
             Looping_Call8,
             Looping_Call9,
             Looping_Call10,
-        };
-    }
-
-    public static string[] GetNotificationLoopingSoundUris()
-    {
-        return new[]
-        {
-            Default,
-            IM,
-            Mail,
-            Reminder,
-            SMS,
         };
     }
 }
