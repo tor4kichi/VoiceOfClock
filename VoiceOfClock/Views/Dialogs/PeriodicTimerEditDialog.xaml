@@ -22,52 +22,50 @@
 
     <Grid>
       <TimePicker x:Name="TimePicker_StartTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="{i18n:Localize Key=Start}"
-                    >
+                  LightDismissOverlayMode="On"
+                  HorizontalAlignment="Stretch"
+                  Header="{i18n:Localize Key=Start}"
+                  />
 
-      </TimePicker>
       <Grid HorizontalAlignment="Stretch" Opacity="0.5">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
       </Grid>
     </Grid>
 
     <Grid>
       <TimePicker x:Name="TimePicker_EndTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="{i18n:Localize Key=End}"
-                    >
+                  LightDismissOverlayMode="On"
+                  HorizontalAlignment="Stretch"
+                  Header="{i18n:Localize Key=End}"                  
+                  />
 
-      </TimePicker>
       <Grid HorizontalAlignment="Stretch" Opacity="0.5">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+        <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
         </TextBlock>
       </Grid>
     </Grid>
 
     <Grid>
       <TimePicker x:Name="TimePicker_IntervalTime" SelectedTime="00:00:00" 
-                    LightDismissOverlayMode="On"
-                      HorizontalAlignment="Stretch"
-                      Header="{i18n:Localize Key=PeriodicTimerInterval_Title}"
-                    >
+                  LightDismissOverlayMode="On"
+                  HorizontalAlignment="Stretch"
+                  Header="{i18n:Localize Key=PeriodicTimerInterval_Title}"                  
+                  >
 
       </TimePicker>
       <Grid HorizontalAlignment="Stretch" Opacity="0.5">

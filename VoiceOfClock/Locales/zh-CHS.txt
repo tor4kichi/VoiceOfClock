@@ -33,6 +33,11 @@ UnitOfDay = 天
 UnitOfHour = 时间
 UnitOfMinute = 分钟
 UnitOfSecond = 秒
+PeriodOfMonth = 月
+PeriodOfDay = 天
+PeriodOfHour = 时间
+PeriodOfMinute = 分钟
+PeriodOfSecond = 秒
 Elapsed = 进步
 NotSelected = 未选中
 

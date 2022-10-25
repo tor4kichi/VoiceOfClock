@@ -63,30 +63,44 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = enabledDayOfWeeksHashSet.Contains(x) })
             .ToArray();
-        
-        using var _ = EnabledDayOfWeeks.Select(x => x.ObserveProperty(x => x.IsEnabled)).CombineLatestValuesAreAllFalse()
+
+        TimePicker_StartTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
+        TimePicker_EndTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
+        TimePicker_IntervalTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
+
+        var disposer = EnabledDayOfWeeks.Select(x => x.ObserveProperty(x => x.IsEnabled)).CombineLatestValuesAreAllFalse()
             .Where(_ => !_isRepeatChanging)
             .Subscribe(x =>
             {
                 IsRepeat = !x;
-            });                
+            });
 
-        if (await base.ShowAsync() is ContentDialogResult.Primary)
+        try
         {
-            return new PeriodicTimerDialogResult
+            if (await base.ShowAsync() is ContentDialogResult.Primary)
             {
-                IsConfirmed = true,
-                Title = TextBox_EditTitle.Text,
-                StartTime = TimePicker_StartTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_StartTime)),
-                EndTime = TimePicker_EndTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_EndTime)),
-                IntervalTime = TimePicker_IntervalTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_IntervalTime)),
-                EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray(),
-            };
+                return new PeriodicTimerDialogResult
+                {
+                    IsConfirmed = true,
+                    Title = TextBox_EditTitle.Text,
+                    StartTime = TimePicker_StartTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_StartTime)),
+                    EndTime = TimePicker_EndTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_EndTime)),
+                    IntervalTime = TimePicker_IntervalTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_IntervalTime)),
+                    EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray(),
+                };
+            }
+            else
+            {
+                return new PeriodicTimerDialogResult { IsConfirmed = false };
+            }
         }
-        else
+        finally
         {
-            return new PeriodicTimerDialogResult { IsConfirmed = false };
-        }            
+            disposer.Dispose();
+            TimePicker_StartTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
+            TimePicker_EndTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
+            TimePicker_IntervalTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
+        }        
     }
 
     private void CheckBox_IsRepeat_Tapped(object sender, TappedRoutedEventArgs e)
@@ -99,5 +113,24 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
         }
 
         _isRepeatChanging = false;
+    }
+
+    private void TimePicker_StartTime_SelectedTimeChanged(TimePicker sender, TimePickerSelectedValueChangedEventArgs args)
+    {
+        UpdateIsPrimaryButtonEnabled();
+    }
+
+    private void UpdateIsPrimaryButtonEnabled()
+    {        
+        if (TimePicker_StartTime.SelectedTime == TimePicker_EndTime.SelectedTime
+            || TimePicker_IntervalTime.SelectedTime == TimeSpan.Zero
+            )
+        {
+            IsPrimaryButtonEnabled = false;
+        }
+        else
+        {
+            IsPrimaryButtonEnabled = true;
+        }
     }
 }

@@ -33,6 +33,11 @@ UnitOfDay = Day
 UnitOfHour = Hour
 UnitOfMinute = Minute
 UnitOfSecond = Second
+PeriodOfMonth = Month
+PeriodOfDay = Day
+PeriodOfHour = Hour
+PeriodOfMinute = Minutes
+PeriodOfSecond = Seconds
 Elapsed = Progress
 NotSelected = Unselected
 

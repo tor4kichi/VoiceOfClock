@@ -33,6 +33,11 @@ UnitOfDay = 日
 UnitOfHour = 時間
 UnitOfMinute = 分
 UnitOfSecond = 秒
+PeriodOfMonth = 月
+PeriodOfDay = 日
+PeriodOfHour = 時
+PeriodOfMinute = 分
+PeriodOfSecond = 秒
 Elapsed = 経過
 NotSelected = 未選択
 

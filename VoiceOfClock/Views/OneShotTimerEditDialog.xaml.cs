@@ -20,6 +20,8 @@ using VoiceOfClock.UseCases;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.UI;
+using DependencyPropertyGenerator;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -157,6 +159,9 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     private void ComboBox_SoundSourceType_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        TextBox_SoundParameter_Tts.TextChanged -= TextBox_SoundParameter_TextChanged;
+        TextBox_SoundParameter_TtsWithSsml.TextChanged -= TextBox_SoundParameter_TextChanged;
+
         var type = (SoundSourceType)ComboBox_SoundSourceType.SelectedItem;
         SoundSourceType = type;
         if (type == SoundSourceType.System)
@@ -170,13 +175,57 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
             ComboBox_SoundSource_WindowsSystem.Visibility = Visibility.Collapsed;
             TextBox_SoundParameter_Tts.Visibility = Visibility.Visible;
             TextBox_SoundParameter_TtsWithSsml.Visibility = Visibility.Collapsed;
+
+            TextBox_SoundParameter_Tts.TextChanged += TextBox_SoundParameter_TextChanged;
         }
         else if (type == SoundSourceType.TtsWithSSML)
         {
             ComboBox_SoundSource_WindowsSystem.Visibility = Visibility.Collapsed;
             TextBox_SoundParameter_Tts.Visibility = Visibility.Collapsed;
             TextBox_SoundParameter_TtsWithSsml.Visibility = Visibility.Visible;
+
+            TextBox_SoundParameter_TtsWithSsml.TextChanged += TextBox_SoundParameter_TextChanged;
         }
+
+        UpdateIsPrimaryButtonEnabled();
+    }
+
+    private void TextBox_SoundParameter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateIsPrimaryButtonEnabled();
+    }
+
+
+    private void UpdateIsPrimaryButtonEnabled()
+    {
+        var type = SoundSourceType;
+        if (type == SoundSourceType.System)
+        {
+            IsPrimaryButtonEnabled = IsValidTime(Duration);
+        }
+        else if (type == SoundSourceType.Tts)
+        {
+            IsPrimaryButtonEnabled = IsValidInput(TextBox_SoundParameter_Tts.Text) && IsValidTime(Duration);
+        }
+        else if (type == SoundSourceType.TtsWithSSML)
+        {
+            IsPrimaryButtonEnabled = IsValidInput(TextBox_SoundParameter_TtsWithSsml.Text) && IsValidTime(Duration);
+        }
+    }
+
+    private void TimePicker_Time_SelectedTimeChanged(TimePicker sender, TimePickerSelectedValueChangedEventArgs args)
+    {
+        UpdateIsPrimaryButtonEnabled();
+    }
+
+    static bool IsValidInput(string text)
+    {
+        return !string.IsNullOrWhiteSpace(text);
+    }
+
+    static bool IsValidTime(TimeSpan time)
+    {
+        return time > TimeSpan.Zero;
     }
 
     [RelayCommand]
@@ -209,6 +258,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         
         _ = TestPlaySound();
     }
+
 }
 
 

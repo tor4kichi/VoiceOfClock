@@ -21,7 +21,8 @@
       <TimePicker x:Name="TimePicker_Time" SelectedTime="00:00:00" 
                   LightDismissOverlayMode="On"
                   HorizontalAlignment="Stretch"
-                  Header="{i18n:Localize Key=OneShotTimer_Duration}"                  
+                  Header="{i18n:Localize Key=OneShotTimer_Duration}"    
+                  SelectedTimeChanged="TimePicker_Time_SelectedTimeChanged"
                   >
       </TimePicker>
       <Grid HorizontalAlignment="Stretch" Opacity="0.5">
@@ -30,12 +31,8 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=UnitOfSecond}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
+        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False" />
+        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False" />
       </Grid>
     </Grid>
 
