@@ -107,8 +107,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     public TimeSpan Duration
     {
-        get => TimePicker_Time.SelectedTime ?? TimeSpan.Zero;
-        set => TimePicker_Time.SelectedTime = value;
+        get => TimeSelector_Time.Time;
+        set => TimeSelector_Time.Time = value;
     }
 
     public string TimerTitle

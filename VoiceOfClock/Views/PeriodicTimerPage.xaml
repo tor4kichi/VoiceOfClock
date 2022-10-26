@@ -173,24 +173,14 @@
             <StackPanel Orientation="Vertical" Spacing="8">
               <StackPanel Spacing="4">
                 <Grid>
-                  <TimePicker x:Name="TimePicker_ImmidiateRunTimer"
-                        SelectedTime="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=TwoWay}"      
-                        FontSize="48"        
-                          ClockIdentifier="24HourClock"
-                              IsEnabled="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
-                        >
-                  </TimePicker>
-                  <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="*" />
-                      <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-                    </TextBlock>
-                    <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-                    </TextBlock>
-                  </Grid>
+                  <myControls:TimeSelectBox 
+                    x:Name="TimeSelectBox_ImmidiateRunTimer"
+                    Time="{x:Bind _vm.TimerSettings.InstantPeriodicTimerInterval, Mode=TwoWay}"      
+                    FontSize="40"        
+                    IsEnabled="{x:Bind _vm.InstantPeriodicTimer.IsEnabled, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
+                    DisplayMode="Hours_Minutes_Seconds"
+                    >
+                  </myControls:TimeSelectBox>
                 </Grid>
               </StackPanel>
 

@@ -26,8 +26,7 @@
     <None Remove="Locales\en-US.txt" />
     <None Remove="Locales\ja-JP.txt" />
     <None Remove="Locales\zh-CHS.txt" />
-    <None Remove="Views\Controls\NumberBox.xaml" />
-    <None Remove="Views\Dialogs\PeriodicTimerEditDialog.xaml" />
+    <None Remove="Views\Controls\TimeSelectBox.xaml" />
     <None Remove="Views\OneShotTimerEditDialog.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\Styles\SettingsItemStyle.xaml" />
@@ -105,12 +104,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Controls\NumberBox.xaml">
+    <Page Update="Views\Controls\TimeSelectBox.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Dialogs\PeriodicTimerEditDialog.xaml">
+    <Page Update="Views\PeriodicTimerEditDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

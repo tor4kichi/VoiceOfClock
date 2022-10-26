@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:VoiceOfClock" 
   xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters"
-  xmlns:myDialog="using:VoiceOfClock.Views.Dialogs"  
   xmlns:views="using:VoiceOfClock.Views"
   xmlns:i18n="using:I18NPortable.Converters"
   >
@@ -17,6 +16,7 @@
         <ResourceDictionary Source="Views/Styles/SettingsItemStyle.xaml" />
         <ResourceDictionary Source="Views/Styles/ContentDialogButtonWithIconStylesDictionary.xaml" />
         <ResourceDictionary Source="Views/Styles/GridViewItemMicaStyle.xaml" />
+        <ResourceDictionary Source="Views/Controls/TimeSelectBox.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <!-- Other app resources here -->
 
@@ -82,9 +82,9 @@
 
       <!-- bug on the ContentDialog derived -->
       <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
-      <Style TargetType="myDialog:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+      <Style TargetType="views:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:OneShotTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
-      
+
       
       
     </ResourceDictionary>

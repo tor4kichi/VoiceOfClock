@@ -1,14 +1,14 @@
 ﻿<ContentDialog
-    x:Class="VoiceOfClock.Views.Dialogs.PeriodicTimerEditDialog"
+    x:Class="VoiceOfClock.Views.PeriodicTimerEditDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:VoiceOfClock.Views.Dialogs"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels" 
   xmlns:globalization="using:System.Globalization"
+  xmlns:myControls="using:VoiceOfClock.Views.Controls"
   mc:Ignorable="d"
   PrimaryButtonText="{i18n:Localize Key=Save}"
     CloseButtonText="{i18n:Localize Key=Cancel}"
@@ -61,24 +61,13 @@
     </Grid>
 
     <Grid>
-      <TimePicker x:Name="TimePicker_IntervalTime" SelectedTime="00:00:00" 
-                  LightDismissOverlayMode="On"
-                  HorizontalAlignment="Stretch"
-                  Header="{i18n:Localize Key=PeriodicTimerInterval_Title}"                  
-                  >
 
-      </TimePicker>
-      <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <TextBlock Text="{i18n:Localize Key=UnitOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=UnitOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-      </Grid>
+      <StackPanel>
+        <TextBlock Text="{i18n:Localize Key=PeriodicTimerInterval_Title}" />
+        <myControls:TimeSelectBox x:Name="TimeSelectBox_IntervalTime"
+        FontSize="40"
+        />
+      </StackPanel>
     </Grid>
 
     <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=PeriodicTimerLabel_Placeholder}"

@@ -18,7 +18,6 @@ using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Views;
-using VoiceOfClock.Views.Dialogs;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;

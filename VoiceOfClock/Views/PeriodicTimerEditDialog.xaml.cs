@@ -27,7 +27,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace VoiceOfClock.Views.Dialogs;
+namespace VoiceOfClock.Views;
 
 public sealed class PeriodicTimerEditDialogService : IPeriodicTimerDialogService
 {
@@ -57,7 +57,7 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
         TextBox_EditTitle.Text = timerTitle;
         TimePicker_StartTime.SelectedTime = startTime;
         TimePicker_EndTime.SelectedTime = endTime;
-        TimePicker_IntervalTime.SelectedTime = intervalTime;
+        TimeSelectBox_IntervalTime.Time = intervalTime;
 
         var enabledDayOfWeeksHashSet = enabledDayOfWeeks.ToHashSet();
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
@@ -66,7 +66,7 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
 
         TimePicker_StartTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
         TimePicker_EndTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
-        TimePicker_IntervalTime.SelectedTimeChanged += TimePicker_StartTime_SelectedTimeChanged;
+        TimeSelectBox_IntervalTime.TimeChanged += TimeSelectBox_IntervalTime_TimeChanged; ;
 
         var disposer = EnabledDayOfWeeks.Select(x => x.ObserveProperty(x => x.IsEnabled)).CombineLatestValuesAreAllFalse()
             .Where(_ => !_isRepeatChanging)
@@ -85,7 +85,7 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
                     Title = TextBox_EditTitle.Text,
                     StartTime = TimePicker_StartTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_StartTime)),
                     EndTime = TimePicker_EndTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_EndTime)),
-                    IntervalTime = TimePicker_IntervalTime.SelectedTime ?? throw new InvalidOperationException(nameof(TimePicker_IntervalTime)),
+                    IntervalTime = TimeSelectBox_IntervalTime.Time,
                     EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray(),
                 };
             }
@@ -99,9 +99,10 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
             disposer.Dispose();
             TimePicker_StartTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
             TimePicker_EndTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
-            TimePicker_IntervalTime.SelectedTimeChanged -= TimePicker_StartTime_SelectedTimeChanged;
+            TimeSelectBox_IntervalTime.TimeChanged -= TimeSelectBox_IntervalTime_TimeChanged; ;
         }        
     }
+
 
     private void CheckBox_IsRepeat_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -120,10 +121,16 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
         UpdateIsPrimaryButtonEnabled();
     }
 
+
+    private void TimeSelectBox_IntervalTime_TimeChanged(Controls.TimeSelectBox sender, Controls.TimeSelectBoxTimeValueChangedEventArgs args)
+    {
+        UpdateIsPrimaryButtonEnabled();
+    }
+
     private void UpdateIsPrimaryButtonEnabled()
     {        
         if (TimePicker_StartTime.SelectedTime == TimePicker_EndTime.SelectedTime
-            || TimePicker_IntervalTime.SelectedTime == TimeSpan.Zero
+            || TimeSelectBox_IntervalTime.Time == TimeSpan.Zero
             )
         {
             IsPrimaryButtonEnabled = false;
