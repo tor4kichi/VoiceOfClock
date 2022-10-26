@@ -66,6 +66,7 @@
                 <VisualState x:Name="VS_GotFocus">
                   <VisualState.Setters>
                     <Setter Target="ContentBackground_Grid.Background" Value="{ThemeResource SystemAltLowColor}" />
+                    <Setter Target="ContentBackground_Grid.BorderBrush" Value="{ThemeResource TextControlElevationBorderFocusedBrush}" />
                     <Setter Target="UnfocusedWall.Opacity" Value="0.0" />
                   </VisualState.Setters>
                 </VisualState>
@@ -166,18 +167,18 @@
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="8" />
               <ColumnDefinition Width="*" x:Name="CD_Hours" />
               <ColumnDefinition Width="Auto" x:Name="CD_Separator_Hours_Minutes" />
               <ColumnDefinition Width="*" x:Name="CD_Minutes" />
               <ColumnDefinition Width="Auto" x:Name="CD_Separator_Minutes_Seconds" />
               <ColumnDefinition Width="*" x:Name="CD_Seconds" />
-              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="8" />
             </Grid.ColumnDefinitions>
 
             <Grid x:Name="ContentBackground_Grid" Grid.ColumnSpan="7" Grid.Row="1" Grid.RowSpan="1"
-              BorderBrush="Gray"
-              BorderThickness="1"
+              BorderBrush="{ThemeResource TextControlElevationBorderBrush}"
+              BorderThickness="1 1 1 2"
               Background="{ThemeResource SystemAltLowColor}"
               CornerRadius="4"                  
               IsHitTestVisible="True"                  
@@ -202,7 +203,7 @@
               </RepeatButton>
             </Border>
 
-            <Border x:Name="Hours_Minutes_Separator_Border" Grid.Column="2" Grid.Row="1">
+            <Border x:Name="Hours_Minutes_Separator_Border" Grid.Column="2" Grid.Row="1" Margin="4 0">
               <TextBlock Text=":" TextLineBounds="Tight" FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}" FontFamily="{TemplateBinding FontFamily}" IsHitTestVisible="False" />
             </Border>
 
@@ -224,7 +225,7 @@
               </RepeatButton>
             </Border>
 
-            <Border x:Name="Minutes_Seconds_Separator_Border" Grid.Column="4" Grid.Row="1">
+            <Border x:Name="Minutes_Seconds_Separator_Border" Grid.Column="4" Grid.Row="1" Margin="4 0">
               <TextBlock Text=":" TextLineBounds="Tight" FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}" FontFamily="{TemplateBinding FontFamily}" IsHitTestVisible="False" />
             </Border>
             

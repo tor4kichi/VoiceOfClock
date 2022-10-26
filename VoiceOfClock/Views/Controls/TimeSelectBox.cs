@@ -166,6 +166,8 @@ public sealed partial class TimeSelectBox : Control
 
     private void UpdateDisplayMode()
     {
+        if (!IsLoaded) { return; }
+
         switch (DisplayMode)
         {
             case TimeSelectBoxDisplayMode.Hours_Minutes_Seconds:
@@ -265,6 +267,7 @@ public sealed partial class TimeSelectBox : Control
         }
 
         UpdateTimeDisplay();
+        UpdateDisplayMode();
     }
 
     private void BackGrid_Tapped(object sender, TappedRoutedEventArgs e)
