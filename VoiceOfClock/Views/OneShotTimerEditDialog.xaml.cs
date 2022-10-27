@@ -107,8 +107,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     public TimeSpan Duration
     {
-        get => TimeSelector_Time.Time;
-        set => TimeSelector_Time.Time = value;
+        get => TimeSelectBox_Time.Time;
+        set => TimeSelectBox_Time.Time = value;
     }
 
     public string TimerTitle
@@ -213,11 +213,6 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         }
     }
 
-    private void TimePicker_Time_SelectedTimeChanged(TimePicker sender, TimePickerSelectedValueChangedEventArgs args)
-    {
-        UpdateIsPrimaryButtonEnabled();
-    }
-
     static bool IsValidInput(string text)
     {
         return !string.IsNullOrWhiteSpace(text);
@@ -259,6 +254,10 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         _ = TestPlaySound();
     }
 
+    private void TimeSelectBox_Time_TimeChanged(Controls.TimeSelectBox sender, Controls.TimeSelectBoxTimeValueChangedEventArgs args)
+    {
+        UpdateIsPrimaryButtonEnabled();
+    }
 }
 
 

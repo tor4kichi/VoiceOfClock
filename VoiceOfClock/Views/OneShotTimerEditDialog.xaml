@@ -22,8 +22,9 @@
       <!--
       <TextBlock Text="{i18n:Localize Key=OneShotTimer_Duration}" />
       -->
-      <myControls:TimeSelectBox x:Name="TimeSelector_Time"
-          FontSize="40"          
+      <myControls:TimeSelectBox x:Name="TimeSelectBox_Time"
+          FontSize="40"       
+                               TimeChanged="TimeSelectBox_Time_TimeChanged"
       />
     </StackPanel>
 
