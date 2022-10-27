@@ -80,11 +80,15 @@ LanguageApplyRequireRestartApp = 重新启动应用程序以应用语言更改
 
 
 
-#### App Menu
+#### App Menu and Window
 
 AlermMenuTitle = 警报
 OneShotTimerMenuTitle = 计时器
 PeriodicTimerMenuTitle = 读出时间
+ConfirmCloseApplication_PrimaryButtonText = 关闭应用程序
+ConfirmCloseApplication_Title = 确认计时器继续
+ConfirmCloseAppliction_Description = 当您退出应用程序时，定时器操作、通知和阅读也将停止。 \n您确定要退出该应用程序吗？
+ConfirmCloseApplication_DontShowAgain = 不要再问我
 
 
 

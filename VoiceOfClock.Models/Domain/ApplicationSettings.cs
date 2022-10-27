@@ -15,6 +15,7 @@ namespace VoiceOfClock.Models.Domain
         {
             _themeName = Enum.Parse<ElementTheme>(Read(ElementTheme.Default.ToString(), nameof(Theme)));
             _displayLanguage = Read(CultureInfo.CurrentCulture.Name, nameof(DisplayLanguage));
+            _dontShowWindowCloseConfirmDialog = Read(false, nameof(DontShowWindowCloseConfirmDialog));
         }
 
         private ElementTheme _themeName;
@@ -39,5 +40,13 @@ namespace VoiceOfClock.Models.Domain
             get => _displayLanguage;
             set => SetProperty(ref _displayLanguage, value);
         }
+
+        private bool _dontShowWindowCloseConfirmDialog;
+        public bool DontShowWindowCloseConfirmDialog
+        {
+            get => _dontShowWindowCloseConfirmDialog;
+            set => SetProperty(ref _dontShowWindowCloseConfirmDialog, value);
+        }
+
     }
 }

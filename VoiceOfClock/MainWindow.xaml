@@ -115,6 +115,20 @@
 
     </tkControls:DockPanel>
 
+    <ContentDialog x:Name="ContentDialog_ConfirmClosing"
+                   PrimaryButtonText="{i18n:Localize Key=ConfirmCloseApplication_PrimaryButtonText}"
+                   SecondaryButtonText="{i18n:Localize Key=Cancel}"
+                   Title="{i18n:Localize Key=ConfirmCloseApplication_Title}"
+                   >
+      <StackPanel Spacing="8">
+        <TextBlock Text="{i18n:Localize Key=ConfirmCloseAppliction_Description}" />
 
+        <CheckBox x:Name="CheckBox_DontShowAgain" IsChecked="False">
+          <TextBlock Text="{i18n:Localize Key=ConfirmCloseApplication_DontShowAgain}" VerticalAlignment="Center" />
+        </CheckBox>
+      </StackPanel>
+      
+    </ContentDialog>
+    
   </Grid>
 </local:SystemBackdropWindow>

@@ -80,11 +80,15 @@ LanguageApplyRequireRestartApp = Restart the app to apply the language change
 
 
 
-#### App Menu
+#### App Menu and Window
 
 AlermMenuTitle = Alarm
 OneShotTimerMenuTitle = Timer
 PeriodicTimerMenuTitle = Read out time
+ConfirmCloseApplication_PrimaryButtonText = Close the App
+ConfirmCloseApplication_Title = Confirm timer continuation
+ConfirmCloseAppliction_Description = When you exit the app, the timer operation, notification, and reading will also stop. \nAre you sure you want to quit the app?
+ConfirmCloseApplication_DontShowAgain = Don't ask me again
 
 
 

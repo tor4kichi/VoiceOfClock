@@ -46,7 +46,7 @@ namespace VoiceOfClock.UseCases
     }
 
     [ObservableObject]
-    public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable
+    public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningTimer
     {
         public PeriodicTimerRunningInfo(PeriodicTimerEntity entity, PeriodicTimerRepository repository)
         {
@@ -265,6 +265,7 @@ namespace VoiceOfClock.UseCases
     }
 
     public sealed class TimerLifetimeManager : IApplicationLifeCycleAware
+        , IRecipient<ActiveTimerCollectionRequestMessage>
     {
         private readonly IMessenger _messenger;
         private readonly PeriodicTimerRepository _periodicTimerRepository;
@@ -295,6 +296,25 @@ namespace VoiceOfClock.UseCases
                 Title = "InstantPeriodicTimer_Title".Translate(),                
             }, _periodicTimerRepository);
         }
+
+
+        void IApplicationLifeCycleAware.Initialize()
+        {
+            _messenger.RegisterAll(this);
+        }
+
+        void IApplicationLifeCycleAware.Resuming() { }
+
+        void IApplicationLifeCycleAware.Suspending() { }
+
+        void IRecipient<ActiveTimerCollectionRequestMessage>.Receive(ActiveTimerCollectionRequestMessage message)
+        {            
+            foreach (var timer in GetInsideEnablingTimeTimers())
+            {
+                message.Reply(timer);
+            }
+        }
+
 
         DateTime _lastTickTime = DateTime.MinValue;
         private void _timer_Tick(DispatcherQueueTimer sender, object args)
@@ -359,20 +379,6 @@ namespace VoiceOfClock.UseCases
             }
         }        
 
-        void IApplicationLifeCycleAware.Initialize()
-        {
-            _messenger.RegisterAll(this);
-        }
-
-
-        void IApplicationLifeCycleAware.Resuming()
-        {
-        }
-
-        void IApplicationLifeCycleAware.Suspending()
-        {
-        }
-
         public PeriodicTimerRunningInfo CreatePeriodicTimer(string title, TimeSpan startTime, TimeSpan endTime, TimeSpan intervalTime, DayOfWeek[] enabledDayOfWeeks, bool isEnabled = true)
         {
             var entity = _periodicTimerRepository.CreateItem(new PeriodicTimerEntity 
@@ -418,6 +424,7 @@ namespace VoiceOfClock.UseCases
         {
             InstantPeriodicTimer.IsEnabled = false;
         }
+
     }
 
     public sealed class RequestRunningPeriodicTimer : RequestMessage<PeriodicTimerRunningInfo>

@@ -19,7 +19,7 @@ static class OneShotTimerConstants
 }
 
 [ObservableObject]
-public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposable
+public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposable, IRunningTimer
 {
     private readonly OneShotTimerEntity _entity;
     private readonly OneShotTimerRepository _repository;
@@ -252,6 +252,7 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
 }
 
 public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
+    , IRecipient<ActiveTimerCollectionRequestMessage>
 {
     private readonly IMessenger _messenger;
     private readonly OneShotTimerRepository _oneShotTimerRepository;
@@ -276,6 +277,8 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
 
     void IApplicationLifeCycleAware.Initialize()
     {
+        _messenger.RegisterAll(this);
+
         var timers = _oneShotTimerRepository.ReadAllItems();
         foreach (var timer in timers)
         {
@@ -291,6 +294,17 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
     void IApplicationLifeCycleAware.Suspending()
     {
         
+    }
+
+    void IRecipient<ActiveTimerCollectionRequestMessage>.Receive(ActiveTimerCollectionRequestMessage message)
+    {
+        foreach (var timer in _timers)
+        {
+            if (timer.IsRunning)
+            {
+                message.Reply(timer);
+            }
+        }
     }
 
     public OneShotTimerRunningInfo CreateTimer(string title, TimeSpan time)
@@ -312,4 +326,5 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             _timers.Remove(remItem);
         }
     }
+
 }

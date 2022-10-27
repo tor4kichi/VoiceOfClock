@@ -80,11 +80,15 @@ LanguageApplyRequireRestartApp = 言語変更を適用するにはアプリを�
 
 
 
-#### App Menu
+#### App Menu and Window
 
 AlermMenuTitle = アラーム
 OneShotTimerMenuTitle = タイマー
 PeriodicTimerMenuTitle = 時刻読み上げ
+ConfirmCloseApplication_PrimaryButtonText = アプリを閉じる
+ConfirmCloseApplication_Title = タイマー継続の確認
+ConfirmCloseAppliction_Description = アプリを終了すると、タイマー動作・通知・読み上げも止まります。\nアプリを終了してもいいですか？
+ConfirmCloseApplication_DontShowAgain = 今後、確認を表示しない
 
 
 

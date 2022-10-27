@@ -1,8 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Helpers;
 using CommunityToolkit.WinUI.UI.Helpers;
 using DryIoc;
+using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -16,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.UseCases;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinRT;
@@ -30,6 +35,8 @@ namespace VoiceOfClock;
 /// </summary>
 public sealed partial class MainWindow : SystemBackdropWindow
 {
+    private readonly AppWindow _AppWindow;
+
     public MainWindow()
     {
         this.InitializeComponent();        
@@ -45,6 +52,50 @@ public sealed partial class MainWindow : SystemBackdropWindow
         {
             
         }
+
+        _AppWindow = GetCurrentAppWindow();
+        _AppWindow.Closing += _AppWindow_Closing;
+    }
+
+    private void _AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (!SomeTimerIsActive())
+        {
+            return;
+        }
+
+        var appSettings = Ioc.Default.GetRequiredService<ApplicationSettings>();
+                
+        if (appSettings.DontShowWindowCloseConfirmDialog) { return; }
+
+        args.Cancel = true;
+
+        _ = DispatcherQueue.EnqueueAsync(async () => 
+        {
+            CheckBox_DontShowAgain.IsChecked = false;
+            var result = await ContentDialog_ConfirmClosing.ShowAsync();
+            
+            if (result == ContentDialogResult.Primary)
+            {
+                appSettings.DontShowWindowCloseConfirmDialog = CheckBox_DontShowAgain.IsChecked ?? false;
+                this.Close();
+            }
+        });
+    }
+
+    private bool SomeTimerIsActive()
+    {
+        return Ioc.Default.GetRequiredService<IMessenger>().Send<ActiveTimerCollectionRequestMessage>().Responses.Any();
+    }
+
+    public AppWindow GetCurrentAppWindow()
+    {
+        //Windowのハンドルを取得する
+        IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        //hwndでWindowIdを取得する
+        WindowId winId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        //WindowIdでAppWindow objectを取得して返す
+        return AppWindow.GetFromWindowId(winId);
     }
 
     #region Backdrop

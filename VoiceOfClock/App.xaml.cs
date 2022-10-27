@@ -4,6 +4,8 @@ using CommunityToolkit.WinUI.UI.Helpers;
 using DryIoc;
 using I18NPortable;
 using LiteDB;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AppLifecycle;
@@ -135,8 +137,7 @@ public partial class App : Application
 
             _window.NavigateFirstPage(args.Arguments);
         }
-    }    
-
+    }
 
     internal void OnRedirectActiavated(AppActivationArguments args)
     {
