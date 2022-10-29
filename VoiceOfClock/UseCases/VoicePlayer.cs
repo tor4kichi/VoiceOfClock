@@ -257,6 +257,7 @@ public class SystemVoicePlayer : IVoicePlayer
     }
 
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
     private void SetupSpeechSynsesiser(double speechRate, double speechPitch, double speechVolume)
     {
         // Rate 
@@ -308,20 +309,17 @@ public class SystemVoicePlayer : IVoicePlayer
 
 public sealed class WindowsVoicePlayer : IVoicePlayer
 {
-    private readonly TranslationProcesser _translationProcesser;
     private readonly MediaPlayer _mediaPlayer;
     private readonly DispatcherQueue _dispatcherQueue;
 
     public WindowsVoicePlayer(
-        TranslationProcesser translationProcesser
         )
     {
-        _translationProcesser = translationProcesser;
         _mediaPlayer = new MediaPlayer();
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         _mediaPlayer.AutoPlay = true;
-        _mediaPlayer.SourceChanged += _mediaPlayer_SourceChanged;
+        _mediaPlayer.SourceChanged += OnMediaPlayerSourceChanged;
         _mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
 
         _allVoices = WindowsSpeechSynthesizer.AllVoices.ToDictionary(x => x.Id);
@@ -331,7 +329,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     private readonly Dictionary<string, VoiceInformation> _allVoices;
     VoiceInformation _currentVoiceInfo;
 
-    private readonly Dictionary<MediaSource, TaskCompletionSource> _WaitingHandles = new();
+    private readonly Dictionary<MediaSource, TaskCompletionSource> _waitingHandles = new();
     public bool CanPlayVoice(string? voiceId)
     {
         return _allVoices.ContainsKey(voiceId ?? string.Empty);
@@ -357,14 +355,12 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     {
         var stream = await Task.Run(async () =>
         {
-            using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
-            {
-                synthesizer.Voice = _currentVoiceInfo;
-                synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
-                synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
-                synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
-                return await synthesizer.SynthesizeSsmlToStreamAsync(content);
-            }
+            using WindowsSpeechSynthesizer synthesizer = new ();
+            synthesizer.Voice = _currentVoiceInfo;
+            synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
+            synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
+            synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
+            return await synthesizer.SynthesizeSsmlToStreamAsync(content);
         });
 
         return await _dispatcherQueue.EnqueueAsync(async () =>
@@ -380,16 +376,14 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         var stream = await Task.Run(async () =>
         {
             // https://learn.microsoft.com/ja-jp/uwp/api/windows.media.speechsynthesis.speechsynthesizeroptions?view=winrt-22621#properties
-            using (WindowsSpeechSynthesizer synthesizer = new WindowsSpeechSynthesizer())
-            {
-                synthesizer.Voice = _currentVoiceInfo;
-                synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
-                synthesizer.Options.SpeakingRate = Math.Clamp(speechRate, 0.5, 6.0);
-                synthesizer.Options.AudioPitch = Math.Clamp(speechPitch, 0.0, 2.0);
-                synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
-                synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
-                return await synthesizer.SynthesizeTextToStreamAsync(content);
-            }
+            using WindowsSpeechSynthesizer synthesizer = new ();
+            synthesizer.Voice = _currentVoiceInfo;
+            synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
+            synthesizer.Options.SpeakingRate = Math.Clamp(speechRate, 0.5, 6.0);
+            synthesizer.Options.AudioPitch = Math.Clamp(speechPitch, 0.0, 2.0);
+            synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
+            synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
+            return await synthesizer.SynthesizeTextToStreamAsync(content);
         });
 
         return await _dispatcherQueue.EnqueueAsync(async () =>
@@ -403,7 +397,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     Task PlayMediaSourceAsync(MediaSource source)
     {
         var cts = new TaskCompletionSource();
-        _WaitingHandles.Add(source, cts);
+        _waitingHandles.Add(source, cts);
         if (_mediaPlayer.Source != null)
         {
             _voicesQueue.Enqueue(source);
@@ -450,7 +444,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         {
             if (_mediaPlayer.Source is MediaSource prev)
             {
-                if (_WaitingHandles.Remove(prev, out var cts))
+                if (_waitingHandles.Remove(prev, out var cts))
                 {
                     cts.SetResult();
                 }
@@ -469,9 +463,9 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         _mediaPlaybackState = sender.PlaybackState;
     }
 
-    Queue<MediaSource> _voicesQueue = new Queue<MediaSource>();
-    IDisposable? _prevPlaybackSource;
-    private void _mediaPlayer_SourceChanged(MediaPlayer sender, object args)
+    private readonly Queue<MediaSource> _voicesQueue = new ();
+    private IDisposable? _prevPlaybackSource;
+    private void OnMediaPlayerSourceChanged(MediaPlayer sender, object args)
     {
         if (_prevPlaybackSource != null)
         {

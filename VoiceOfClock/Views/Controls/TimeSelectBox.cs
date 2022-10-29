@@ -36,22 +36,22 @@ public sealed class TimeSelectBoxTimeValueChangedEventArgs
 
 public sealed partial class TimeSelectBox : Control
 {
-    private readonly TimeSpan MaxTime = new TimeSpan(24, 0, 0);
+    public readonly TimeSpan MaxTime = new (24, 0, 0);
 
-    const string HoursNumberUserControlName = "Hours_Number_UserControl";
-    const string MinutesNumberUserControlName = "Minutes_Number_UserControl";
-    const string SecondsNumberUserControlName = "Seconds_Number_UserControl";
-
-    const string HoursNumberTextBlockName = "Hours_Number_TextBlock";
-    const string MinutesNumberTextBlockName = "Minutes_Number_TextBlock";
-    const string SecondsNumberTextBlockName = "Seconds_Number_TextBlock";
-
-    const string HoursUpButtonName = "Hours_Up_Button";
-    const string HoursDownButtonName = "Hours_Down_Button";
-    const string MinutesUpButtonName = "Minutes_Up_Button";
-    const string MinutesDownButtonName = "Minutes_Down_Button";
-    const string SecondsUpButtonName = "Seconds_Up_Button";
-    const string SecondsDownButtonName = "Seconds_Down_Button";
+    public const string HoursNumberUserControlName = "Hours_Number_UserControl";
+    public const string MinutesNumberUserControlName = "Minutes_Number_UserControl";
+    public const string SecondsNumberUserControlName = "Seconds_Number_UserControl";
+    
+    public const string HoursNumberTextBlockName = "Hours_Number_TextBlock";
+    public const string MinutesNumberTextBlockName = "Minutes_Number_TextBlock";
+    public const string SecondsNumberTextBlockName = "Seconds_Number_TextBlock";
+    
+    public const string HoursUpButtonName = "Hours_Up_Button";
+    public const string HoursDownButtonName = "Hours_Down_Button";
+    public const string MinutesUpButtonName = "Minutes_Up_Button";
+    public const string MinutesDownButtonName = "Minutes_Down_Button";
+    public const string SecondsUpButtonName = "Seconds_Up_Button";
+    public const string SecondsDownButtonName = "Seconds_Down_Button";
 
     TimeSelectBoxFocusStatus _lastFocus = TimeSelectBoxFocusStatus.Hours;
     int? _lastInputNumber;

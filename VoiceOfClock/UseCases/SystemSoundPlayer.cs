@@ -193,15 +193,17 @@ public sealed class SystemSoundPlayer : ObservableRecipient
     public SystemSoundPlayer(IMessenger messenger)
         : base(messenger)
     {
-        _mediaPlayler = new MediaPlayer();
-        _mediaPlayler.AutoPlay = true;
-        _mediaPlayler.SourceChanged += _mediaPlayler_SourceChanged;
+        _mediaPlayler = new()
+        {
+            AutoPlay = true
+        };
+        _mediaPlayler.SourceChanged += OnMediaPlaylerSourceChanged;
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
     }
 
 
     IDisposable? _prevMediaSource;
-    private void _mediaPlayler_SourceChanged(MediaPlayer sender, object args)
+    private void OnMediaPlaylerSourceChanged(MediaPlayer sender, object args)
     {
         if (_prevMediaSource != null)
         {

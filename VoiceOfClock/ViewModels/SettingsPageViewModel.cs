@@ -149,7 +149,7 @@ namespace VoiceOfClock.ViewModels
 
 
 
-            List<ISettingContent> ampmPositionByLanguageItems = new List<ISettingContent>();
+            List<ISettingContent> ampmPositionByLanguageItems = new ();
             var ampmPositionItems = Enum.GetValues<AMPMPosition>().Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString())).ToArray();
             foreach (var language in _allVoices.Select(x => (x.Source as IVoiceInformation)!.Language).Distinct())
             {
@@ -227,6 +227,7 @@ namespace VoiceOfClock.ViewModels
             return new SettingContentWithHeader(new SliderSettingContent(firstValue, valueChanged, minValue, maxValue, converter), label, description);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
         static ISettingContent CreateButtonContent(string buttonLabel, Action clickAction, string label = "", string description = "")
         {
             return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction), label, description);
@@ -237,6 +238,7 @@ namespace VoiceOfClock.ViewModels
             return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction), label, description);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
         static ISettingContent CreateToggleSwitchContent(bool firstValue, Action<bool> valueChanged, string onContent = "", string offContent = "", string label = "", string description = "")
         {
             return new SettingContentWithHeader(new ToggleSwitchSettingContent(firstValue, valueChanged, onContent, offContent), label, description);
@@ -255,7 +257,7 @@ namespace VoiceOfClock.ViewModels
         {
             if (value is string id)
             {
-                return _sourceItems.FirstOrDefault(x => x.Id == id) ?? throw new ArgumentException(nameof(value));
+                return _sourceItems.FirstOrDefault(x => x.Id == id) ?? throw new ArgumentException(null, nameof(value));
             }
             else
             {
@@ -372,6 +374,7 @@ namespace VoiceOfClock.ViewModels
         }
 
         private string _description;
+
         public string Description
         {
             get => _description;
@@ -381,14 +384,40 @@ namespace VoiceOfClock.ViewModels
         public ISettingContent? Content { get; }
         public SettingContainerPositionType Position { get; set; }
 
-         void IDisposable.Dispose()
+        private bool _disposedValue;
+        protected virtual void Dispose(bool disposing)
         {
-            (Content as IDisposable)?.Dispose();
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: マネージド状態を破棄します (マネージド オブジェクト)
+                    (Content as IDisposable)?.Dispose();
+                }
+
+                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+                // TODO: 大きなフィールドを null に設定します
+                _disposedValue = true;
+            }
+        }
+
+        // // TODO: 'Dispose(bool disposing)' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします
+        // ~SettingContentWithHeader()
+        // {
+        //     // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+        //     Dispose(disposing: false);
+        // }
+
+        void IDisposable.Dispose()
+        {
+            // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
     public sealed partial class ExpanderSettingContent 
-        : SettingContentWithHeader, IDisposable
+        : SettingContentWithHeader
 
     {
         public ExpanderSettingContent(IEnumerable<ISettingContent> items, string label = "", string description = "", ISettingContent? content = null)
@@ -399,12 +428,14 @@ namespace VoiceOfClock.ViewModels
 
         public ObservableCollection<ISettingContent> Items { get; }
 
-        void IDisposable.Dispose()
+        protected override void Dispose(bool disposing)
         {
             foreach (var item in Items)
             {
                 (item as IDisposable)?.Dispose();
-            }            
+            }
+
+            base.Dispose(disposing);
         }
     }
 
@@ -472,7 +503,7 @@ namespace VoiceOfClock.ViewModels
 
     public sealed class ParcentageValueConverter : IValueConverter
     {
-        public readonly static ParcentageValueConverter Default = new ParcentageValueConverter();
+        public static readonly ParcentageValueConverter Default = new ();
 
         public object Convert(object value, Type targetType, object parameter, string language)
         {
@@ -567,6 +598,7 @@ namespace VoiceOfClock.ViewModels
         [ObservableProperty]
         private string _description = string.Empty;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
         public void ComboBoxSelectionChanged(object sender, SelectionChangedEventArgs args)
         {
             if (_skipOnFirst)

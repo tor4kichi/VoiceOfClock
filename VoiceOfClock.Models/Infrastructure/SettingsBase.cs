@@ -33,43 +33,43 @@ namespace VoiceOfClock.Models.Infrastructure
     /// </remarks>
     public abstract class SettingsBase : ObservableObject
     {
-        private readonly static BytesApplicationDataStorageHelper _LocalStorageHelper = BytesApplicationDataStorageHelper.GetCurrent(objectSerializer: BinaryJsonObjectSerializer.Default);
-        private static readonly Infrastructure.AsyncLock _fileUpdateLock = new();
+        private readonly static BytesApplicationDataStorageHelper _localStorageHelper = BytesApplicationDataStorageHelper.GetCurrent(objectSerializer: BinaryJsonObjectSerializer.Default);
+        private readonly static Infrastructure.AsyncLock _fileUpdateLock = new();
         public SettingsBase()
         {
         }
 
 
-        protected T? Read<T>(T? @default = default, [CallerMemberName] string propertyName = null!)
+        static protected T? Read<T>(T? @default = default, [CallerMemberName] string propertyName = null!)
         {
-            return _LocalStorageHelper.Read<T>(propertyName, @default);
+            return _localStorageHelper.Read<T>(propertyName, @default);
         }
-        
-        protected async Task<T?> ReadFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
+
+        static protected async Task<T?> ReadFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
         {
             using (await _fileUpdateLock.LockAsync(default))
             {
-                return await _LocalStorageHelper.ReadFileAsync(propertyName, value);
+                return await _localStorageHelper.ReadFileAsync(propertyName, value);
             }
         }
 
-        protected void Save<T>(T value, [CallerMemberName] string propertyName = null!)
+        static protected void Save<T>(T value, [CallerMemberName] string propertyName = null!)
         {             
-            _LocalStorageHelper.Save(propertyName, value);
+            _localStorageHelper.Save(propertyName, value);
         }
 
-        protected async Task SaveFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
+        static protected async Task SaveFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
         {
             using (await _fileUpdateLock.LockAsync(default))
             {
-                await _LocalStorageHelper.CreateFileAsync(propertyName, value);
+                await _localStorageHelper.CreateFileAsync(propertyName, value);
             }
         }
 
-        protected void Save<T>(T? value, [CallerMemberName] string propertyName = null!)
+        static protected void Save<T>(T? value, [CallerMemberName] string propertyName = null!)
             where T : struct
         {
-            _LocalStorageHelper.Save(propertyName, value);
+            _localStorageHelper.Save(propertyName, value);
         }
 
         protected new bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null!)

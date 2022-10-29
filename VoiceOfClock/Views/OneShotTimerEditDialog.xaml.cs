@@ -93,17 +93,17 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     private void OneShotTimerEditDialog_Loaded(object sender, RoutedEventArgs e)
     {
         ComboBox_SoundSourceType.SelectedItem = SoundSourceType;
-        ComboBox_SoundSource_WindowsSystem.SelectedItem = _SystemSoundSource_InitParameter ?? _windowsSystemParameters[0];
+        ComboBox_SoundSource_WindowsSystem.SelectedItem = _systemSoundSource_InitParameter ?? _windowsSystemParameters[0];
     }
 
-    private SoundSourceType[] _soundSourceTypes = new[] 
+    private readonly SoundSourceType[] _soundSourceTypes = new[] 
     {
         SoundSourceType.System,
         SoundSourceType.Tts,
         //SoundSourceType.TtsWithSSML,
     };
 
-    private string[] _windowsSystemParameters = Enum.GetNames<WindowsNotificationSoundType>();
+    private readonly string[] _windowsSystemParameters = Enum.GetNames<WindowsNotificationSoundType>();
 
     public TimeSpan Duration
     {
@@ -119,7 +119,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     public SoundSourceType SoundSourceType { get; set; }
 
-    private string? _SystemSoundSource_InitParameter;
+    private string? _systemSoundSource_InitParameter;
 
     public void SetSoundSource(SoundSourceType soundSourceType, string parameter)
     {
@@ -127,8 +127,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         ComboBox_SoundSourceType.SelectedItem = soundSourceType;
         if (soundSourceType == SoundSourceType.System)
         {
-            _SystemSoundSource_InitParameter = _windowsSystemParameters.FirstOrDefault(x => x == parameter);
-            ComboBox_SoundSource_WindowsSystem.SelectedItem = _SystemSoundSource_InitParameter;
+            _systemSoundSource_InitParameter = _windowsSystemParameters.FirstOrDefault(x => x == parameter);
+            ComboBox_SoundSource_WindowsSystem.SelectedItem = _systemSoundSource_InitParameter;
             TextBox_SoundParameter_Tts.Text = String.Empty;
             TextBox_SoundParameter_TtsWithSsml.Text = String.Empty;
         }

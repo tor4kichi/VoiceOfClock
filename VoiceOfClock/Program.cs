@@ -14,6 +14,7 @@ namespace VoiceOfClock;
 class Program
 {
     [STAThread]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
     static async Task Main(string[] args)
     {
         WinRT.ComWrappersSupport.InitializeComWrappers();
@@ -53,7 +54,7 @@ class Program
 
     private static void OnActivated(object? sender, AppActivationArguments args)
     {
-        ExtendedActivationKind kind = args.Kind;
+        //ExtendedActivationKind kind = args.Kind;
 
         if (_app == null) { throw new NullReferenceException(); }
 

@@ -74,7 +74,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerAddDialog_Title".Translate(), "", TimeSpan.Zero, TimeSpan.FromHours(1), TimeSpan.FromMinutes(5), Enum.GetValues<DayOfWeek>(), TimerSettings.FirstDayOfWeek);
         if (result?.IsConfirmed is true)
         {
-            var runningTimer = _timerLifetimeManager.CreatePeriodicTimer(
+            _timerLifetimeManager.CreatePeriodicTimer(
                 result.Title
                 , result.StartTime
                 , result.EndTime
@@ -148,13 +148,13 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         InstantPeriodicTimer.IsEnabled = false;
     }
 
-    public string ConvertDateTime(DateTime dateTime)
+    public static string ConvertDateTime(DateTime dateTime)
     {
         var d = dateTime;
         return "DateTime_Month_Day_Hour_Minite".Translate(d.Minute, d.Hour, d.Day, d.Month);
     }
 
-    public string ConvertElapsedTime(TimeSpan timeSpan)
+    public static string ConvertElapsedTime(TimeSpan timeSpan)
     {
         if (timeSpan.Days >= 1)
         {

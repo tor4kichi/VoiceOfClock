@@ -38,14 +38,11 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _messenger = messenger;
         _dispatcherQueue = dispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
         _timer = _dispatcherQueue.CreateTimer();
-        _timer.Tick += _timer_Tick;
+        _timer.Tick += OnTimerTick;
         _timer.Interval = TimeSpan.FromSeconds(1d / OneShotTimerConstants.UpdateFPS);
 
-        _oneShotTimerRunningEntity = oneShotTimerRunningRepository.FindById(_entity.Id);
-        if (_oneShotTimerRunningEntity is null)
-        {
-            _oneShotTimerRunningEntity = new OneShotTimerRunningEntity() { Id = _entity.Id, Time = _entity.Time };
-        }
+        _oneShotTimerRunningEntity = oneShotTimerRunningRepository.FindById(_entity.Id)
+            ?? new OneShotTimerRunningEntity() { Id = _entity.Id, Time = _entity.Time };
 
         _remainingTime = _oneShotTimerRunningEntity.Time.TrimMilliSeconds();
         _time = _entity.Time;
@@ -81,7 +78,7 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _isDisposed = true;
 
         _timer.Stop();
-        _timer.Tick -= _timer_Tick;        
+        _timer.Tick -= OnTimerTick;        
     }
 
 
@@ -188,7 +185,7 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _timer.Start();
     }
 
-    private void _timer_Tick(DispatcherQueueTimer sender, object args)
+    private void OnTimerTick(DispatcherQueueTimer sender, object args)
     {
         if (UpdateRemainingTime() is false)
         {

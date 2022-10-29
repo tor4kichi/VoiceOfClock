@@ -35,6 +35,7 @@ public sealed partial class OneShotTimerPage : Page
         base.OnNavigatingFrom(e);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:メンバーを static に設定します", Justification = "<保留中>")]
     private void MenuFlyout_TimerItem_Opening(object sender, object e)
     {
         var focusItem = (sender as FlyoutBase)!.Target as ContentControl ?? throw new NullReferenceException();

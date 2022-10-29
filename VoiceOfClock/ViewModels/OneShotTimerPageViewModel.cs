@@ -103,8 +103,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
         var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerAddDialog_Title".Translate(), "", TimeSpan.FromMinutes(3), SoundSourceType.System,  WindowsNotificationSoundType.Default.ToString());
         if (result.IsConfirmed)
         {
-            var timer = _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time);
-
+            _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time);
         }
     }
 }
@@ -159,28 +158,28 @@ public sealed partial class OneShotTimerViewModel : ObservableObject
 
     public OneShotTimerRunningInfo RunningInfo { get; }
 
-    public string ConvertTime(TimeSpan time)
+    public static string ConvertTime(TimeSpan time)
     {
         return time.TrimMilliSeconds().ToString("c");
     }
 
-    public string ConvertTime(TimeOnly? time)
+    public static string ConvertTime(TimeOnly? time)
     {
         return time?.ToString("T") ?? string.Empty;
     }
 
-    public double ConvertToDouble(TimeSpan time)
+    public static double ConvertToDouble(TimeSpan time)
     {
         return time.TotalSeconds;
     }
 
-    public double ConvertToDouble(TimeOnly? time)
+    public static double ConvertToDouble(TimeOnly? time)
     {
         return time?.ToTimeSpan().TotalSeconds ?? 0.0d;
     }
 
 #if DEBUG
-    Stopwatch _sw = new Stopwatch();
+    private readonly Stopwatch _sw = new ();
 #endif
     [RelayCommand]
     void ToggleTimerStartAndStop()
@@ -235,23 +234,23 @@ public sealed partial class OneShotTimerViewModel : ObservableObject
         return IsTimerActive;
     }
 
-    [RelayCommand]
-    void ShowWithCompactOverlay()
-    {
+    //[RelayCommand]
+    //void ShowWithCompactOverlay()
+    //{
 
-    }
+    //}
 
-    [RelayCommand]
-    void ShowWithFillWindow()
-    {
+    //[RelayCommand]
+    //void ShowWithFillWindow()
+    //{
 
-    }
+    //}
 
-    [RelayCommand]
-    void ShowWithDefault()
-    {
+    //[RelayCommand]
+    //void ShowWithDefault()
+    //{
 
-    }
+    //}
 
     [RelayCommand]
     void Delete()

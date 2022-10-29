@@ -72,8 +72,8 @@
               </Border>
 
               <ProgressRing Width="220" Height="220" IsIndeterminate="False"
-                            Minimum="0" Maximum="{x:Bind ConvertToDouble(RunningInfo.Time), Mode=OneWay}" 
-                            Value="{x:Bind ConvertToDouble(RemainingTime), Mode=OneWay}"                                                                  
+                            Minimum="0" Maximum="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(RunningInfo.Time), Mode=OneWay}" 
+                            Value="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(RemainingTime), Mode=OneWay}"                                                                  
                             IsActive="{x:Bind IsTimerActive, Mode=OneWay}"                              
                                  >
                 <i:Interaction.Behaviors>
@@ -120,7 +120,7 @@
                     <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
                   </SymbolIcon.RenderTransform>
                 </SymbolIcon>
-                <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind ConvertTime(EndTime), Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="16 0 0 0">
+                <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind viewModels:OneShotTimerViewModel.ConvertTime(EndTime), Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="16 0 0 0">
 
                 </TextBlock>
               </Grid>

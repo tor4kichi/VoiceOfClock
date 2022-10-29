@@ -35,7 +35,7 @@ namespace VoiceOfClock;
 /// </summary>
 public sealed partial class MainWindow : SystemBackdropWindow
 {
-    private readonly AppWindow _AppWindow;
+    private readonly AppWindow _appWindow;
 
     public MainWindow()
     {
@@ -53,11 +53,11 @@ public sealed partial class MainWindow : SystemBackdropWindow
             
         }
 
-        _AppWindow = GetCurrentAppWindow();
-        _AppWindow.Closing += _AppWindow_Closing;
+        _appWindow = GetCurrentAppWindow();
+        _appWindow.Closing += AppWindow_Closing;
     }
 
-    private void _AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (!SomeTimerIsActive())
         {
@@ -83,7 +83,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
         });
     }
 
-    private bool SomeTimerIsActive()
+    static private bool SomeTimerIsActive()
     {
         return Ioc.Default.GetRequiredService<IMessenger>().Send<ActiveTimerCollectionRequestMessage>().Responses.Any();
     }
@@ -105,6 +105,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
     public bool IsPageLoaded => ContentFrame.Content != null;
 
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
     public void NavigateFirstPage(string argument)
     {
         Navigate(typeof(Views.OneShotTimerPage), null);

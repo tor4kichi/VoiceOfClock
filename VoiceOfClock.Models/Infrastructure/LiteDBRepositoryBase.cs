@@ -12,11 +12,9 @@ namespace VoiceOfClock.Models.Infrastructure
     public abstract class LiteDBRepositoryBase<T>
     {
         protected ILiteCollection<T> _collection;
-        private readonly ILiteDatabase _liteDatabase;
 
         public LiteDBRepositoryBase(ILiteDatabase liteDatabase)
         {
-            _liteDatabase = liteDatabase;
             _collection = liteDatabase.GetCollection<T>();
         }
 
@@ -27,7 +25,7 @@ namespace VoiceOfClock.Models.Infrastructure
 
         public virtual T CreateItem(T item)
         {
-            var val = _collection.Insert(item);
+            _collection.Insert(item);
             return item;
         }
 
@@ -49,8 +47,7 @@ namespace VoiceOfClock.Models.Infrastructure
 
         public virtual List<T> ReadAllItems()
         {
-            var all = _collection.FindAll();
-            return new List<T>(all);
+            return _collection.FindAll().ToList();
         }
 
         public bool Exists(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
