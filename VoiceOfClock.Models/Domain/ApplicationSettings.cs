@@ -13,8 +13,8 @@ namespace VoiceOfClock.Models.Domain
     {
         public ApplicationSettings()
         {
-            _themeName = Enum.Parse<ElementTheme>(Read(ElementTheme.Default.ToString(), nameof(Theme)));
-            _displayLanguage = Read(CultureInfo.CurrentCulture.Name, nameof(DisplayLanguage));
+            _themeName = Enum.Parse<ElementTheme>(Read(ElementTheme.Default.ToString(), nameof(Theme))!);
+            _displayLanguage = Read(CultureInfo.CurrentCulture.Name, nameof(DisplayLanguage))!;
             _dontShowWindowCloseConfirmDialog = Read(false, nameof(DontShowWindowCloseConfirmDialog));
         }
 

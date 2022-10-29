@@ -53,7 +53,7 @@ namespace VoiceOfClock.ViewModels
 
         protected override void OnDeactivated()
         {
-            foreach (var item in Items)
+            foreach (var item in Items ?? Enumerable.Empty<ISettingContent>())
             {
                 (item as IDisposable)?.Dispose();
             }
@@ -105,9 +105,9 @@ namespace VoiceOfClock.ViewModels
 
 
         [ObservableProperty]
-        private ObservableCollection<ISettingContent> _items;
+        private ObservableCollection<ISettingContent>? _items;
 
-        private ComboBoxSettingContentItem[] _allVoices;
+        private ComboBoxSettingContentItem[]? _allVoices;
         private IEnumerable<ISettingContent> CreateSpeechSettingContent()
         {
             yield return new SettingHeader("Speech".Translate());
@@ -123,10 +123,10 @@ namespace VoiceOfClock.ViewModels
 
                 if (string.IsNullOrEmpty(_timerSettings.SpeechActorId))
                 {
-                    _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
+                    _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation)!.Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
                 }
 
-                var selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation).Id == _timerSettings.SpeechActorId);
+                ComboBoxSettingContentItem selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation)!.Id == _timerSettings.SpeechActorId) ?? _allVoices.First();
                 yield return CreateComboBoxContent(_allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate());
             }
 
@@ -151,11 +151,11 @@ namespace VoiceOfClock.ViewModels
 
             List<ISettingContent> ampmPositionByLanguageItems = new List<ISettingContent>();
             var ampmPositionItems = Enum.GetValues<AMPMPosition>().Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString())).ToArray();
-            foreach (var language in _allVoices.Select(x => (x.Source as IVoiceInformation).Language).Distinct())
+            foreach (var language in _allVoices.Select(x => (x.Source as IVoiceInformation)!.Language).Distinct())
             {
                 CultureInfo cultureInfo = CultureInfo.GetCultureInfo(language);
                 var pos = _timerSettings.GetAmpmPosition(language);
-                ampmPositionByLanguageItems.Add(CreateComboBoxContent(ampmPositionItems, ampmPositionItems.FirstOrDefault(x => (AMPMPosition)x.Source == pos), (container, selected) => _timerSettings.SetAmpmPosition(language, (AMPMPosition)selected.Source), language, $"{cultureInfo.DisplayName} - {cultureInfo.DateTimeFormat.AMDesignator}/{cultureInfo.DateTimeFormat.PMDesignator}"));
+                ampmPositionByLanguageItems.Add(CreateComboBoxContent(ampmPositionItems, ampmPositionItems.First(x => (AMPMPosition)x.Source == pos), (container, selected) => _timerSettings.SetAmpmPosition(language, (AMPMPosition)selected.Source), language, $"{cultureInfo.DisplayName} - {cultureInfo.DateTimeFormat.AMDesignator}/{cultureInfo.DateTimeFormat.PMDesignator}"));
             }
 
             yield return new ExpanderSettingContent(ampmPositionByLanguageItems
@@ -207,7 +207,7 @@ namespace VoiceOfClock.ViewModels
 
                 void LangugageChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
                 {
-                    _applicationSettings.DisplayLanguage = selected.Id;
+                    _applicationSettings.DisplayLanguage = selected.Id ?? throw new NullReferenceException();
                     sender.Description = "LanguageApplyRequireRestartApp".Translate();
                 }
 
@@ -222,7 +222,7 @@ namespace VoiceOfClock.ViewModels
             return new SettingContentWithHeader(new ComboBoxSettingContent(items, firstSelection, selectedAction), label, description);
         }
 
-        static ISettingContent CreateSliderContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter converter = null, string label = "", string description = "")
+        static ISettingContent CreateSliderContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter converter, string label = "", string description = "")
         {
             return new SettingContentWithHeader(new SliderSettingContent(firstValue, valueChanged, minValue, maxValue, converter), label, description);
         }
@@ -255,7 +255,7 @@ namespace VoiceOfClock.ViewModels
         {
             if (value is string id)
             {
-                return _sourceItems.FirstOrDefault(x => x.Id == id);
+                return _sourceItems.FirstOrDefault(x => x.Id == id) ?? throw new ArgumentException(nameof(value));
             }
             else
             {
@@ -282,6 +282,8 @@ namespace VoiceOfClock.ViewModels
         string Name { get; }
         string Language { get; }
         string Gender { get; }
+
+        string ToString();
     }
 
     public class WindowsVoiceInformation : IVoiceInformation
@@ -355,7 +357,7 @@ namespace VoiceOfClock.ViewModels
 
     public partial class SettingContentWithHeader : ObservableObject, ISettingContent, IDisposable
     {
-        public SettingContentWithHeader(ISettingContent content, string label = "", string description = "")
+        public SettingContentWithHeader(ISettingContent? content, string label = "", string description = "")
         {
             Content = content;
             _label = label;
@@ -376,7 +378,7 @@ namespace VoiceOfClock.ViewModels
             set => SetProperty(ref _description, value);
         }
         
-        public ISettingContent Content { get; }
+        public ISettingContent? Content { get; }
         public SettingContainerPositionType Position { get; set; }
 
          void IDisposable.Dispose()
@@ -389,7 +391,7 @@ namespace VoiceOfClock.ViewModels
         : SettingContentWithHeader, IDisposable
 
     {
-        public ExpanderSettingContent(IEnumerable<ISettingContent> items, string label = "", string description = "", ISettingContent content = null)
+        public ExpanderSettingContent(IEnumerable<ISettingContent> items, string label = "", string description = "", ISettingContent? content = null)
             : base(content, label, description)
         {           
             Items = new ObservableCollection<ISettingContent>(items);
@@ -430,12 +432,11 @@ namespace VoiceOfClock.ViewModels
 
         public double MinValue { get; }
         public double MaxValue { get; }
-        public Func<double, string> ConverterFunc { get; }
         public IValueConverter ValueConverter { get; }
 
         public string ConvertToString(double value)
         {            
-            return ValueConverter.Convert(value, typeof(string), null, null).ToString();
+            return ValueConverter.Convert(value, typeof(string), null, null).ToString() ?? string.Empty;
         }
     }
 
@@ -564,24 +565,25 @@ namespace VoiceOfClock.ViewModels
         bool _skipOnFirst = true;
 
         [ObservableProperty]
-        private string _description;
+        private string _description = string.Empty;
 
         public void ComboBoxSelectionChanged(object sender, SelectionChangedEventArgs args)
         {
-            if (!args.AddedItems.Any()) { return; }
             if (_skipOnFirst)
             {
                 _skipOnFirst = false;
                 return;
             }
 
-            SelectedAction(this, args.AddedItems[0] as ComboBoxSettingContentItem);
+            if (args.AddedItems.Any() is false) { return; }
+
+            SelectedAction(this, (args.AddedItems[0] as ComboBoxSettingContentItem)!);
         }
     }
 
     public class ComboBoxSettingContentItem
     {
-        public ComboBoxSettingContentItem(object source, string label, string id = null)
+        public ComboBoxSettingContentItem(object source, string label, string? id = null)
         {
             Source = source;
             Id = id;
@@ -589,7 +591,7 @@ namespace VoiceOfClock.ViewModels
         }
 
         public object Source { get; }
-        public string Id { get; }
+        public string? Id { get; }
         public string Label { get; }        
     }
 
@@ -598,6 +600,7 @@ namespace VoiceOfClock.ViewModels
         public TextSettingContent(IObservable<string> textObservable)
         {
             _disposer = textObservable.Subscribe(x => Text = x);
+            _text = string.Empty;
         }
 
         [ObservableProperty]

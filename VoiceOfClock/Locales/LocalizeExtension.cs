@@ -15,9 +15,9 @@ namespace I18NPortable.Xaml.Extensions
 
 
 
-        public object Key { get; set; }
+        public object? Key { get; set; }
 
-        public object[] Parameters { get; set; }
+        public object[]? Parameters { get; set; }
 
         protected override object ProvideValue()
         {

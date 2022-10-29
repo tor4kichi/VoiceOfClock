@@ -119,7 +119,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     public SoundSourceType SoundSourceType { get; set; }
 
-    private string _SystemSoundSource_InitParameter;
+    private string? _SystemSoundSource_InitParameter;
 
     public void SetSoundSource(SoundSourceType soundSourceType, string parameter)
     {
@@ -263,22 +263,22 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
 public sealed class SoundSourceDataTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate WindowsSystem { get; set; }
-    public DataTemplate Tts { get; set; }
-    public DataTemplate TtsWithSsml { get; set; }
+    public DataTemplate? WindowsSystem { get; set; }
+    public DataTemplate? Tts { get; set; }
+    public DataTemplate? TtsWithSsml { get; set; }
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
-        return this.SelectTemplateCore(item, null);
+        return this.SelectTemplateCore(item, null!);
     }
 
     protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
     {
         return (SoundSourceType)item switch
         {
-            SoundSourceType.System => WindowsSystem,
-            SoundSourceType.Tts => Tts,
-            SoundSourceType.TtsWithSSML => TtsWithSsml,
+            SoundSourceType.System => WindowsSystem ?? base.SelectTemplateCore(item, container),
+            SoundSourceType.Tts => Tts ?? base.SelectTemplateCore(item, container),
+            SoundSourceType.TtsWithSSML => TtsWithSsml ?? base.SelectTemplateCore(item, container),
             _ => base.SelectTemplateCore(item, container)
         };
     }

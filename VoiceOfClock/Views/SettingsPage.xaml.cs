@@ -49,32 +49,32 @@ public sealed partial class SettingsPage : Page
 
 public sealed class SettingContentDataTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate SettingHeader { get; set; }
-    public DataTemplate ExpanderSettingContent { get; set; }
-    public DataTemplate SettingContentWithHeader { get; set; }
-    public DataTemplate SliderSettingContent { get; set; }
-    public DataTemplate ButtonSettingContent { get; set; }
-    public DataTemplate ComboBoxSettingContent { get; set; }
-    public DataTemplate ToggleSwitchSettingContent { get; set; }
-    public DataTemplate TextSettingContent { get; set; }
+    public DataTemplate? SettingHeader { get; set; }
+    public DataTemplate? ExpanderSettingContent { get; set; }
+    public DataTemplate? SettingContentWithHeader { get; set; }
+    public DataTemplate? SliderSettingContent { get; set; }
+    public DataTemplate? ButtonSettingContent { get; set; }
+    public DataTemplate? ComboBoxSettingContent { get; set; }
+    public DataTemplate? ToggleSwitchSettingContent { get; set; }
+    public DataTemplate? TextSettingContent { get; set; }
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
-        return this.SelectTemplateCore(item, null);
+        return this.SelectTemplateCore(item, null!);
     }
 
     protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
     {
         return item switch
         {
-            ViewModels.SettingHeader => SettingHeader,
-            ViewModels.ExpanderSettingContent => ExpanderSettingContent,
-            ViewModels.SettingContentWithHeader => SettingContentWithHeader,
-            ViewModels.SliderSettingContent => SliderSettingContent,
-            ViewModels.ButtonSettingContent => ButtonSettingContent,
-            ViewModels.ComboBoxSettingContent => ComboBoxSettingContent,
-            ViewModels.ToggleSwitchSettingContent => ToggleSwitchSettingContent,
-            ViewModels.TextSettingContent => TextSettingContent,
+            ViewModels.SettingHeader => SettingHeader ?? base.SelectTemplateCore(item, container),
+            ViewModels.ExpanderSettingContent => ExpanderSettingContent ?? base.SelectTemplateCore(item, container),
+            ViewModels.SettingContentWithHeader => SettingContentWithHeader ?? base.SelectTemplateCore(item, container),
+            ViewModels.SliderSettingContent => SliderSettingContent ?? base.SelectTemplateCore(item, container),
+            ViewModels.ButtonSettingContent => ButtonSettingContent ?? base.SelectTemplateCore(item, container),
+            ViewModels.ComboBoxSettingContent => ComboBoxSettingContent ?? base.SelectTemplateCore(item, container),
+            ViewModels.ToggleSwitchSettingContent => ToggleSwitchSettingContent ?? base.SelectTemplateCore(item, container),
+            ViewModels.TextSettingContent => TextSettingContent ?? base.SelectTemplateCore(item, container),
             _ => base.SelectTemplateCore(item, container),
         };
     }
@@ -82,19 +82,19 @@ public sealed class SettingContentDataTemplateSelector : DataTemplateSelector
 
 public sealed class SettingsContentStyleSelector : StyleSelector
 {
-    public Style Subheader { get; set; }
-    public Style Normal { get; set; }
-    public Style Expander { get; set; }
-    public Style ExpanderMiddle { get; set; }
-    public Style ExpanderLast { get; set; }
+    public Style? Subheader { get; set; }
+    public Style? Normal { get; set; }
+    public Style? Expander { get; set; }
+    public Style? ExpanderMiddle { get; set; }
+    public Style? ExpanderLast { get; set; }
 
     protected override Style SelectStyleCore(object item, DependencyObject container)
     {
-        if (item is SettingHeader)
+        if (item is SettingHeader && Subheader is not null)
         {
             return Subheader;
         }
-        if (item is ExpanderSettingContent)
+        if (item is ExpanderSettingContent && Expander is not null)
         {
             return Expander;
         }
@@ -102,9 +102,9 @@ public sealed class SettingsContentStyleSelector : StyleSelector
         {
             return header.Position switch
             {
-                SettingContainerPositionType.Normal => Normal,
-                SettingContainerPositionType.ExpanderMiddle => ExpanderMiddle,
-                SettingContainerPositionType.ExpanderLast => ExpanderLast,
+                SettingContainerPositionType.Normal => Normal ?? base.SelectStyleCore(item, container),
+                SettingContainerPositionType.ExpanderMiddle => ExpanderMiddle ?? base.SelectStyleCore(item, container),
+                SettingContainerPositionType.ExpanderLast => ExpanderLast ?? base.SelectStyleCore(item, container),
                 _ => throw new NotSupportedException(),
             };
         }

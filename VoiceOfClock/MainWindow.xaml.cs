@@ -40,7 +40,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
     public MainWindow()
     {
         this.InitializeComponent();        
-        (this.Content as FrameworkElement).RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme;
+        (this.Content as FrameworkElement)!.RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme;
         TextBlock_AppTitle.Text = SystemInformation.Instance.ApplicationName;
 
         ExtendsContentIntoTitleBar = true;
@@ -110,7 +110,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
         Navigate(typeof(Views.OneShotTimerPage), null);
     }
 
-    public void Navigate(Type pageType, object argument)
+    public void Navigate(Type pageType, object? argument)
     {
         ContentFrame.Navigate(pageType, argument);
     }

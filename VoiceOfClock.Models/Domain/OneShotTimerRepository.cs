@@ -37,9 +37,9 @@ public sealed class OneShotTimerEntity
 
     public TimeSpan Time { get; set; }
 
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty; 
 
     public SoundSourceType SoundType { get; set; }
 
-    public string SoundParameter { get; set; }
+    public string SoundParameter { get; set; } = string.Empty;
 }

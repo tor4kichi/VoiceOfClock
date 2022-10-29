@@ -61,7 +61,7 @@ public sealed partial class TimeSelectBox : Control
     int _lastSeconds;
 
 
-    public event TypedEventHandler<TimeSelectBox, TimeSelectBoxTimeValueChangedEventArgs> TimeChanged;
+    public event TypedEventHandler<TimeSelectBox, TimeSelectBoxTimeValueChangedEventArgs>? TimeChanged;
 
 
     public TimeSelectBox()
@@ -76,21 +76,21 @@ public sealed partial class TimeSelectBox : Control
         TimeSpan time = Time;
         if (time.Hours != _lastHours)
         {
-            TextBlock hourTextBlock = GetTemplateChild(HoursNumberTextBlockName) as TextBlock;
+            TextBlock hourTextBlock = GetTemplateChild(HoursNumberTextBlockName) as TextBlock ?? throw new NullReferenceException();
             hourTextBlock.Text = time.Hours.ToString("d2");
             _lastHours = time.Hours;
         }
 
         if (time.Minutes != _lastMinutes)
         {
-            TextBlock textBlock = GetTemplateChild(MinutesNumberTextBlockName) as TextBlock;
+            TextBlock textBlock = GetTemplateChild(MinutesNumberTextBlockName) as TextBlock ?? throw new NullReferenceException();
             textBlock.Text = time.Minutes.ToString("d2");
             _lastMinutes = time.Minutes;
         }
 
         if (time.Seconds != _lastSeconds)
         {
-            TextBlock textBlock = GetTemplateChild(SecondsNumberTextBlockName) as TextBlock;
+            TextBlock textBlock = GetTemplateChild(SecondsNumberTextBlockName) as TextBlock ?? throw new NullReferenceException();
             textBlock.Text = time.Seconds.ToString("d2");
             _lastSeconds = time.Seconds;
         }        
@@ -109,7 +109,7 @@ public sealed partial class TimeSelectBox : Control
 
     private static void OnCurrentFocusPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        TimeSelectBox _this = d as TimeSelectBox;
+        TimeSelectBox _this = d as TimeSelectBox ?? throw new NullReferenceException();
         switch ((TimeSelectBoxFocusStatus)e.NewValue)
         {
             case TimeSelectBoxFocusStatus.Hours:
@@ -140,7 +140,7 @@ public sealed partial class TimeSelectBox : Control
 
     private static void OnTimePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        TimeSelectBox _this = d as TimeSelectBox;
+        TimeSelectBox _this = d as TimeSelectBox ?? throw new NullReferenceException();
         _this.UpdateTimeDisplay();        
     }
 
@@ -159,7 +159,7 @@ public sealed partial class TimeSelectBox : Control
 
     private static void OnDisplayModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        TimeSelectBox _this = d as TimeSelectBox;
+        TimeSelectBox _this = d as TimeSelectBox ?? throw new NullReferenceException();
         _this.UpdateDisplayMode();
     }
 
@@ -280,12 +280,12 @@ public sealed partial class TimeSelectBox : Control
             _ => HoursNumberUserControlName,
         };
 
-        (GetTemplateChild(focusTargetName) as UserControl).Focus(FocusState.Programmatic);
+        (GetTemplateChild(focusTargetName) as UserControl)!.Focus(FocusState.Programmatic);
     }
 
     private void Uc_GotFocus(object sender, RoutedEventArgs e)
     {
-        _lastFocus = CurrentFocus = (sender as UserControl).Name switch
+        _lastFocus = CurrentFocus = (sender as UserControl)!.Name switch
         {
             HoursNumberUserControlName => TimeSelectBoxFocusStatus.Hours,
             MinutesNumberUserControlName => TimeSelectBoxFocusStatus.Minutes,
@@ -344,36 +344,36 @@ public sealed partial class TimeSelectBox : Control
 
     private void UpDownButton_Click(object sender, RoutedEventArgs e)
     {       
-        switch ((sender as ButtonBase).Name)
+        switch ((sender as ButtonBase)!.Name)
         {
             case HoursUpButtonName: 
                 CurrentFocus = TimeSelectBoxFocusStatus.Hours;
-                (GetTemplateChild(HoursNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(HoursNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 IncrementHours();
                 break;
             case HoursDownButtonName:
                 CurrentFocus = TimeSelectBoxFocusStatus.Hours;
-                (GetTemplateChild(HoursNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(HoursNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 DecrementHours();
                 break;
             case MinutesUpButtonName:
                 CurrentFocus = TimeSelectBoxFocusStatus.Minutes;
-                (GetTemplateChild(MinutesNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(MinutesNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 IncrementMinutes();
                 break;
             case MinutesDownButtonName:
                 CurrentFocus = TimeSelectBoxFocusStatus.Minutes;
-                (GetTemplateChild(MinutesNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(MinutesNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 DecrementMinutes();
                 break;
             case SecondsUpButtonName:
                 CurrentFocus = TimeSelectBoxFocusStatus.Seconds;
-                (GetTemplateChild(SecondsNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(SecondsNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 IncrementSeconds();
                 break;
             case SecondsDownButtonName:
                 CurrentFocus = TimeSelectBoxFocusStatus.Seconds;
-                (GetTemplateChild(SecondsNumberUserControlName) as UserControl).Focus(FocusState.Programmatic);
+                (GetTemplateChild(SecondsNumberUserControlName) as UserControl)!.Focus(FocusState.Programmatic);
                 DecrementSeconds();
                 break;
             default: break;
@@ -381,7 +381,7 @@ public sealed partial class TimeSelectBox : Control
 
         _lastFocus = CurrentFocus;
 
-        Debug.WriteLine($"[NumberBox] UpDownButton_Tapped : {(sender as ButtonBase).Name}");
+        Debug.WriteLine($"[NumberBox] UpDownButton_Tapped : {(sender as ButtonBase)!.Name}");
     }
 
 

@@ -18,7 +18,7 @@ public sealed class TimerSettings : SettingsBase
         _speechVolume = Read(1.0d, nameof(SpeechVolume));
         _isTimeSpeechWith24h = Read(true, nameof(IsTimeSpeechWith24h));
         _useSsml = Read(true, nameof(UseSsml));
-        _ampmPositionByLanguageCode = Read(_defaultAmpmPositionByLanguage, nameof(AmpmPositionByLanguageCode));
+        _ampmPositionByLanguageCode = Read(_defaultAmpmPositionByLanguage, nameof(AmpmPositionByLanguageCode))!;
 
         _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
         _firstDayOfWeek = Read(CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek, nameof(FirstDayOfWeek));
@@ -26,8 +26,8 @@ public sealed class TimerSettings : SettingsBase
 
     #region Timer Generic Settings
 
-    private string _speechActorId;
-    public string SpeechActorId
+    private string? _speechActorId;
+    public string? SpeechActorId
     {
         get => _speechActorId;
         set => SetProperty(ref _speechActorId, value);

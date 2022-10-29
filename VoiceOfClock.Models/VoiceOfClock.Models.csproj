@@ -5,6 +5,7 @@
     <RootNamespace>VoiceOfClock.Models</RootNamespace>
     <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

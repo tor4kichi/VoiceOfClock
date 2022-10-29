@@ -105,10 +105,10 @@ public partial class App : Application
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
             .SetNotFoundSymbol("🍣")            
-            ;
+            ;        
     }
 
-    
+
     /// <summary>
     /// Invoked when the application is launched normally by the end user.  Other entry points
     /// will be used such as when the application is launched to open a specific file.
@@ -116,7 +116,7 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {        
-        if (_window == null)
+        if (_window is null)
         {
             // 言語の指定
             if (Container.Resolve<ApplicationSettings>() is not null and var appSettings
@@ -134,7 +134,6 @@ public partial class App : Application
 
             _window = new MainWindow();
             _window.Activate();
-
             _window.NavigateFirstPage(args.Arguments);
         }
     }
@@ -144,12 +143,14 @@ public partial class App : Application
 
     }
 
-    private MainWindow _window;
+    private MainWindow? _window;
+
+    private UIElement WindowContent => _window is not null ? _window.Content : throw new NullReferenceException();
 
     public ElementTheme WindowContentRequestedTheme
     {
-        get => (_window.Content as FrameworkElement).RequestedTheme;
-        set => (_window.Content as FrameworkElement).RequestedTheme = value;
+        get => (WindowContent as FrameworkElement)!.RequestedTheme;
+        set => (WindowContent as FrameworkElement)!.RequestedTheme = value;
     }
 
     public void InitializeWithWindow(object target)
@@ -160,7 +161,7 @@ public partial class App : Application
 
     public void InitializeDialog(ContentDialog dialog)
     {
-        dialog.XamlRoot = _window.Content.XamlRoot;
+        dialog.XamlRoot = WindowContent.XamlRoot;
         dialog.RequestedTheme = WindowContentRequestedTheme;
     }
 }

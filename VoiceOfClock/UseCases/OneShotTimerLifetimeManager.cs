@@ -28,15 +28,18 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly OneShotTimerRunningEntity _oneShotTimerRunningEntity;
 
-    private DispatcherQueueTimer _timer;
+    private readonly DispatcherQueueTimer _timer;
 
-    public OneShotTimerRunningInfo(OneShotTimerEntity entity, OneShotTimerRepository repository, OneShotTimerRunningRepository oneShotTimerRunningRepository, IMessenger messenger,  DispatcherQueue dispatcherQueue = null)
+    public OneShotTimerRunningInfo(OneShotTimerEntity entity, OneShotTimerRepository repository, OneShotTimerRunningRepository oneShotTimerRunningRepository, IMessenger messenger,  DispatcherQueue? dispatcherQueue = null)
     {
         _entity = entity;
         _repository = repository;
         _oneShotTimerRunningRepository = oneShotTimerRunningRepository;
         _messenger = messenger;
         _dispatcherQueue = dispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
+        _timer = _dispatcherQueue.CreateTimer();
+        _timer.Tick += _timer_Tick;
+        _timer.Interval = TimeSpan.FromSeconds(1d / OneShotTimerConstants.UpdateFPS);
 
         _oneShotTimerRunningEntity = oneShotTimerRunningRepository.FindById(_entity.Id);
         if (_oneShotTimerRunningEntity is null)
@@ -78,8 +81,7 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _isDisposed = true;
 
         _timer.Stop();
-        _timer.Tick -= _timer_Tick;
-        _timer = null;
+        _timer.Tick -= _timer_Tick;        
     }
 
 
@@ -154,8 +156,8 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
 
 
 
-    Action<OneShotTimerRunningInfo> _onTimesUpAction;
-    Action<TimeSpan> _onRemainingTimeUpdated;
+    Action<OneShotTimerRunningInfo>? _onTimesUpAction;
+    Action<TimeSpan>? _onRemainingTimeUpdated;
 
     public void RewindTimer()
     {
@@ -182,12 +184,6 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
         _onRemainingTimeUpdated?.Invoke(RemainingTime);
         _onTimesUpAction = onTimesUp;
         IsRunning = true;
-        if (_timer == null)
-        {
-            _timer = _dispatcherQueue.CreateTimer();
-            _timer.Tick += _timer_Tick;
-            _timer.Interval = TimeSpan.FromSeconds(1d / OneShotTimerConstants.UpdateFPS);
-        }
 
         _timer.Start();
     }

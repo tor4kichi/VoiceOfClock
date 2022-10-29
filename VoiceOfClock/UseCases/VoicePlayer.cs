@@ -75,14 +75,16 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
     void IRecipient<TimeOfDayPlayVoiceRequest>.Receive(TimeOfDayPlayVoiceRequest message)
     {
         var request = message.Data;
-        string voiceId = _timerSettings.SpeechActorId;
-        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
+
+        string? voiceId = _timerSettings.SpeechActorId;
+        IVoicePlayer? currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
         if (currentVoicePlayer is null)
         {
-            _timerSettings.SpeechActorId = "";
+            _timerSettings.SpeechActorId = string.Empty;
             currentVoicePlayer = FallbackVoicePlayer;
-            voiceId = null;
+            voiceId = FallbackVoicePlayer.GetAllVoiceId().First();
         }
+        
 
         string voiceLanguage = currentVoicePlayer.SetVoice(voiceId);
         CultureInfo cutureInfo = CultureInfo.GetCultureInfo(voiceLanguage);
@@ -138,7 +140,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
     void IRecipient<TextPlayVoiceRequest>.Receive(TextPlayVoiceRequest message)
     {
         var request = message.Text;
-        string voiceId = _timerSettings.SpeechActorId;
+        string? voiceId = _timerSettings.SpeechActorId;
         var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
         if (currentVoicePlayer is null)
         {
@@ -153,7 +155,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
     void IRecipient<SsmlPlayVoiceRequest>.Receive(SsmlPlayVoiceRequest message)
     {
         var request = message.Ssml;
-        string voiceId = _timerSettings.SpeechActorId;
+        string? voiceId = _timerSettings.SpeechActorId;
         var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
         if (currentVoicePlayer is null)
         {
@@ -174,8 +176,8 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 public interface IVoicePlayer
 {
     IReadOnlyCollection<string> GetAllVoiceId();
-    bool CanPlayVoice(string voiceId);
-    string SetVoice(string voiceId);
+    bool CanPlayVoice(string? voiceId);
+    string SetVoice(string? voiceId);
     Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
     Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
 }
@@ -194,9 +196,9 @@ public class SystemVoicePlayer : IVoicePlayer
         _installedVoices = _speechSynthesiser.GetInstalledVoices().Where(x => x.Enabled).ToDictionary(x => x.VoiceInfo.Id);
     }
 
-    public bool CanPlayVoice(string voiceId)
+    public bool CanPlayVoice(string? voiceId)
     {
-        return _installedVoices.ContainsKey(voiceId);
+        return _installedVoices.ContainsKey(voiceId ?? string.Empty);
     }
 
     public IReadOnlyCollection<string> GetAllVoiceId()
@@ -204,9 +206,9 @@ public class SystemVoicePlayer : IVoicePlayer
         return _installedVoices.Keys;
     }
 
-    public string SetVoice(string voiceId)
+    public string SetVoice(string? voiceId)
     {
-        if(_installedVoices.TryGetValue(voiceId, out var voice) is false)
+        if(_installedVoices.TryGetValue(voiceId ?? string.Empty, out var voice) is false)
         {
             voice = _installedVoices.First().Value;
         }
@@ -330,9 +332,9 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     VoiceInformation _currentVoiceInfo;
 
     private readonly Dictionary<MediaSource, TaskCompletionSource> _WaitingHandles = new();
-    public bool CanPlayVoice(string voiceId)
+    public bool CanPlayVoice(string? voiceId)
     {
-        return _allVoices.ContainsKey(voiceId);
+        return _allVoices.ContainsKey(voiceId ?? string.Empty);
     }
 
     public IReadOnlyCollection<string> GetAllVoiceId()
@@ -340,9 +342,9 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         return _allVoices.Keys;
     }
 
-    public string SetVoice(string voiceId)
+    public string SetVoice(string? voiceId)
     {
-        if (_allVoices.TryGetValue(voiceId, out var voice) is false)
+        if (_allVoices.TryGetValue(voiceId ?? string.Empty, out var voice) is false)
         {
             voice = _allVoices.First().Value;
         }
@@ -468,7 +470,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     }
 
     Queue<MediaSource> _voicesQueue = new Queue<MediaSource>();
-    IDisposable _prevPlaybackSource;
+    IDisposable? _prevPlaybackSource;
     private void _mediaPlayer_SourceChanged(MediaPlayer sender, object args)
     {
         if (_prevPlaybackSource != null)

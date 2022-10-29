@@ -21,6 +21,7 @@
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Locales\en-US.txt" />

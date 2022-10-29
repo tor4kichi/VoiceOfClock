@@ -30,7 +30,7 @@ class Program
         }        
     }
 
-    static App _app;
+    static App? _app;
 
     private static async Task<bool> DecideRedirection()
     {
@@ -51,9 +51,12 @@ class Program
         return isRedirect;
     }
 
-    private static void OnActivated(object sender, AppActivationArguments args)
+    private static void OnActivated(object? sender, AppActivationArguments args)
     {
         ExtendedActivationKind kind = args.Kind;
+
+        if (_app == null) { throw new NullReferenceException(); }
+
         _app.OnRedirectActiavated(args);
     }
 }

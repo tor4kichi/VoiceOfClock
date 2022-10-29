@@ -23,10 +23,10 @@ public interface IOneShotTimerDialogService
 public sealed class OneShotTimerDialogResult
 {
     public bool IsConfirmed { get; init; }
-    public string Title { get; init; }
+    public string Title { get; init; } = string.Empty;
     public TimeSpan Time { get; init; }
     public SoundSourceType SoundSourceType { get; init; }
-    public string SoundParameter { get; init; }
+    public string SoundParameter { get; init; } = string.Empty;
 }
 
 public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
@@ -35,7 +35,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     private readonly IOneShotTimerDialogService _oneShotTimerDialogService;
 
     [ObservableProperty]
-    private ReadOnlyReactiveCollection<OneShotTimerViewModel> _timers;
+    private ReadOnlyReactiveCollection<OneShotTimerViewModel>? _timers;
 
     public OneShotTimerPageViewModel(
         OneShotTimerLifetimeManager oneShotTimerLifetimeManager,
@@ -54,7 +54,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
 
     protected override void OnDeactivated()
     {
-        _timers.Dispose();
+        _timers?.Dispose();
         Timers = null;
         base.OnDeactivated();
     }
@@ -91,7 +91,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     void DeleteToggle()
     {
         NowEditting = !NowEditting;
-        foreach (var timer in Timers)
+        foreach (var timer in Timers ?? Enumerable.Empty<OneShotTimerViewModel>())
         {
             timer.IsEditting = NowEditting;
         }

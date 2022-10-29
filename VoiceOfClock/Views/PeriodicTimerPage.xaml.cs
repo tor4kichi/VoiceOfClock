@@ -53,7 +53,7 @@ public sealed partial class PeriodicTimerPage : Page
  
     private void MenuFlyout_TimerItem_Opening(object sender, object e)
     {        
-        var focusItem = (sender as FlyoutBase).Target as ContentControl;
+        ContentControl focusItem = (sender as FlyoutBase)!.Target as ContentControl ?? throw new NullReferenceException();
         if (sender is MenuFlyout menuFlyout)
         {
             foreach (var item in menuFlyout.Items)

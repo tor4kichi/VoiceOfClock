@@ -200,7 +200,7 @@ public sealed class SystemSoundPlayer : ObservableRecipient
     }
 
 
-    IDisposable _prevMediaSource;
+    IDisposable? _prevMediaSource;
     private void _mediaPlayler_SourceChanged(MediaPlayer sender, object args)
     {
         if (_prevMediaSource != null)

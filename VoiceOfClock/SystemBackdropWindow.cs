@@ -23,8 +23,8 @@ public abstract class SystemBackdropWindow : Window
 
     private readonly WindowsSystemDispatcherQueueHelper _wsdqHelper = new();
 
-    private SystemBackdropConfiguration _configurationSource;
-    private ISystemBackdropControllerWithTargets _systemBackdropController;
+    private SystemBackdropConfiguration? _configurationSource;
+    private ISystemBackdropControllerWithTargets? _systemBackdropController;
 
     protected bool TrySetSystemBackdrop()
     {

@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using VoiceOfClock.ViewModels;
 
 // 空白ページの項目テンプレートについては、https://go.microsoft.com/fwlink/?LinkId=234238 を参照してください
@@ -36,7 +37,7 @@ public sealed partial class OneShotTimerPage : Page
 
     private void MenuFlyout_TimerItem_Opening(object sender, object e)
     {
-        var focusItem = (sender as FlyoutBase).Target as ContentControl;
+        var focusItem = (sender as FlyoutBase)!.Target as ContentControl ?? throw new NullReferenceException();
         if (sender is MenuFlyout menuFlyout)
         {
             foreach (var item in menuFlyout.Items)

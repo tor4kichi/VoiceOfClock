@@ -23,11 +23,11 @@ public interface IPeriodicTimerDialogService
 public sealed class PeriodicTimerDialogResult
 {
     public bool IsConfirmed { get; init; }
-    public string Title { get; init; }
+    public string Title { get; init; } = String.Empty;
     public TimeSpan StartTime { get; init; }
     public TimeSpan EndTime { get; init; }
     public TimeSpan IntervalTime { get; init; }        
-    public DayOfWeek[] EnabledDayOfWeeks { get; init; }
+    public DayOfWeek[] EnabledDayOfWeeks { get; init; } = Array.Empty<DayOfWeek>();
 }
 
 // ページを開いていなくても時刻読み上げは動作し続けることを前提に

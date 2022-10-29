@@ -42,11 +42,6 @@ namespace VoiceOfClock.Models.Infrastructure
             return _collection.Upsert(items);
         }
 
-        public virtual bool DeleteItem(T item)
-        {
-            return _collection.DeleteMany(i => i.Equals(item)) > 0;
-        }
-
         public virtual bool DeleteItem(BsonValue id)
         {
             return _collection.Delete(id);

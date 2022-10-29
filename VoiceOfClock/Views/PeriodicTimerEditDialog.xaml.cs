@@ -108,7 +108,7 @@ public sealed partial class PeriodicTimerEditDialog : ContentDialog
     {
         var newValue = IsRepeat;
         _isRepeatChanging = true;
-        foreach (var item in EnabledDayOfWeeks)
+        foreach (var item in EnabledDayOfWeeks!)
         {
             item.IsEnabled = newValue;
         }

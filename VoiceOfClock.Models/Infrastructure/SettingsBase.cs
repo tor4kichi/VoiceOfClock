@@ -25,7 +25,7 @@ namespace VoiceOfClock.Models.Infrastructure
         public static BinaryJsonObjectSerializer Default { get; } = new BinaryJsonObjectSerializer();
         public byte[] Serialize<T>(T value) => System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(value);
 
-        public T Deserialize<T>(byte[] value) => value == null || value.Length == 0 ? default(T) : System.Text.Json.JsonSerializer.Deserialize<T>(value);
+        public T? Deserialize<T>(byte[] value) => value == null || value.Length == 0 ? default : System.Text.Json.JsonSerializer.Deserialize<T>(value);
     }
 
     /// <remarks>
@@ -40,12 +40,12 @@ namespace VoiceOfClock.Models.Infrastructure
         }
 
 
-        protected T Read<T>(T @default = default, [CallerMemberName] string propertyName = null)
+        protected T? Read<T>(T? @default = default, [CallerMemberName] string propertyName = null!)
         {
             return _LocalStorageHelper.Read<T>(propertyName, @default);
         }
-
-        protected async Task<T> ReadFileAsync<T>(T value, [CallerMemberName] string propertyName = null)
+        
+        protected async Task<T?> ReadFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
         {
             using (await _fileUpdateLock.LockAsync(default))
             {
@@ -53,12 +53,12 @@ namespace VoiceOfClock.Models.Infrastructure
             }
         }
 
-        protected void Save<T>(T value, [CallerMemberName] string propertyName = null)
+        protected void Save<T>(T value, [CallerMemberName] string propertyName = null!)
         {             
             _LocalStorageHelper.Save(propertyName, value);
         }
 
-        protected async Task SaveFileAsync<T>(T value, [CallerMemberName] string propertyName = null)
+        protected async Task SaveFileAsync<T>(T value, [CallerMemberName] string propertyName = null!)
         {
             using (await _fileUpdateLock.LockAsync(default))
             {
@@ -66,13 +66,13 @@ namespace VoiceOfClock.Models.Infrastructure
             }
         }
 
-        protected void Save<T>(T? value, [CallerMemberName] string propertyName = null)
+        protected void Save<T>(T? value, [CallerMemberName] string propertyName = null!)
             where T : struct
         {
             _LocalStorageHelper.Save(propertyName, value);
         }
 
-        protected new bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        protected new bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null!)
         {
             if (base.SetProperty(ref storage, value, propertyName))
             {
@@ -95,7 +95,7 @@ namespace VoiceOfClock.Models.Infrastructure
             base.OnPropertyChanged(e);
         }
 
-        protected bool SetProperty<T>(ref T? storage, T? value, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T? storage, T? value, [CallerMemberName] string propertyName = null!)
             where T : struct
         {
             if (base.SetProperty(ref storage, value, propertyName))

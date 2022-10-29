@@ -26,7 +26,7 @@ namespace Microsoft.Toolkit.Uwp.Helpers
     {
         byte[]? Serialize<T>(T value);
 
-        T Deserialize<T>(byte[] value);
+        T? Deserialize<T>(byte[] value);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.Toolkit.Uwp.Helpers
         {
             if (Settings.Values.TryGetValue(key, out var valueObj) && valueObj is byte[] valueByteArray)
             {
-                return Serializer.Deserialize<T>(valueByteArray);
+                return Serializer.Deserialize<T>(valueByteArray)!;
             }
 
             return @default;
@@ -356,7 +356,14 @@ namespace Microsoft.Toolkit.Uwp.Helpers
 
         private string NormalizePath(string path)
         {
-            return Path.Combine(Path.GetDirectoryName(path), Path.GetFileName(path));
+            if (Path.GetDirectoryName(path) is not null and string dirName)
+            {
+                return Path.Combine(dirName, Path.GetFileName(path));
+            }
+            else
+            {
+                return path;
+            }
         }
     }
 }
