@@ -105,10 +105,9 @@ public sealed partial class MainWindow : SystemBackdropWindow
     public bool IsPageLoaded => ContentFrame.Content != null;
 
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
-    public void NavigateFirstPage(string argument)
+    public void NavigateFirstPage()
     {
-        Navigate(typeof(Views.OneShotTimerPage), null);
+        Navigate(typeof(Views.AlarmTimerPage), null);
     }
 
     public void Navigate(Type pageType, object? argument)
@@ -118,7 +117,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
 
     private void NVI_Alerm_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        Navigate(typeof(Views.AlermPage), null);
+        Navigate(typeof(Views.AlarmTimerPage), null);
     }
 
     private void NVI_OneShotTimer_Tapped(object sender, TappedRoutedEventArgs e)

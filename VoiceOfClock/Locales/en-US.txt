@@ -27,6 +27,8 @@ End = End
 Save = Save
 Cancel = Cancel
 Edit = Edit
+Open = Open
+Close = Close
 Delete = Delete
 UnitOfMonth = Month
 UnitOfDay = Day
@@ -40,6 +42,8 @@ PeriodOfMinute = Minutes
 PeriodOfSecond = Seconds
 Elapsed = Progress
 NotSelected = Unselected
+
+
 
 #### Calender
 
@@ -89,6 +93,20 @@ ConfirmCloseApplication_PrimaryButtonText = Close the App
 ConfirmCloseApplication_Title = Confirm timer continuation
 ConfirmCloseAppliction_Description = When you exit the app, the timer operation, notification, and reading will also stop. \nAre you sure you want to quit the app?
 ConfirmCloseApplication_DontShowAgain = Don't ask me again
+
+
+
+#### Alarm Timer 
+
+AlarmTimerEditDialog_Title = Edit alarm
+AlarmTimerAddDialog_Title = Add alarm
+AlarmTimer_Label_Title = Label
+AlarmTimer_Label_Placeholder = Example) Exercise time
+AlarmTimer_ToastNotificationTitle = Alarm
+AlarmTimer_ToastNotificationSnoozeTimeDescription = Re-notification time:
+AlarmTimer_Snooze = Reminder time
+AlarmTimer_SnoozeIgnore = Ignore
+AlarmTimer_SnoozeWithMinutes = {0} minutes later
 
 
 

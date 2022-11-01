@@ -6,7 +6,9 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
-  IgnorableNamespaces="uap rescap uap3 mp">
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap rescap uap3 mp com desktop">
 
   <Identity
     Name="18803tor4kichi.475944D1EDD78"
@@ -46,6 +48,24 @@
           <uap:Rotation Preference="landscapeFlipped"/>
           <uap:Rotation Preference="portraitFlipped"/></uap:InitialRotationPreference>
       </uap:VisualElements>
+
+      <Extensions>
+
+        <!--Specify which CLSID to activate when toast clicked-->
+        <desktop:Extension Category="windows.toastNotificationActivation">
+          <desktop:ToastNotificationActivation ToastActivatorCLSID="DFF1CEA0-5963-4197-8676-6105C5E8CE4B" />
+        </desktop:Extension>
+
+        <!--Register COM CLSID LocalServer32 registry key-->
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:ExeServer Executable="VoiceOfClock.WinUI.exe" Arguments="-ToastActivated" DisplayName="Toast activator">
+              <com:Class Id="DFF1CEA0-5963-4197-8676-6105C5E8CE4B" DisplayName="Toast activator"/>
+            </com:ExeServer>
+          </com:ComServer>
+        </com:Extension>
+
+      </Extensions>
     </Application>
   </Applications>
 

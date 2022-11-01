@@ -20,15 +20,13 @@ public sealed class AlarmTimerEntity
     [BsonId(autoId: true)]
     public Guid Id { get; init; }
 
-    public TimeSpan TimeOfDay { get; set; }
+    public TimeOnly TimeOfDay { get; set; }
 
-    public DayOfWeek[] DayOfWeeks { get; set; } = Enum.GetValues<DayOfWeek>(); 
+    public DayOfWeek[] EnabledDayOfWeeks { get; set; } = Enum.GetValues<DayOfWeek>();
 
-    public bool IsEnabled { get; set; }
+    public bool IsEnabled { get; set; } = true;
 
     public string Title { get; set; } = string.Empty;
-
-    public bool IsRepeat { get; set; }
 
     public TimeSpan? Snooze { get; set; }
 

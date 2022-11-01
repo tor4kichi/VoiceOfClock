@@ -27,6 +27,8 @@ End = 结尾
 Save = 保持
 Cancel = 取消
 Edit = 编辑
+Open = 打开
+Close = 特写
 Delete = 删除
 UnitOfMonth = 月
 UnitOfDay = 天
@@ -40,6 +42,8 @@ PeriodOfMinute = 分钟
 PeriodOfSecond = 秒
 Elapsed = 进步
 NotSelected = 未选中
+
+
 
 #### Calender
 
@@ -89,6 +93,20 @@ ConfirmCloseApplication_PrimaryButtonText = 关闭应用程序
 ConfirmCloseApplication_Title = 确认计时器继续
 ConfirmCloseAppliction_Description = 当您退出应用程序时，定时器操作、通知和阅读也将停止。 \n您确定要退出该应用程序吗？
 ConfirmCloseApplication_DontShowAgain = 不要再问我
+
+
+
+#### Alarm Timer 
+
+AlarmTimerEditDialog_Title = 编辑鬧鐘
+AlarmTimerAddDialog_Title = 添加闹钟
+AlarmTimer_Label_Title = 标签
+AlarmTimer_Label_Placeholder = 例）运动时间
+AlarmTimer_ToastNotificationTitle = 鬧鐘
+AlarmTimer_ToastNotificationSnoozeTimeDescription = 重新通知时间：
+AlarmTimer_Snooze = 提醒时间
+AlarmTimer_SnoozeIgnore = 忽視
+AlarmTimer_SnoozeWithMinutes = {0} 分钟后
 
 
 

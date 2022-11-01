@@ -207,32 +207,7 @@ namespace VoiceOfClock.UseCases
             }
             else
             {
-                DateTime canidateNextTime;
-                if (_entity.StartTime > now.TimeOfDay)
-                {
-                    canidateNextTime = DateTime.Today + _entity.StartTime;
-                }
-                else
-                {
-                    canidateNextTime = DateTime.Today + _entity.StartTime + TimeSpan.FromDays(1);
-                }
-
-                if (EnabledDayOfWeeks.Any() is false || EnabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
-                {
-                    NextTime = canidateNextTime;
-                }
-                else if (EnabledDayOfWeeks.Any())
-                {
-                    foreach (var i in Enumerable.Range(0, 7))
-                    {
-                        canidateNextTime += TimeSpan.FromDays(1);
-                        if (EnabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
-                        {
-                            NextTime = canidateNextTime;
-                            break;
-                        }
-                    }
-                }
+                NextTime = TimeHelpers.CulcNextTime(DateTime.Now, _entity.StartTime, EnabledDayOfWeeks);                
             }
         }
 
@@ -264,7 +239,7 @@ namespace VoiceOfClock.UseCases
         }
     }
 
-    public sealed class TimerLifetimeManager : IApplicationLifeCycleAware
+    public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
         , IRecipient<ActiveTimerCollectionRequestMessage>
     {
         private readonly IMessenger _messenger;
@@ -275,7 +250,7 @@ namespace VoiceOfClock.UseCases
         public ReadOnlyObservableCollection<PeriodicTimerRunningInfo> PeriodicTimers { get; }
         public PeriodicTimerRunningInfo InstantPeriodicTimer { get; }
 
-        public TimerLifetimeManager(IMessenger messenger,
+        public PeriodicTimerLifetimeManager(IMessenger messenger,
             PeriodicTimerRepository periodicTimerRepository
             )
         {

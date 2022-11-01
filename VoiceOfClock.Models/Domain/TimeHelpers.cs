@@ -53,4 +53,35 @@ public static class TimeHelpers
             yield return (DayOfWeek)index;
         }
     }
+
+    public static DateTime CulcNextTime(DateTime now, TimeSpan startTime, IEnumerable<DayOfWeek> enabledDayOfWeeks)
+    {
+        DateTime canidateNextTime;
+        if (startTime > now.TimeOfDay)
+        {
+            canidateNextTime = now.Date + startTime;
+        }
+        else
+        {
+            canidateNextTime = now.Date + startTime + TimeSpan.FromDays(1);
+        }
+
+        if (enabledDayOfWeeks.Any() is false || enabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
+        {
+            return canidateNextTime;
+        }
+        else if (enabledDayOfWeeks.Any())
+        {
+            foreach (var i in Enumerable.Range(0, 7))
+            {
+                canidateNextTime += TimeSpan.FromDays(1);
+                if (enabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
+                {
+                    return canidateNextTime;
+                }
+            }
+        }        
+
+        throw new NotSupportedException();
+    }
 }

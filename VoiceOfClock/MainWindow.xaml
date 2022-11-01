@@ -53,7 +53,7 @@
       </NavigationView.PaneHeader>
       
       <NavigationView.MenuItems>
-        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped" Visibility="Collapsed">
+        <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped">
           <NavigationViewItem.Icon>
             <SymbolIcon Symbol="Clock" />
           </NavigationViewItem.Icon>

@@ -27,6 +27,8 @@ End = 終了
 Save = 保存
 Cancel = キャンセル
 Edit = 編集
+Open = 開く
+Close = 閉じる
 Delete = 削除
 UnitOfMonth = 月
 UnitOfDay = 日
@@ -40,6 +42,8 @@ PeriodOfMinute = 分
 PeriodOfSecond = 秒
 Elapsed = 経過
 NotSelected = 未選択
+
+
 
 #### Calender
 
@@ -89,6 +93,20 @@ ConfirmCloseApplication_PrimaryButtonText = アプリを閉じる
 ConfirmCloseApplication_Title = タイマー継続の確認
 ConfirmCloseAppliction_Description = アプリを終了すると、タイマー動作・通知・読み上げも止まります。\nアプリを終了してもいいですか？
 ConfirmCloseApplication_DontShowAgain = 今後、確認を表示しない
+
+
+
+#### Alarm Timer 
+
+AlarmTimerEditDialog_Title = アラームを編集
+AlarmTimerAddDialog_Title = アラームを追加
+AlarmTimer_Label_Title = ラベル
+AlarmTimer_Label_Placeholder = 例）運動の時間
+AlarmTimer_ToastNotificationTitle = アラーム
+AlarmTimer_ToastNotificationSnoozeTimeDescription = 再通知までの時間: 
+AlarmTimer_Snooze = 再通知時間
+AlarmTimer_SnoozeIgnore = 無効
+AlarmTimer_SnoozeWithMinutes = {0} 分後
 
 
 

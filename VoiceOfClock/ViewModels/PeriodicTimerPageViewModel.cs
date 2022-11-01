@@ -36,7 +36,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     IRecipient<PeriodicTimerUpdated>
 {
     private readonly IPeriodicTimerDialogService _dialogService;
-    private readonly TimerLifetimeManager _timerLifetimeManager;
+    private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
     public ReadOnlyReactiveCollection<PeriodicTimerViewModel> Timers { get; }
     public TimerSettings TimerSettings { get; }
     public PeriodicTimerViewModel InstantPeriodicTimer { get; }
@@ -45,7 +45,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     public PeriodicTimerPageViewModel(
         IMessenger messenger,
         IPeriodicTimerDialogService dialogService,
-        TimerLifetimeManager timerLifetimeManager,
+        PeriodicTimerLifetimeManager timerLifetimeManager,
         TimerSettings timerSettings
         )
         : base(messenger)
@@ -101,6 +101,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
             var timerInfo = timerVM.PeriodicTimerRunningInfo;
             using (timerInfo.DeferUpdate())
             {
+                timerVM.IsEnabled = timerInfo.IsEnabled = true;
                 timerVM.StartTime = timerInfo.StartTime = result.StartTime;
                 timerVM.EndTime  = timerInfo.EndTime = result.EndTime;
                 timerVM.IntervalTime = timerInfo.IntervalTime = result.IntervalTime;

@@ -84,9 +84,8 @@
       <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
       <Style TargetType="views:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:OneShotTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
-
-      
-      
+      <Style TargetType="views:AlarmTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+           
     </ResourceDictionary>
   </Application.Resources>
 </Application>

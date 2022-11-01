@@ -1,0 +1,117 @@
+﻿<ContentDialog
+  x:Class="VoiceOfClock.Views.AlarmTimerEditDialog"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:VoiceOfClock.Views"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions" 
+  xmlns:viewModels="using:VoiceOfClock.ViewModels" 
+  xmlns:globalization="using:System.Globalization"
+  xmlns:myControls="using:VoiceOfClock.Views.Controls" 
+  xmlns:models="using:VoiceOfClock.Models.Domain" 
+  xmlns:myConv="using:VoiceOfClock.Views.Converters"
+  xmlns:i="using:Microsoft.Xaml.Interactivity"
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+  PrimaryButtonText="{i18n:Localize Key=Save}"
+  CloseButtonText="{i18n:Localize Key=Cancel}"
+  Title=""
+  PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
+  CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"             
+  >
+
+  <ContentDialog.Resources>
+    <myConv:SnoozeTimeToStringConverter x:Key="SnoozeTimeToStringConverter" />
+  </ContentDialog.Resources>
+  <ScrollViewer>
+    <StackPanel Spacing="16" Margin="0 0 8 0">
+
+
+      <StackPanel>
+        <myControls:TimeSelectBox x:Name="TimeSelectBox_TimeOfDay" FontSize="30"                                                                    
+                                  DisplayMode="Hours_Minutes"
+                                  HorizontalContentAlignment="Center"
+                                  />
+      </StackPanel>
+
+      <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"
+                 Header="{i18n:Localize Key=AlarmTimer_Label_Title}"               
+                 />
+
+      <StackPanel Spacing="4">
+
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <CheckBox 
+          x:Name="CheckBox_IsRepeat" 
+          IsChecked="{x:Bind IsRepeat, Mode=TwoWay}"                  
+          HorizontalAlignment="Stretch"
+          HorizontalContentAlignment="Stretch"
+          VerticalContentAlignment="Stretch"    
+          Tapped="CheckBox_IsRepeat_Tapped"
+          >
+            <TextBlock Text="{i18n:Localize Key=RepeatDayOfWeek}" TextLineBounds="TrimToCapHeight" />
+          </CheckBox>
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{x:Bind EnabledDayOfWeeks}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:EnabledDayOfWeekViewModel">
+              <ToggleButton 
+                    Content="{x:Bind globalization:CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(DayOfWeek)}" 
+                    IsChecked="{x:Bind IsEnabled, Mode=TwoWay}" 
+                    CornerRadius="32"                              
+                    Width="30"
+                    Height="30"
+                    FontSize="12"
+                    Padding="0"
+                    VerticalContentAlignment="Center"
+                    />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ComboBox x:Name="ComboBox_SnoozeTime" ItemsSource="{x:Bind _snoozeTimes}"
+                  Header="{i18n:Localize Key=AlarmTimer_Snooze}"
+                  >
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Converter={StaticResource SnoozeTimeToStringConverter}}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <ComboBox x:Name="ComboBox_SoundSelectionItem"
+              ItemsSource="{x:Bind _soundSelectionItems}"               
+                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"
+              Header="{i18n:Localize Key=SoundSourceType_SelectionTitle}"
+              >
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
+              <TextBlock Text="{x:Bind}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBox x:Name="TextBox_Tts"
+                 Header="読み上げるテキスト"
+                 TextChanged="TextBox_SoundParameter_TextChanged"
+                 >
+        </TextBox>
+
+        <Button x:Name="Button_TestPlaySound"
+            Content="{i18n:Localize Key=SpeechSettingsTest}"
+            Command="{x:Bind TestPlaySoundCommand}"
+            >
+
+        </Button>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</ContentDialog>
