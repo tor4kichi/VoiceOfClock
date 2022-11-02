@@ -33,10 +33,8 @@ public sealed class AlarmTimerEditDialogService : IAlarmTimerDialogService
     public Task<AlarmTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent)
     {
         var dialog = new AlarmTimerEditDialog();
-        App.Current.InitializeDialog(dialog);
-        dialog.Title = dialogTitle;
-        dialog.SetSoundSource(soundSourceType, soundContent);
-        return dialog.ShowAsync(timerTitle, dayOfTime, snooze, enabledDayOfWeeks, firstDayOfWeek);
+        App.Current.InitializeDialog(dialog);        
+        return dialog.ShowAsync(dialogTitle, timerTitle, dayOfTime, snooze, enabledDayOfWeeks, firstDayOfWeek, soundSourceType, soundContent);
     }
 }
 
@@ -102,10 +100,12 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     }
 
 
-    public async Task<AlarmTimerDialogResult> ShowAsync(string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek)
+    public async Task<AlarmTimerDialogResult> ShowAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent)
     {
+        Title = dialogTitle;
         TextBox_EditTitle.Text = timerTitle;
         TimeSelectBox_TimeOfDay.Time = dayOfTime.ToTimeSpan();
+        SetSoundSource(soundSourceType, soundContent);
         _snoozeTimeFirstSelected = _snoozeTimes.FirstOrDefault(x => x == snooze, _snoozeTimes.First());
         
         var enabledDayOfWeeksHashSet = enabledDayOfWeeks.ToHashSet();
@@ -127,7 +127,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         {
             if (await base.ShowAsync() is ContentDialogResult.Primary)
             {
-                var (soundSourceType, soundContent) = GetSoundParameter();
+                var (resultSoundSourceType, resultSoundContent) = GetSoundParameter();
                 
                 return new AlarmTimerDialogResult
                 {
@@ -136,8 +136,8 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
                     TimeOfDay = TimeOnly.FromTimeSpan(TimeSelectBox_TimeOfDay.Time),
                     Snooze = ComboBox_SnoozeTime.SelectedItem as TimeSpan?,
                     EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray(),                    
-                    SoundSourceType = soundSourceType,
-                    SoundContent = soundContent,
+                    SoundSourceType = resultSoundSourceType,
+                    SoundContent = resultSoundContent,
                 };
             }
             else

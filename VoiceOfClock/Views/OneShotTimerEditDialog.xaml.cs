@@ -15,13 +15,13 @@ using Microsoft.UI.Xaml.Navigation;
 using VoiceOfClock.ViewModels;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
-using CommunityToolkit.Mvvm.ComponentModel;
 using VoiceOfClock.UseCases;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI;
 using DependencyPropertyGenerator;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -38,47 +38,10 @@ public sealed class OneShotTimerEditDialogService : IOneShotTimerDialogService
         , string soundParameter
         )
     {
-        var dialog = new OneShotTimerEditDialog()
-        {
-            Title = dialogTitle,
-            TimerTitle = timerTitle,
-            Duration = time,
-            //SoundSourceType = soundSourceType,
-        };
-        dialog.SetSoundSource(soundSourceType, soundParameter);
-
+        var dialog = new OneShotTimerEditDialog();
         App.Current.InitializeDialog(dialog);
-
-        var result = await dialog.ShowAsync();
-
-        if (result == ContentDialogResult.Primary)
-        {
-            return new OneShotTimerDialogResult()
-            {
-                IsConfirmed = true,
-                Time = dialog.Duration,
-                Title = dialog.TimerTitle,
-                SoundSourceType = dialog.SoundSourceType,
-                SoundParameter = dialog.GetSoundParameter()
-            };
-        }
-        else
-        {
-            return new OneShotTimerDialogResult { IsConfirmed = false };
-        }
+        return await dialog.ShowAsync(dialogTitle, timerTitle, time, soundSourceType, soundParameter);
     }
-}
-
-public sealed partial class SoundSourceViewModel : ObservableObject
-{
-    public SoundSourceViewModel(SoundSourceType soundSourceType, string parameter)
-    {
-        SoundSourceType = soundSourceType;
-        Parameter = parameter;
-    }
-
-    public SoundSourceType SoundSourceType { get; }
-    public string Parameter { get; }
 }
 
 public sealed partial class OneShotTimerEditDialog : ContentDialog
@@ -90,20 +53,18 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         Loaded += OneShotTimerEditDialog_Loaded;
     }
 
-    private void OneShotTimerEditDialog_Loaded(object sender, RoutedEventArgs e)
-    {
-        ComboBox_SoundSourceType.SelectedItem = SoundSourceType;
-        ComboBox_SoundSource_WindowsSystem.SelectedItem = _systemSoundSource_InitParameter ?? _windowsSystemParameters[0];
-    }
 
-    private readonly SoundSourceType[] _soundSourceTypes = new[] 
-    {
-        SoundSourceType.System,
-        SoundSourceType.Tts,
-        //SoundSourceType.TtsWithSSML,
-    };
 
-    private readonly string[] _windowsSystemParameters = Enum.GetNames<WindowsNotificationSoundType>();
+    private SoundSelectionItemViewModel? _firstSelectedsoundSelectionItem;
+
+    private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
+        new[]
+        {
+            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),
+            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } }
+        }
+        .SelectMany(x => x)
+        .ToArray();
 
     public TimeSpan Duration
     {
@@ -117,78 +78,65 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         set => TextBox_EditTitle.Text = value;
     }
 
-    public SoundSourceType SoundSourceType { get; set; }
-
-    private string? _systemSoundSource_InitParameter;
 
     public void SetSoundSource(SoundSourceType soundSourceType, string parameter)
     {
-        SoundSourceType = soundSourceType;
-        ComboBox_SoundSourceType.SelectedItem = soundSourceType;
-        if (soundSourceType == SoundSourceType.System)
+        if (soundSourceType is SoundSourceType.Tts or SoundSourceType.TtsWithSSML)
         {
-            _systemSoundSource_InitParameter = _windowsSystemParameters.FirstOrDefault(x => x == parameter);
-            ComboBox_SoundSource_WindowsSystem.SelectedItem = _systemSoundSource_InitParameter;
-            TextBox_SoundParameter_Tts.Text = String.Empty;
-            TextBox_SoundParameter_TtsWithSsml.Text = String.Empty;
+            var selected = _soundSelectionItems.FirstOrDefault(x => x.SoundSourceType == soundSourceType) ?? _soundSelectionItems.First();
+            ComboBox_SoundSelectionItem.SelectedItem = selected;
+            _firstSelectedsoundSelectionItem = selected;
+            TextBox_Tts.Text = parameter;
+            _firstSelectedsoundSelectionItem!.SoundContent = parameter;
         }
-        else if (soundSourceType == SoundSourceType.Tts)
+        else
         {
-            ComboBox_SoundSource_WindowsSystem.SelectedItem = SystemSoundConstants.Default;
-            TextBox_SoundParameter_Tts.Text = parameter;
-            TextBox_SoundParameter_TtsWithSsml.Text = String.Empty;
-        }
-        else if (soundSourceType == SoundSourceType.TtsWithSSML)
-        {
-            ComboBox_SoundSource_WindowsSystem.SelectedItem = SystemSoundConstants.Default;
-            TextBox_SoundParameter_Tts.Text = String.Empty;
-            TextBox_SoundParameter_TtsWithSsml.Text = parameter;
+            var selected = _soundSelectionItems.FirstOrDefault(x => x.SoundSourceType == soundSourceType && x.SoundContent == parameter) ?? _soundSelectionItems.First();
+            ComboBox_SoundSelectionItem.SelectedItem = selected;
+            _firstSelectedsoundSelectionItem = selected;
         }
     }
 
-    public string GetSoundParameter()
+    public (SoundSourceType SoundSourceType, string SoundContent) GetSoundParameter()
     {
-        return SoundSourceType switch
-        {
-            SoundSourceType.System => (string)ComboBox_SoundSource_WindowsSystem.SelectedItem,
-            SoundSourceType.Tts => TextBox_SoundParameter_Tts.Text,
-            SoundSourceType.TtsWithSSML => TextBox_SoundParameter_TtsWithSsml.Text,
-            _ => throw new NotSupportedException(SoundSourceType.ToString()),
-        };
+        var item = ((SoundSelectionItemViewModel)ComboBox_SoundSelectionItem.SelectedItem);
+        return (item.SoundSourceType, item.SoundContent);
     }
 
-    private void ComboBox_SoundSourceType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+    internal async Task<OneShotTimerDialogResult> ShowAsync(string dialogTitle, string timerTitle, TimeSpan time, SoundSourceType soundSourceType, string soundParameter)
     {
-        TextBox_SoundParameter_Tts.TextChanged -= TextBox_SoundParameter_TextChanged;
-        TextBox_SoundParameter_TtsWithSsml.TextChanged -= TextBox_SoundParameter_TextChanged;
+        Title = dialogTitle;
+        TimerTitle = timerTitle;
+        Duration = time;
+        SetSoundSource(soundSourceType, soundParameter);
 
-        var type = (SoundSourceType)ComboBox_SoundSourceType.SelectedItem;
-        SoundSourceType = type;
-        if (type == SoundSourceType.System)
+        if (await base.ShowAsync() is ContentDialogResult.Primary)
         {
-            ComboBox_SoundSource_WindowsSystem.Visibility = Visibility.Visible;
-            TextBox_SoundParameter_Tts.Visibility = Visibility.Collapsed;
-            TextBox_SoundParameter_TtsWithSsml.Visibility = Visibility.Collapsed;
+            var (resultSoundSourceType, resultParameter) = GetSoundParameter();
+            return new OneShotTimerDialogResult()
+            {
+                IsConfirmed = true,
+                Time = Duration,
+                Title = TimerTitle,
+                SoundSourceType = resultSoundSourceType,
+                SoundParameter = resultParameter
+            };
         }
-        else if (type == SoundSourceType.Tts)
+        else
         {
-            ComboBox_SoundSource_WindowsSystem.Visibility = Visibility.Collapsed;
-            TextBox_SoundParameter_Tts.Visibility = Visibility.Visible;
-            TextBox_SoundParameter_TtsWithSsml.Visibility = Visibility.Collapsed;
-
-            TextBox_SoundParameter_Tts.TextChanged += TextBox_SoundParameter_TextChanged;
+            return new OneShotTimerDialogResult { IsConfirmed = false };
         }
-        else if (type == SoundSourceType.TtsWithSSML)
-        {
-            ComboBox_SoundSource_WindowsSystem.Visibility = Visibility.Collapsed;
-            TextBox_SoundParameter_Tts.Visibility = Visibility.Collapsed;
-            TextBox_SoundParameter_TtsWithSsml.Visibility = Visibility.Visible;
-
-            TextBox_SoundParameter_TtsWithSsml.TextChanged += TextBox_SoundParameter_TextChanged;
-        }
-
-        UpdateIsPrimaryButtonEnabled();
     }
+
+
+    private void OneShotTimerEditDialog_Loaded(object sender, RoutedEventArgs e)
+    {
+        ComboBox_SoundSelectionItem.SelectedItem = _firstSelectedsoundSelectionItem;
+        UpdateTextBoxTtsVisibility();
+    }
+
+
 
     private void TextBox_SoundParameter_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -198,18 +146,18 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     private void UpdateIsPrimaryButtonEnabled()
     {
-        var type = SoundSourceType;
+        var (type, parameter) = GetSoundParameter();
         if (type == SoundSourceType.System)
         {
             IsPrimaryButtonEnabled = IsValidTime(Duration);
         }
         else if (type == SoundSourceType.Tts)
         {
-            IsPrimaryButtonEnabled = IsValidInput(TextBox_SoundParameter_Tts.Text) && IsValidTime(Duration);
+            IsPrimaryButtonEnabled = IsValidInput(parameter) && IsValidTime(Duration);
         }
         else if (type == SoundSourceType.TtsWithSSML)
         {
-            IsPrimaryButtonEnabled = IsValidInput(TextBox_SoundParameter_TtsWithSsml.Text) && IsValidTime(Duration);
+            IsPrimaryButtonEnabled = IsValidInput(parameter) && IsValidTime(Duration);
         }
     }
 
@@ -227,59 +175,46 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     async Task TestPlaySound()
     {
         var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
-        if (SoundSourceType == SoundSourceType.System)
+        var (soundSourceType, parameter) = GetSoundParameter();
+        if (soundSourceType == SoundSourceType.System)
         {
-            var notificationSoundType = Enum.Parse<WindowsNotificationSoundType>((string)ComboBox_SoundSource_WindowsSystem.SelectedItem);
+            var notificationSoundType = Enum.Parse<WindowsNotificationSoundType>(parameter);
             _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
         }
-        else if (SoundSourceType == SoundSourceType.Tts)
+        else if (soundSourceType == SoundSourceType.Tts)
         {
-            await meseenger.Send(new TextPlayVoiceRequest(TextBox_SoundParameter_Tts.Text));
+            await meseenger.Send(new TextPlayVoiceRequest(parameter));
         }
-        else if (SoundSourceType == SoundSourceType.TtsWithSSML)
+        else if (soundSourceType == SoundSourceType.TtsWithSSML)
         {
-            await meseenger.Send(new SsmlPlayVoiceRequest(TextBox_SoundParameter_TtsWithSsml.Text));
+            await meseenger.Send(new SsmlPlayVoiceRequest(parameter));
         }
-    }
-
-    bool _skipOnFirst = true;
-    private void ComboBox_SoundSource_WindowsSystem_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_skipOnFirst)
-        {
-            _skipOnFirst = false;
-            return;
-        }
-        
-        _ = TestPlaySound();
     }
 
     private void TimeSelectBox_Time_TimeChanged(Controls.TimeSelectBox sender, Controls.TimeSelectBoxTimeValueChangedEventArgs args)
     {
         UpdateIsPrimaryButtonEnabled();
     }
-}
 
-
-public sealed class SoundSourceDataTemplateSelector : DataTemplateSelector
-{
-    public DataTemplate? WindowsSystem { get; set; }
-    public DataTemplate? Tts { get; set; }
-    public DataTemplate? TtsWithSsml { get; set; }
-
-    protected override DataTemplate SelectTemplateCore(object item)
+    private void ComboBox_SoundSelectionItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        return this.SelectTemplateCore(item, null!);
+        UpdateIsPrimaryButtonEnabled();
+        UpdateTextBoxTtsVisibility();
     }
 
-    protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
+    private void UpdateTextBoxTtsVisibility()
     {
-        return (SoundSourceType)item switch
+        if (ComboBox_SoundSelectionItem.SelectedItem is SoundSelectionItemViewModel item
+            && item.SoundSourceType is SoundSourceType.Tts or SoundSourceType.TtsWithSSML
+            )
         {
-            SoundSourceType.System => WindowsSystem ?? base.SelectTemplateCore(item, container),
-            SoundSourceType.Tts => Tts ?? base.SelectTemplateCore(item, container),
-            SoundSourceType.TtsWithSSML => TtsWithSsml ?? base.SelectTemplateCore(item, container),
-            _ => base.SelectTemplateCore(item, container)
-        };
+            TextBox_Tts.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TextBox_Tts.Visibility = Visibility.Collapsed;
+        }
     }
+
+    
 }

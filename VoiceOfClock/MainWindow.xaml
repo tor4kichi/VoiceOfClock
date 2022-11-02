@@ -119,6 +119,7 @@
                    PrimaryButtonText="{i18n:Localize Key=ConfirmCloseApplication_PrimaryButtonText}"
                    SecondaryButtonText="{i18n:Localize Key=Cancel}"
                    Title="{i18n:Localize Key=ConfirmCloseApplication_Title}"
+                   x:Load="True"
                    >
       <StackPanel Spacing="8">
         <TextBlock Text="{i18n:Localize Key=ConfirmCloseAppliction_Description}" />

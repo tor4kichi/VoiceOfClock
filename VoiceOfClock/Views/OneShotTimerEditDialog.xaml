@@ -15,6 +15,7 @@
   PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
   CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"    
   xmlns:models="using:VoiceOfClock.Models.Domain" 
+  xmlns:viewModels="using:VoiceOfClock.ViewModels"
   >
   <StackPanel Spacing="8">
 
@@ -32,30 +33,29 @@
                  Header="{i18n:Localize Key=OneShotTimerLabel_Title}"
                  />
 
-    <ComboBox x:Name="ComboBox_SoundSourceType"
-      ItemsSource="{x:Bind _soundSourceTypes}"               
-              SelectionChanged="ComboBox_SoundSourceType_SelectionChanged"
+    <ComboBox x:Name="ComboBox_SoundSelectionItem"
+              ItemsSource="{x:Bind _soundSelectionItems}"               
+                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"
               Header="{i18n:Localize Key=SoundSourceType_SelectionTitle}"
               >
       <ComboBox.ItemTemplate>
-        <DataTemplate x:DataType="models:SoundSourceType">
-          <TextBlock Text="{x:Bind Converter={StaticResource LocalizeConverter}}" />
+        <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
+          <TextBlock Text="{x:Bind}" />
         </DataTemplate>
       </ComboBox.ItemTemplate>
     </ComboBox>
 
-    <ComboBox x:Name="ComboBox_SoundSource_WindowsSystem" ItemsSource="{x:Bind _windowsSystemParameters}" Header="{i18n:Localize Key=SoundSource_Parameter_System}" 
-              SelectionChanged="ComboBox_SoundSource_WindowsSystem_SelectionChanged"
-              SelectionChangedTrigger="Always"
-              />
-    <TextBox x:Name="TextBox_SoundParameter_Tts" Header="{i18n:Localize Key=SoundSource_Parameter_Tts}" />
-    <TextBox x:Name="TextBox_SoundParameter_TtsWithSsml" Header="{i18n:Localize Key=SoundSource_Parameter_TtsWithSsml}" />
+    <TextBox x:Name="TextBox_Tts"
+                 Header="読み上げるテキスト"
+                 TextChanged="TextBox_SoundParameter_TextChanged"
+                 >
+    </TextBox>
 
     <Button x:Name="Button_TestPlaySound"
             Content="{i18n:Localize Key=SpeechSettingsTest}"
             Command="{x:Bind TestPlaySoundCommand}"
             >
-      
+
     </Button>
   </StackPanel>
 </ContentDialog>
