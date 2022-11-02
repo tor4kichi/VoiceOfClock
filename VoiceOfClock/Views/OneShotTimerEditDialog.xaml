@@ -17,45 +17,63 @@
   xmlns:models="using:VoiceOfClock.Models.Domain" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
   >
-  <StackPanel Spacing="8">
+  <ScrollViewer>
+    <StackPanel Spacing="16">
 
-    <StackPanel>
-      <!--
+      <StackPanel>
+        <!--
       <TextBlock Text="{i18n:Localize Key=OneShotTimer_Duration}" />
       -->
-      <myControls:TimeSelectBox x:Name="TimeSelectBox_Time"
+        <myControls:TimeSelectBox x:Name="TimeSelectBox_Time"
           FontSize="40"       
                                TimeChanged="TimeSelectBox_Time_TimeChanged"
       />
-    </StackPanel>
+      </StackPanel>
 
-    <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=OneShotTimerLabel_Placeholder}"
-                 Header="{i18n:Localize Key=OneShotTimerLabel_Title}"
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=AlarmTimer_Label_Title}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+
+        <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"                 
                  />
+      </myControls:ContentWithIcon>
 
-    <ComboBox x:Name="ComboBox_SoundSelectionItem"
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=NotificationSound_Title}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Audio" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <ComboBox x:Name="ComboBox_SoundSelectionItem"
               ItemsSource="{x:Bind _soundSelectionItems}"               
-                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"
-              Header="{i18n:Localize Key=SoundSourceType_SelectionTitle}"
+                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"              
+                  HorizontalAlignment="Stretch"
               >
-      <ComboBox.ItemTemplate>
-        <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
-          <TextBlock Text="{x:Bind}" />
-        </DataTemplate>
-      </ComboBox.ItemTemplate>
-    </ComboBox>
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
+              <TextBlock Text="{x:Bind}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </myControls:ContentWithIcon>
 
-    <TextBox x:Name="TextBox_Tts"
-                 Header="読み上げるテキスト"
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=SoundSource_Parameter_Tts}"
+                                  x:Name="ContentWithIcon_Tts"                                  
+                                  >
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Comment" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <TextBox x:Name="TextBox_Tts"                 
                  TextChanged="TextBox_SoundParameter_TextChanged"
                  >
-    </TextBox>
+        </TextBox>
+      </myControls:ContentWithIcon>
 
-    <Button x:Name="Button_TestPlaySound"
+      <Button x:Name="Button_TestPlaySound"
             Content="{i18n:Localize Key=SpeechSettingsTest}"
             Command="{x:Bind TestPlaySoundCommand}"
             >
 
-    </Button>
-  </StackPanel>
+      </Button>
+    </StackPanel>
+  </ScrollViewer>
 </ContentDialog>

@@ -17,68 +17,76 @@
     CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"           
   >
 
-  <StackPanel Spacing="16">
+  <ScrollViewer>
+    <StackPanel Spacing="16">
 
 
-    <Grid>
-      <TimePicker x:Name="TimePicker_StartTime" SelectedTime="00:00:00" 
+      <Grid>
+        <TimePicker x:Name="TimePicker_StartTime" SelectedTime="00:00:00" 
                   LightDismissOverlayMode="On"
                   HorizontalAlignment="Stretch"
                   Header="{i18n:Localize Key=Start}"
                   />
 
-      <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid HorizontalAlignment="Stretch" Opacity="0.5">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
+          <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+          </TextBlock>
+          <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+          </TextBlock>
+        </Grid>
       </Grid>
-    </Grid>
 
-    <Grid>
-      <TimePicker x:Name="TimePicker_EndTime" SelectedTime="00:00:00" 
+      <Grid>
+        <TimePicker x:Name="TimePicker_EndTime" SelectedTime="00:00:00" 
                   LightDismissOverlayMode="On"
                   HorizontalAlignment="Stretch"
                   Header="{i18n:Localize Key=End}"                  
                   />
 
-      <Grid HorizontalAlignment="Stretch" Opacity="0.5">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid HorizontalAlignment="Stretch" Opacity="0.5">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
 
-        <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
-        <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
-        </TextBlock>
+          <TextBlock Text="{i18n:Localize Key=PeriodOfHour}" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+          </TextBlock>
+          <TextBlock Text="{i18n:Localize Key=PeriodOfMinute}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+          </TextBlock>
+        </Grid>
       </Grid>
-    </Grid>
 
-    <Grid>
+      <Grid>
 
-      <StackPanel>
-        <TextBlock Text="{i18n:Localize Key=PeriodicTimerInterval_Title}" />
-        <myControls:TimeSelectBox x:Name="TimeSelectBox_IntervalTime"
+        <StackPanel>
+          <TextBlock Text="{i18n:Localize Key=PeriodicTimerInterval_Title}" />
+          <myControls:TimeSelectBox x:Name="TimeSelectBox_IntervalTime"
         FontSize="40"
         />
-      </StackPanel>
-    </Grid>
+        </StackPanel>
+      </Grid>
 
-    <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=PeriodicTimerLabel_Placeholder}"
-                 Header="{i18n:Localize Key=PeriodicTimerLabel_Title}"
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=AlarmTimer_Label_Title}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+
+        <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"                 
                  />
+      </myControls:ContentWithIcon>
 
 
-    <StackPanel Spacing="4">
 
-      <StackPanel Orientation="Horizontal" Spacing="4">
-        <CheckBox 
+      <StackPanel Spacing="4">
+
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <CheckBox 
           x:Name="CheckBox_IsRepeat" 
           IsChecked="{x:Bind IsRepeat, Mode=TwoWay}"                  
           HorizontalAlignment="Stretch"
@@ -86,19 +94,19 @@
           VerticalContentAlignment="Stretch"    
           Tapped="CheckBox_IsRepeat_Tapped"
           >
-          <TextBlock Text="{i18n:Localize Key=RepeatDayOfWeek}" TextLineBounds="TrimToCapHeight" />
-        </CheckBox>
-      </StackPanel>
+            <TextBlock Text="{i18n:Localize Key=RepeatDayOfWeek}" TextLineBounds="TrimToCapHeight" />
+          </CheckBox>
+        </StackPanel>
 
-      <ItemsControl ItemsSource="{x:Bind EnabledDayOfWeeks}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal" Spacing="8" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="viewModels:EnabledDayOfWeekViewModel">
-            <ToggleButton 
+        <ItemsControl ItemsSource="{x:Bind EnabledDayOfWeeks}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:EnabledDayOfWeekViewModel">
+              <ToggleButton 
                     Content="{x:Bind globalization:CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(DayOfWeek)}" 
                     IsChecked="{x:Bind IsEnabled, Mode=TwoWay}" 
                     CornerRadius="32"                              
@@ -108,11 +116,12 @@
                     Padding="0"
                     VerticalContentAlignment="Center"
                     />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
     </StackPanel>
-    
-  </StackPanel>
+  </ScrollViewer>
 
 </ContentDialog>

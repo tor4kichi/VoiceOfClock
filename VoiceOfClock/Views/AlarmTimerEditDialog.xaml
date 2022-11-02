@@ -28,16 +28,19 @@
     <StackPanel Spacing="16" Margin="0 0 8 0">
 
 
-      <StackPanel>
-        <myControls:TimeSelectBox x:Name="TimeSelectBox_TimeOfDay" FontSize="30"                                                                    
+      <myControls:TimeSelectBox x:Name="TimeSelectBox_TimeOfDay" FontSize="30"                                                                    
                                   DisplayMode="Hours_Minutes"
                                   HorizontalContentAlignment="Center"
                                   />
-      </StackPanel>
 
-      <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"
-                 Header="{i18n:Localize Key=AlarmTimer_Label_Title}"               
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=AlarmTimer_Label_Title}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+
+        <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"                 
                  />
+      </myControls:ContentWithIcon>
 
       <StackPanel Spacing="4">
 
@@ -76,8 +79,16 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <ComboBox x:Name="ComboBox_SnoozeTime" ItemsSource="{x:Bind _snoozeTimes}"
-                  Header="{i18n:Localize Key=AlarmTimer_Snooze}"
+        
+      </StackPanel>
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=AlarmTimer_Snooze}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Clock" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+
+        <ComboBox x:Name="ComboBox_SnoozeTime" ItemsSource="{x:Bind _snoozeTimes}"                  
+                    HorizontalAlignment="Stretch"
                   >
           <ComboBox.ItemTemplate>
             <DataTemplate>
@@ -85,11 +96,17 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+      </myControls:ContentWithIcon>
 
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=NotificationSound_Title}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Audio" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
         <ComboBox x:Name="ComboBox_SoundSelectionItem"
               ItemsSource="{x:Bind _soundSelectionItems}"               
-                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"
-              Header="{i18n:Localize Key=SoundSourceType_SelectionTitle}"
+                  SelectionChanged="ComboBox_SoundSelectionItem_SelectionChanged"              
+                  HorizontalAlignment="Stretch"
               >
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
@@ -97,21 +114,27 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+      </myControls:ContentWithIcon>
 
-        <TextBox x:Name="TextBox_Tts"
-                 Header="読み上げるテキスト"
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=SoundSource_Parameter_Tts}"
+                                  x:Name="ContentWithIcon_Tts"                                  
+                                  >
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Comment" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <TextBox x:Name="TextBox_Tts"                 
                  TextChanged="TextBox_SoundParameter_TextChanged"
                  >
         </TextBox>
+      </myControls:ContentWithIcon>
 
-        <Button x:Name="Button_TestPlaySound"
+      <Button x:Name="Button_TestPlaySound"
             Content="{i18n:Localize Key=SpeechSettingsTest}"
             Command="{x:Bind TestPlaySoundCommand}"
             >
 
-        </Button>
-      </StackPanel>
-
+      </Button>
     </StackPanel>
   </ScrollViewer>
 </ContentDialog>

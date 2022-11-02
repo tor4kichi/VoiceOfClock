@@ -8,7 +8,7 @@ Clock_PM = 下午
 
 
 
-#### Sound Source
+#### Notification Sound
 
 SoundSourceType_SelectionTitle = 语音类型
 SoundSourceType.System = 系统声音
@@ -17,6 +17,7 @@ SoundSourceType.TtsWithSSML = SSML（适用于高级用户）
 SoundSource_Parameter_System = 声音类型
 SoundSource_Parameter_Tts = 要阅读的文本
 SoundSource_Parameter_TtsWithSsml = SSML 读取
+NotificationSound_Title = 通知声音
 
 
 

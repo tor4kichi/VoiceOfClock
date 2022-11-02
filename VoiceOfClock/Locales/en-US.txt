@@ -8,7 +8,7 @@ Clock_PM = PM
 
 
 
-#### Sound Source
+#### Notification Sound
 
 SoundSourceType_SelectionTitle = Voice type
 SoundSourceType.System = System sound
@@ -17,6 +17,7 @@ SoundSourceType.TtsWithSSML = SSML (for advanced users)
 SoundSource_Parameter_System = Type of sound
 SoundSource_Parameter_Tts = Text to read
 SoundSource_Parameter_TtsWithSsml = SSML to read
+NotificationSound_Title = notification sound
 
 
 

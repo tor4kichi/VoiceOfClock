@@ -8,7 +8,7 @@ Clock_PM = 午後
 
 
 
-#### Sound Source
+#### Notification Sound
 
 SoundSourceType_SelectionTitle = 音声タイプ
 SoundSourceType.System = システム音
@@ -17,6 +17,7 @@ SoundSourceType.TtsWithSSML = SSML（上級者向け）
 SoundSource_Parameter_System = 音の種類
 SoundSource_Parameter_Tts = 読み上げるテキスト
 SoundSource_Parameter_TtsWithSsml = 読み上げるSSML
+NotificationSound_Title = 通知音
 
 
 

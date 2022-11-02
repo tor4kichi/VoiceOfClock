@@ -269,11 +269,11 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
             && item.SoundSourceType is SoundSourceType.Tts or SoundSourceType.TtsWithSSML
             )
         {
-            TextBox_Tts.Visibility = Visibility.Visible;
+            ContentWithIcon_Tts.Visibility = Visibility.Visible;
         }
         else
         {
-            TextBox_Tts.Visibility = Visibility.Collapsed;
+            ContentWithIcon_Tts.Visibility = Visibility.Collapsed;
         }
     }
 }

@@ -17,6 +17,7 @@
         <ResourceDictionary Source="Views/Styles/ContentDialogButtonWithIconStylesDictionary.xaml" />
         <ResourceDictionary Source="Views/Styles/GridViewItemMicaStyle.xaml" />
         <ResourceDictionary Source="Views/Controls/TimeSelectBox.xaml" />
+        <ResourceDictionary Source="Views/Controls/ContentWithIcon.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <!-- Other app resources here -->
 
