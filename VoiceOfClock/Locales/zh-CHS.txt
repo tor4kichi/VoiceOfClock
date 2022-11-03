@@ -50,6 +50,14 @@ NotSelected = 未选中
 
 FirstDayOfWeek = 一周的第一天
 RepeatDayOfWeek = 重复
+Time_HoursAndMinutesAndSeconds = {2:#} 小时 {1:#} 分钟 {0:#} 秒
+Time_HoursAndMinutes = {1:#} 小时 {0:#} 分钟
+Time_MinutesAndSeconds = {1:#} 分钟 {0:#} 秒
+Time_HoursAndSeconds = {1:#} 小时 {0:#} 秒
+Time_Hours = {0:#} 小时
+Time_Minutes = {0:#} 分钟
+Time_Seconds = {0:#} 秒
+Time_Elapsed = {0} 已过
 
 
 
@@ -121,13 +129,7 @@ DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
 InstantPeriodicTimer_Start = 开始时间信号
 InstantPeriodicTimer_End = 结束时间信号
 Time_Hours_Minutes = {1:d2}:{0:d2}
-IntervalTime_PerHoursAndMinutesAndSeconds = 每 {2:#} 小时 {1:#} 分钟 {0:#} 秒
-IntervalTime_PerHoursAndMinutes = 每 {1:#} 小时 {0:#} 分钟
-IntervalTime_PerMinutesAndSeconds = 每 {1:#} 分钟 {0:#} 秒
-IntervalTime_PerHoursAndSeconds = 每 {1:#} 小时 {0:#} 秒
-IntervalTime_PerHours = 每 {0:#} 小时
-IntervalTime_PerMinutes = 每 {0:#} 分钟
-IntervalTime_PerSeconds = 每 {0:#} 秒
+IntervalTime_PerVariableTime = 每 {0}
 ScheduledPeriodicTimer = 预定时间信号
 PeriodicTimerInterval_Title = 时间间隔
 PeriodicTimerLabel_Title = 标签
@@ -144,3 +146,4 @@ OneShotTimerLabel_Title = 标签
 OneShotTimerLabel_Placeholder = 示例）洗衣收集
 OneShotTimerEditDialog_Title = 编辑计时器
 OneShotTimerAddDialog_Title = 添加计时器
+OneShotTimer_ToastNotificationTitle = 计时器

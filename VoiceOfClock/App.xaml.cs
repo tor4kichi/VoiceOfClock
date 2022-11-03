@@ -87,7 +87,8 @@ public partial class App : Application
         container.RegisterMapping<IApplicationLifeCycleAware, SystemSoundPlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
         container.RegisterMapping<IToastActivationAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-
+        container.RegisterMapping<IToastActivationAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        
         container.Register<SettingsPageViewModel>();
         container.Register<PeriodicTimerPageViewModel>();
         container.Register<OneShotTimerPageViewModel>();

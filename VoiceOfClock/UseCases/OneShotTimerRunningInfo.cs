@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using I18NPortable;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.UI.Dispatching;
 using System;
 using VoiceOfClock.Models.Domain;
@@ -139,11 +141,6 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
     [ObservableProperty]
     private bool _isRunning;
 
-
-
-    Action<OneShotTimerRunningInfo>? _onTimesUpAction;
-    Action<TimeSpan>? _onRemainingTimeUpdated;
-
     public void RewindTimer()
     {
         if (IsRunning)
@@ -183,7 +180,6 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
     public void StopTimer()
     {
         IsRunning = false;
-        _onTimesUpAction = null;
         _timer?.Stop();
     }
 
@@ -194,30 +190,11 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
             var old = RemainingTime;
             var realRemainingTime = Time - (DateTime.Now - _startTime);
             RemainingTime = realRemainingTime;
-            if (old != RemainingTime)
-            {
-                _onRemainingTimeUpdated?.Invoke(RemainingTime);
-            }
 
             if (realRemainingTime <= TimeSpan.Zero)
             {
-                IsRunning = false;
-                _onTimesUpAction?.Invoke(this);
-                if (_entity.SoundType == SoundSourceType.System)
-                {
-                    _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(_entity.SoundParameter)));
-                }
-                else if (_entity.SoundType == SoundSourceType.Tts)
-                {
-                    _messenger.Send(new TextPlayVoiceRequest(_entity.SoundParameter));
-                }
-                else if (_entity.SoundType == SoundSourceType.TtsWithSSML)
-                {
-                    _messenger.Send(new SsmlPlayVoiceRequest(_entity.SoundParameter));
-                }
-
+                IsRunning = false;                
                 OnTimesUp?.Invoke(this, this);
-
                 return false;
             }
             else

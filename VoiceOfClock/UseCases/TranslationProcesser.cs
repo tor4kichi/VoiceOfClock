@@ -72,6 +72,6 @@ namespace VoiceOfClock.UseCases
         public string Translate(string key, params object[] args)
         {
             return _localize.Translate(key, args);
-        }
+        }        
     }
 }

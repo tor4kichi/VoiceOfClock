@@ -101,7 +101,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
         var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerAddDialog_Title".Translate(), "", TimeSpan.FromMinutes(3), SoundSourceType.System,  WindowsNotificationSoundType.Default.ToString());
         if (result.IsConfirmed)
         {
-            _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time);
+            _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time, result.SoundSourceType, result.SoundParameter);
         }
     }
 }

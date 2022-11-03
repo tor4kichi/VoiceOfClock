@@ -84,40 +84,6 @@ public partial class PeriodicTimerViewModel : ObservableObject
 
     public string LocalizeIntervalTime(TimeSpan timeSpan)
     {
-        bool hasHour = timeSpan.Hours >= 1;
-        bool hasMinutes = timeSpan.Minutes >= 1;
-        bool hasSeconds = timeSpan.Seconds >= 1;
-        if (hasHour && hasMinutes && hasSeconds)
-        {
-            return "IntervalTime_PerHoursAndMinutesAndSeconds".Translate(timeSpan.Seconds, timeSpan.Minutes, timeSpan.Hours);
-        }
-        else if (hasHour && hasMinutes && !hasSeconds)
-        {
-            return "IntervalTime_PerHoursAndMinutes".Translate(timeSpan.Minutes, timeSpan.Hours);
-        }
-        else if (hasMinutes && hasSeconds && !hasHour)
-        {
-            return "IntervalTime_PerMinutesAndSeconds".Translate(timeSpan.Seconds, timeSpan.Minutes);
-        }
-        else if (hasHour && hasSeconds && !hasMinutes)
-        {
-            return "IntervalTime_PerHoursAndSeconds".Translate(timeSpan.Seconds, timeSpan.Hours);
-        }
-        else if (hasHour && !hasMinutes && !hasSeconds)
-        {
-            return "IntervalTime_PerHours".Translate(timeSpan.Hours);
-        }
-        else if (hasMinutes && !hasHour && !hasSeconds)
-        {
-            return "IntervalTime_PerMinutes".Translate(timeSpan.Minutes);
-        }
-        else if (hasSeconds && !hasHour && !hasMinutes)
-        {
-            return "IntervalTime_PerSeconds".Translate(timeSpan.Seconds);
-        }        
-        else
-        {            
-            return "IntervalTime_PerSeconds".Translate(timeSpan.Seconds);
-        }
+        return "IntervalTime_PerVariableTime".Translate(TimeTranslationHelper.TranslateTimeSpan(timeSpan));
     }
 }

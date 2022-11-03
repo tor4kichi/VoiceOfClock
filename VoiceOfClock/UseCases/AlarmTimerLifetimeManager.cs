@@ -18,9 +18,6 @@ namespace VoiceOfClock.UseCases;
 
 public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAware, IToastActivationAware
 {
-    private const int VoiceNotificationRepeatCount = 2;
-    private readonly TimeSpan VoiceNotificationRepeatInterval = TimeSpan.FromSeconds(0.75);
-
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly IMessenger _messenger;
     private readonly AlarmTimerRepository _alarmTimerRepository;
@@ -55,11 +52,11 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         {
             _dispatcherQueue.TryEnqueue(async () => 
             {
-                foreach (var i in Enumerable.Range(0, VoiceNotificationRepeatCount))
+                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
                 {
                     if (i != 0) 
                     {
-                        await Task.Delay(VoiceNotificationRepeatInterval); 
+                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval); 
                     }
 
                     await _messenger.Send(new TextPlayVoiceRequest(runningInfo.SoundContent));
@@ -70,11 +67,11 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         {
             _dispatcherQueue.TryEnqueue(async () =>
             {
-                foreach (var i in Enumerable.Range(0, VoiceNotificationRepeatCount))
+                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
                 {
                     if (i != 0)
                     {
-                        await Task.Delay(VoiceNotificationRepeatInterval);
+                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval);
                     }
 
                     await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.SoundContent));
@@ -108,7 +105,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())                
                 .AddAttributionText($"{runningInfo.Title}\n{runningInfo.TargetTime.ToShortTimeString()}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
                 .AddComboBox(
-                    TimersToastNotificationConstants.ArgumentKey_SnoozeTimeComboBox_Id
+                    TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id
                     , defaultSelectComboBoxId
                     , AlarmTimerConstants.SnoozeTimes.Select(x => (comboBoxItemKey: x.ToString(), comboBoxItemContent: "AlarmTimer_SnoozeWithMinutes".Translate(x.TotalMinutes))).ToArray()
                     )
@@ -153,7 +150,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         }
         else if (args.Contains(TimersToastNotificationConstants.ArgumentKey_SnoozeAgain))
         {
-            TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.ArgumentKey_SnoozeTimeComboBox_Id]);
+            TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id]);
             timer.AlarmChecked(snooze);
 
             return true;

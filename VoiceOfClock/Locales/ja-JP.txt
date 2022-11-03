@@ -50,6 +50,14 @@ NotSelected = 未選択
 
 FirstDayOfWeek = 最初の曜日
 RepeatDayOfWeek = 繰り返し
+Time_HoursAndMinutesAndSeconds = {2:#}時間 {1:#}分 {0:#}秒
+Time_HoursAndMinutes = {1:#}時間 {0:#}分
+Time_MinutesAndSeconds = {1:#}分 {0:#}秒
+Time_HoursAndSeconds = {1:#}時間 {0:#}秒
+Time_Hours = {0:#}時間
+Time_Minutes = {0:#}分
+Time_Seconds = {0:#}秒
+Time_Elapsed = {0} 経過しました
 
 
 
@@ -121,13 +129,7 @@ DateTime_Month_Day_Hour_Minite = {3}/{2} {1:d2}:{0:d2}
 InstantPeriodicTimer_Start = 時報を開始
 InstantPeriodicTimer_End = 時報を終了
 Time_Hours_Minutes = {1:d2}:{0:d2}
-IntervalTime_PerHoursAndMinutesAndSeconds = {2:#}時間 {1:#}分 {0:#}秒毎に
-IntervalTime_PerHoursAndMinutes = {1:#}時間 {0:#}分毎に
-IntervalTime_PerMinutesAndSeconds = {1:#}分 {0:#}秒毎に
-IntervalTime_PerHoursAndSeconds = {1:#}時間 {0:#}秒毎に
-IntervalTime_PerHours = {0:#}時間毎に
-IntervalTime_PerMinutes = {0:#}分毎に
-IntervalTime_PerSeconds = {0:#}秒毎に
+IntervalTime_PerVariableTime = {0} 毎に
 ScheduledPeriodicTimer = スケジュールされた時報
 PeriodicTimerInterval_Title = 時報の間隔
 PeriodicTimerLabel_Title = ラベル
@@ -144,3 +146,4 @@ OneShotTimerLabel_Title = ラベル
 OneShotTimerLabel_Placeholder = 例）洗濯物回収
 OneShotTimerEditDialog_Title = タイマーを編集
 OneShotTimerAddDialog_Title = タイマーを追加
+OneShotTimer_ToastNotificationTitle = タイマー
