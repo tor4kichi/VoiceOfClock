@@ -22,10 +22,10 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
 {
     private readonly IMessenger _messenger;
     private readonly PeriodicTimerRepository _periodicTimerRepository;
-    private readonly ObservableCollection<PeriodicTimerRunningInfo> _periodicTimers;
+    private readonly ObservableCollection<PeriodicTimerRunningInfo> _timers;
     private readonly DispatcherQueueTimer _timer;
 
-    public ReadOnlyObservableCollection<PeriodicTimerRunningInfo> PeriodicTimers { get; }
+    public ReadOnlyObservableCollection<PeriodicTimerRunningInfo> Timers { get; }
     public PeriodicTimerRunningInfo InstantPeriodicTimer { get; }
 
     public PeriodicTimerLifetimeManager(IMessenger messenger,
@@ -34,8 +34,8 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
     {
         _messenger = messenger;
         _periodicTimerRepository = periodicTimerRepository;
-        _periodicTimers = new ObservableCollection<PeriodicTimerRunningInfo>(_periodicTimerRepository.ReadAllItems().Select(x => new PeriodicTimerRunningInfo(x, _periodicTimerRepository)));
-        PeriodicTimers = new(_periodicTimers);
+        _timers = new ObservableCollection<PeriodicTimerRunningInfo>(_periodicTimerRepository.ReadAllItems().OrderBy(x => x.Order).Select(x => new PeriodicTimerRunningInfo(x, _periodicTimerRepository)));
+        Timers = new(_timers);
         _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _timer.Interval = TimeSpan.FromSeconds(0.2);
         _timer.IsRepeating = true;
@@ -126,7 +126,7 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
         }
 
         TimeSpan timeOfDay = DateTime.Now.TimeOfDay.TrimMilliSeconds();
-        foreach (var timer in _periodicTimers.Where(x => x.IsEnabled && TimeHelpers.IsInsideTime(timeOfDay, x.StartTime, x.EndTime)))
+        foreach (var timer in _timers.Where(x => x.IsEnabled && TimeHelpers.IsInsideTime(timeOfDay, x.StartTime, x.EndTime)))
         {
             yield return timer;
         }
@@ -142,10 +142,19 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
             IntervalTime = intervalTime,
             IsEnabled = isEnabled,
             EnabledDayOfWeeks = enabledDayOfWeeks,
+            Order = int.MaxValue,
         });
 
         var runningTimerInfo = new PeriodicTimerRunningInfo(entity, _periodicTimerRepository);
-        _periodicTimers.Add(runningTimerInfo);        
+        _timers.Add(runningTimerInfo);
+
+        // 並び順を確実に指定する
+        foreach (var (timer, index) in _timers.Select((x, i) => (x, i)))
+        {
+            timer._entity.Order = index;
+            _periodicTimerRepository.UpdateItem(timer._entity);
+        }
+
         return runningTimerInfo;
     }
 
@@ -153,7 +162,7 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
     {
         var entity = timer._entity;
         var deleted1 = _periodicTimerRepository.DeleteItem(entity.Id);
-        var deleted2 = _periodicTimers.Remove(timer);        
+        var deleted2 = _timers.Remove(timer);        
         return deleted2;
     }
 

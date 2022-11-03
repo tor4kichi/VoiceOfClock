@@ -31,4 +31,6 @@ public sealed class PeriodicTimerEntity
     public string Title { get; set; } = string.Empty;
 
     public DayOfWeek[] EnabledDayOfWeeks { get; set; } = Enum.GetValues<DayOfWeek>();
+    
+    public int Order { get; set; }
 }

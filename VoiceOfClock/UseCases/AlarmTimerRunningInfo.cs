@@ -11,18 +11,18 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 {
     public AlarmTimerRunningInfo(AlarmTimerEntity entity, AlarmTimerRepository repository, DispatcherQueue dispatcherQueue, Action<AlarmTimerRunningInfo> onAlarmTrigger)
     {
-        Entity = entity;
+        _entity = entity;
         _repository = repository;
         _dispatcherQueue = dispatcherQueue;
         _onAlarmTrigger = onAlarmTrigger;
         _timer = _dispatcherQueue.CreateTimer();        
-        _timeOfDay = Entity.TimeOfDay;
-        _enabledDayOfWeeks = Entity.EnabledDayOfWeeks;
-        _isEnabled = Entity.IsEnabled;
-        _title = Entity.Title;
-        _snooze = Entity.Snooze;
-        _soundSourceType = Entity.SoundSourceType;
-        _soundContent = Entity.SoundContent;
+        _timeOfDay = _entity.TimeOfDay;
+        _enabledDayOfWeeks = _entity.EnabledDayOfWeeks;
+        _isEnabled = _entity.IsEnabled;
+        _title = _entity.Title;
+        _snooze = _entity.Snooze;
+        _soundSourceType = _entity.SoundSourceType;
+        _soundContent = _entity.SoundContent;
 
         ResetTimer();
     }
@@ -33,14 +33,14 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
     private readonly Action<AlarmTimerRunningInfo> _onAlarmTrigger;
     private readonly DispatcherQueueTimer _timer;
 
-    public AlarmTimerEntity Entity { get; }
+    internal AlarmTimerEntity _entity;
 
     [ObservableProperty]
     private TimeOnly _timeOfDay;
 
     partial void OnTimeOfDayChanged(TimeOnly value)
     {
-        Entity.TimeOfDay = value;
+        _entity.TimeOfDay = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -52,7 +52,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnEnabledDayOfWeeksChanged(DayOfWeek[] value)
     {
-        Entity.EnabledDayOfWeeks = value;
+        _entity.EnabledDayOfWeeks = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -64,7 +64,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnIsEnabledChanged(bool value)
     {
-        Entity.IsEnabled = value;
+        _entity.IsEnabled = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -76,7 +76,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnTitleChanged(string value)
     {
-        Entity.Title = value;
+        _entity.Title = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -87,7 +87,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnSnoozeChanged(TimeSpan? value)
     {
-        Entity.Snooze = value;
+        _entity.Snooze = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -98,7 +98,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnSoundSourceTypeChanged(SoundSourceType value)
     {
-        Entity.SoundSourceType = value;
+        _entity.SoundSourceType = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -109,7 +109,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     partial void OnSoundContentChanged(string value)
     {
-        Entity.SoundContent = value;
+        _entity.SoundContent = value;
         if (NowDeferUpdateRequested) { return; }
 
         Save();
@@ -123,7 +123,7 @@ public sealed partial class AlarmTimerRunningInfo : DeferUpdatable, IRunningTime
 
     private void Save()
     {
-        _repository.UpdateItem(Entity);
+        _repository.UpdateItem(_entity);
     }
     
     private void ResetTimer()

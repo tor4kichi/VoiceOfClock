@@ -51,7 +51,7 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
     {
         _messenger.RegisterAll(this);
 
-        var timers = _oneShotTimerRepository.ReadAllItems();
+        var timers = _oneShotTimerRepository.ReadAllItems().OrderBy(x => x.Order);
         foreach (var timer in timers)
         {
             var info = new OneShotTimerRunningInfo(timer, _oneShotTimerRepository, _oneShotTimerRunningRepository, _messenger);
@@ -88,11 +88,20 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             Title = title, 
             Time = time,
             SoundType = soundSourceType,
-            SoundParameter = soundParameter
+            SoundParameter = soundParameter,
+            Order = int.MaxValue,
         });
         var runningInfo = new OneShotTimerRunningInfo(entity, _oneShotTimerRepository, _oneShotTimerRunningRepository, _messenger);
         _timers.Add(runningInfo);
         runningInfo.OnTimesUp += RunningInfo_OnTimesUp;
+
+        // 並び順を確実に指定する
+        foreach (var (timer, index) in _timers.Select((x, i) => (x, i)))
+        {
+            timer._entity.Order = index;
+            _oneShotTimerRepository.UpdateItem(timer._entity);
+        }
+
         return runningInfo;
     }
 

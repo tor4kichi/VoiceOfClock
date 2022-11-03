@@ -83,14 +83,14 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_Alarm },
             { TimersToastNotificationConstants.ArgumentKey_SnoozeStop },
-            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo.Entity.Id.ToString() }
+            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo._entity.Id.ToString() }
         };
 
         var againToastArgs = new ToastArguments()
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_Alarm },
             { TimersToastNotificationConstants.ArgumentKey_SnoozeAgain },
-            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo.Entity.Id.ToString() }
+            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo._entity.Id.ToString() }
         };
 
         if (TimeSpan.Zero < runningInfo.Snooze)
@@ -137,7 +137,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
 
         string id = args.Get(TimersToastNotificationConstants.ArgumentKey_TimerId);
         Guid guid = new Guid(id);
-        AlarmTimerRunningInfo? timer = Timers.FirstOrDefault(x => x.Entity.Id == guid);        
+        AlarmTimerRunningInfo? timer = Timers.FirstOrDefault(x => x._entity.Id == guid);        
         if (timer is null) 
         {
             return false; 
@@ -190,6 +190,14 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
 
         AlarmTimerRunningInfo newTimerRunningInfo = ToRunningInfo(newEntity);
         _timers.Add(newTimerRunningInfo);
+
+        // 並び順を確実に指定する
+        foreach (var (timer, index) in _timers.Select((x, i) => (x, i)))
+        {
+            timer._entity.Order = index;
+            _alarmTimerRepository.UpdateItem(timer._entity);
+        }
+
         return newTimerRunningInfo;
     }
 
@@ -197,6 +205,6 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     {
         _timers.Remove(runningInfo);
 
-        return _alarmTimerRepository.DeleteItem(runningInfo.Entity.Id);
+        return _alarmTimerRepository.DeleteItem(runningInfo._entity.Id);
     }
 }

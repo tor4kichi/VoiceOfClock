@@ -19,6 +19,7 @@ public sealed class OneShotTimerRunningRepository : LiteDBRepositoryBase<OneShot
 {
     public OneShotTimerRunningRepository(ILiteDatabase liteDatabase) : base(liteDatabase)
     {
+        
     }
 }
 
@@ -42,4 +43,6 @@ public sealed class OneShotTimerEntity
     public SoundSourceType SoundType { get; set; }
 
     public string SoundParameter { get; set; } = string.Empty;
+    
+    public int Order { get; set; }
 }

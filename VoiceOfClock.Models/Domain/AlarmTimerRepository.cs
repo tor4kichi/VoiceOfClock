@@ -33,4 +33,6 @@ public sealed class AlarmTimerEntity
     public SoundSourceType SoundSourceType { get; set; }
 
     public string SoundContent { get; set; } = string.Empty;
+
+    public int Order { get; set; }
 }

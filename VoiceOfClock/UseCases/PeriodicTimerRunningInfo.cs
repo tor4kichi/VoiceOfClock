@@ -13,6 +13,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     {
         _entity = entity;
         _repository = repository;
+        _order = entity.Order;
         _isEnabled = entity.IsEnabled;
         _startTime = entity.StartTime;
         _endTime = entity.EndTime;
@@ -36,6 +37,19 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     private readonly PeriodicTimerRepository _repository;
 
     [ObservableProperty]
+    private int _order;
+
+    partial void OnOrderChanged(int value)
+    {
+        _entity.Order = value;
+
+        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        {
+            Save();
+        }
+    }
+
+    [ObservableProperty]
     private DateTime _nextTime;
 
     [ObservableProperty]
@@ -56,7 +70,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.IsEnabled = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
         }
     }
 
@@ -68,7 +82,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.IntervalTime = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
             CalcNextTime();
         }
     }
@@ -81,7 +95,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.StartTime = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
             CalcNextTime();
         }
     }
@@ -94,7 +108,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.EndTime = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
             CalcNextTime();
         }
     }
@@ -107,7 +121,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.Title = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
         }
     }
 
@@ -119,7 +133,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.EnabledDayOfWeeks = value;
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
             CalcNextTime();
         }
     }
@@ -134,17 +148,14 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.EnabledDayOfWeeks = entity.EnabledDayOfWeeks.ToArray();
         if (!NowDeferUpdateRequested && !IsInstantTimer)
         {
-            _repository.UpdateItem(_entity);
+            Save();
         }
         CalcNextTime();
     }
 
     void Save()
     {
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
-        {
-            _repository.UpdateItem(_entity);
-        }
+        _repository.UpdateItem(_entity);
     }
 
     void CalcNextTime()

@@ -11,7 +11,7 @@ namespace VoiceOfClock.UseCases;
 [ObservableObject]
 public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposable, IRunningTimer
 {
-    private readonly OneShotTimerEntity _entity;
+    internal OneShotTimerEntity _entity;
     private readonly OneShotTimerRepository _repository;
     private readonly OneShotTimerRunningRepository _oneShotTimerRunningRepository;
     private readonly IMessenger _messenger;

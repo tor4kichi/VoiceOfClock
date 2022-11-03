@@ -65,7 +65,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     {
         base.OnActivated();
         
-        Timers = _timerLifetimeManager.PeriodicTimers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
+        Timers = _timerLifetimeManager.Timers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
         InstantPeriodicTimer = new PeriodicTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
     }
 
