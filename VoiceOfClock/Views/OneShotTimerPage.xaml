@@ -163,7 +163,7 @@
 
   <Grid>
 
-    <uiControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Timers}"
+    <uiControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Timers, Mode=OneWay}"
                                  ItemTemplate="{StaticResource PeriodicTimerTemplate}"                                 
                                  Margin="8"
                                  ItemClickCommand="{x:Bind _vm.EditTimerCommand}"                                 

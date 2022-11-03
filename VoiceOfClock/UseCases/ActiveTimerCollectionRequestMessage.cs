@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.UseCases
+namespace VoiceOfClock.UseCases;
+
+public sealed class ActiveTimerCollectionRequestMessage : CollectionRequestMessage<IRunningTimer>
 {
-    public sealed class ActiveTimerCollectionRequestMessage : CollectionRequestMessage<IRunningTimer>
-    {
-    }
 }

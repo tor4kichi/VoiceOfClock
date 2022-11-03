@@ -37,9 +37,15 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
 {
     private readonly IPeriodicTimerDialogService _dialogService;
     private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
-    public ReadOnlyReactiveCollection<PeriodicTimerViewModel> Timers { get; }
+
+
+    [ObservableProperty]
+    private ReadOnlyReactiveCollection<PeriodicTimerViewModel>? _timers;
+
+    [ObservableProperty]
+    private PeriodicTimerViewModel? _instantPeriodicTimer;
+
     public TimerSettings TimerSettings { get; }
-    public PeriodicTimerViewModel InstantPeriodicTimer { get; }
 
 
     public PeriodicTimerPageViewModel(
@@ -52,20 +58,29 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     {
         _dialogService = dialogService;
         _timerLifetimeManager = timerLifetimeManager;
-        TimerSettings = timerSettings;
-        
-        Timers = timerLifetimeManager.PeriodicTimers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
-        InstantPeriodicTimer = new PeriodicTimerViewModel(timerLifetimeManager.InstantPeriodicTimer, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
+        TimerSettings = timerSettings;               
     }
 
     protected override void OnActivated()
     {
         base.OnActivated();
-        InstantPeriodicTimer.RefrectValue();
-        foreach (var timer in Timers)
+        
+        Timers = _timerLifetimeManager.PeriodicTimers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
+        InstantPeriodicTimer = new PeriodicTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
+    }
+
+    protected override void OnDeactivated()
+    {
+        foreach (var timer in Timers ?? Enumerable.Empty<PeriodicTimerViewModel>())
         {
-            timer.RefrectValue();
-        }            
+            (timer as IDisposable)?.Dispose();
+        }
+        Timers = null;
+
+        (InstantPeriodicTimer as IDisposable)?.Dispose();
+        InstantPeriodicTimer = null;
+
+        base.OnDeactivated();
     }
 
     [RelayCommand]
@@ -128,6 +143,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     [RelayCommand]
     void DeleteToggle()
     {
+        if (Timers is null) { return; }
+
         NowEditting = !NowEditting;
         foreach (var timer in Timers)
         {
@@ -138,6 +155,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     [RelayCommand]
     void StartImmidiateTimer(TimeSpan intervalTime)
     {
+        if (InstantPeriodicTimer is null) { return; }
+
         _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);            
         InstantPeriodicTimer.IsEnabled = true;            
     }
@@ -145,6 +164,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     [RelayCommand]
     void StopImmidiateTimer()
     {
+        if (InstantPeriodicTimer is null) { return; }
+
         _timerLifetimeManager.StopInstantPeriodicTimer();
         InstantPeriodicTimer.IsEnabled = false;
     }
@@ -177,6 +198,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
 
     void IRecipient<PeriodicTimerUpdated>.Receive(PeriodicTimerUpdated message)
     {
+        if (Timers is null) { return; }
+
         Timers.FirstOrDefault(x => x.PeriodicTimerRunningInfo._entity.Id == message.Value.Id)?.RefrectValue();
     }
 }
