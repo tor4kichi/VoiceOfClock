@@ -140,6 +140,12 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     private void TextBox_SoundParameter_TextChanged(object sender, TextChangedEventArgs e)
     {
+        var item = (SoundSelectionItemViewModel)ComboBox_SoundSelectionItem.SelectedItem;
+        if (item.SoundSourceType is SoundSourceType.Tts or SoundSourceType.TtsWithSSML)
+        {
+            item.SoundContent = TextBox_Tts.Text;
+        }
+
         UpdateIsPrimaryButtonEnabled();
     }
 
