@@ -139,7 +139,11 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 
     void IRecipient<TextPlayVoiceRequest>.Receive(TextPlayVoiceRequest message)
     {
-        var request = message.Text;
+        if (string.IsNullOrWhiteSpace(message.Text))
+        {
+            message.Reply(PlayVoiceResult.Failed());
+        }
+
         string? voiceId = _timerSettings.SpeechActorId;
         var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
         if (currentVoicePlayer is null)
@@ -149,12 +153,16 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             voiceId = null;
         }
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(message.Text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
     }
 
     void IRecipient<SsmlPlayVoiceRequest>.Receive(SsmlPlayVoiceRequest message)
-    {
-        var request = message.Ssml;
+    {        
+        if (string.IsNullOrWhiteSpace(message.Ssml))
+        {
+            message.Reply(PlayVoiceResult.Failed());
+        }
+
         string? voiceId = _timerSettings.SpeechActorId;
         var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
         if (currentVoicePlayer is null)
@@ -169,7 +177,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 
         _translationProcesser.SetLocale(voiceLanguage);
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(request, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(message.Ssml, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
     }
 }
 

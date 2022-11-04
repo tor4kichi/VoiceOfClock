@@ -52,8 +52,8 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
         new[]
         {
+            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } },
             Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } }
         }
         .SelectMany(x => x)
         .ToArray();
@@ -182,7 +182,9 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
 
     private void UpdateIsPrimaryButtonEnabled()
     {
-        IsPrimaryButtonEnabled = IValidSoundSourceAndSoundContent();
+        var enabled = IValidSoundSourceAndSoundContent();
+        IsPrimaryButtonEnabled = enabled;
+        Button_TestPlaySound.IsEnabled = enabled;
     }
 
 
@@ -233,22 +235,29 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     [RelayCommand]
     async Task TestPlaySound()
     {
-        var selectedSoundItem = ComboBox_SoundSelectionItem.SelectedItem as SoundSelectionItemViewModel;
-        if (selectedSoundItem == null) { return; }
+        var (soundSourceType, soundContent) = GetSoundParameter();
 
         var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
-        if (selectedSoundItem.SoundSourceType == SoundSourceType.System)
+        if (soundSourceType == SoundSourceType.System)
         {
-            var notificationSoundType = Enum.Parse<WindowsNotificationSoundType>(selectedSoundItem.SoundContent);
-            _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+            if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
+            {
+                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+            }
         }
-        else if (selectedSoundItem.SoundSourceType == SoundSourceType.Tts)
+        else if (soundSourceType == SoundSourceType.Tts)
         {
-            await meseenger.Send(new TextPlayVoiceRequest(selectedSoundItem.SoundContent));
+            if (!string.IsNullOrWhiteSpace(soundContent))
+            {
+                await meseenger.Send(new TextPlayVoiceRequest(soundContent));
+            }
         }
-        else if (selectedSoundItem.SoundSourceType == SoundSourceType.TtsWithSSML)
+        else if (soundSourceType == SoundSourceType.TtsWithSSML)
         {
-            await meseenger.Send(new SsmlPlayVoiceRequest(selectedSoundItem.SoundContent));
+            if (!string.IsNullOrWhiteSpace(soundContent))
+            {
+                await meseenger.Send(new SsmlPlayVoiceRequest(soundContent));
+            }
         }
     }
 
@@ -268,7 +277,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         if (ComboBox_SoundSelectionItem.SelectedItem is SoundSelectionItemViewModel item
             && item.SoundSourceType is SoundSourceType.Tts or SoundSourceType.TtsWithSSML
             )
-        {
+        {            
             ContentWithIcon_Tts.Visibility = Visibility.Visible;
         }
         else

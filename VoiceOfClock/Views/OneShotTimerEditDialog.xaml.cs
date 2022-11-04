@@ -60,8 +60,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
         new[]
         {
-            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } }
+            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } },
+            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),            
         }
         .SelectMany(x => x)
         .ToArray();
@@ -109,7 +109,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         Title = dialogTitle;
         TimerTitle = timerTitle;
         Duration = time;
-        SetSoundSource(soundSourceType, soundParameter);
+        SetSoundSource(soundSourceType, soundParameter);        
 
         if (await base.ShowAsync() is ContentDialogResult.Primary)
         {
@@ -153,18 +153,22 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     private void UpdateIsPrimaryButtonEnabled()
     {
         var (type, parameter) = GetSoundParameter();
+        bool isValid = false;
         if (type == SoundSourceType.System)
         {
-            IsPrimaryButtonEnabled = IsValidTime(Duration);
+            isValid = IsValidTime(Duration);
         }
         else if (type == SoundSourceType.Tts)
         {
-            IsPrimaryButtonEnabled = IsValidInput(parameter) && IsValidTime(Duration);
+            isValid = IsValidInput(parameter) && IsValidTime(Duration);
         }
         else if (type == SoundSourceType.TtsWithSSML)
         {
-            IsPrimaryButtonEnabled = IsValidInput(parameter) && IsValidTime(Duration);
+            isValid = IsValidInput(parameter) && IsValidTime(Duration);
         }
+
+        IsPrimaryButtonEnabled = isValid;
+        Button_TestPlaySound.IsEnabled = isValid;
     }
 
     static bool IsValidInput(string text)
@@ -181,19 +185,27 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     async Task TestPlaySound()
     {
         var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
-        var (soundSourceType, parameter) = GetSoundParameter();
+        var (soundSourceType, soundContent) = GetSoundParameter();
         if (soundSourceType == SoundSourceType.System)
         {
-            var notificationSoundType = Enum.Parse<WindowsNotificationSoundType>(parameter);
-            _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+            if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
+            {
+                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+            }
         }
         else if (soundSourceType == SoundSourceType.Tts)
         {
-            await meseenger.Send(new TextPlayVoiceRequest(parameter));
+            if (!string.IsNullOrWhiteSpace(soundContent))
+            {
+                await meseenger.Send(new TextPlayVoiceRequest(soundContent));
+            }
         }
         else if (soundSourceType == SoundSourceType.TtsWithSSML)
         {
-            await meseenger.Send(new SsmlPlayVoiceRequest(parameter));
+            if (!string.IsNullOrWhiteSpace(soundContent))
+            {
+                await meseenger.Send(new SsmlPlayVoiceRequest(soundContent));
+            }            
         }
     }
 
