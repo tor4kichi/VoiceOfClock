@@ -43,7 +43,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     {
         _entity.Order = value;
 
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
         }
@@ -68,7 +68,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnIsEnabledChanged(bool value)
     {
         _entity.IsEnabled = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
         }
@@ -80,7 +80,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnIntervalTimeChanged(TimeSpan value)
     {
         _entity.IntervalTime = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
             CalcNextTime();
@@ -93,7 +93,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnStartTimeChanged(TimeSpan value)
     {
         _entity.StartTime = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
             CalcNextTime();
@@ -106,7 +106,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnEndTimeChanged(TimeSpan value)
     {
         _entity.EndTime = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
             CalcNextTime();
@@ -119,7 +119,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnTitleChanged(string value)
     {
         _entity.Title = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
         }
@@ -131,7 +131,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
     partial void OnEnabledDayOfWeeksChanged(DayOfWeek[] value)
     {
         _entity.EnabledDayOfWeeks = value;
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
             CalcNextTime();
@@ -146,7 +146,7 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
         _entity.IntervalTime = entity.IntervalTime;
         _entity.IsEnabled = entity.IsEnabled;
         _entity.EnabledDayOfWeeks = entity.EnabledDayOfWeeks.ToArray();
-        if (!NowDeferUpdateRequested && !IsInstantTimer)
+        if (!NowDeferUpdateRequested)
         {
             Save();
         }
@@ -155,6 +155,8 @@ public sealed partial class PeriodicTimerRunningInfo : DeferUpdatable, IRunningT
 
     void Save()
     {
+        if (IsInstantTimer) { return; }
+
         _repository.UpdateItem(_entity);
     }
 
