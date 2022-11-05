@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
 using Windows.Foundation.Collections;
@@ -116,25 +117,51 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
         }
     }
 
+    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
 
     private void RunningInfo_OnTimesUp(object? sender, OneShotTimerRunningInfo runningInfo)
     {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _playCancelMap.Add(runningInfo.EntityId, cts);
+        CancellationToken ct = cts.Token;
         if (runningInfo.SoundSourceType == SoundSourceType.System)
         {
-            _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.Parameter)));
+            _dispatcherQueue.TryEnqueue(async () =>
+            {
+                try
+                {
+                    await _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.Parameter), ct));
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo.EntityId);
+                    cts.Dispose();
+                }
+            });            
         }
         else if (runningInfo.SoundSourceType == SoundSourceType.Tts)
         {
             _dispatcherQueue.TryEnqueue(async () =>
             {
-                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                try
                 {
-                    if (i != 0)
-                    {
-                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval);
-                    }
 
-                    await _messenger.Send(new TextPlayVoiceRequest(runningInfo.Parameter));
+                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                    {
+                        if (i != 0)
+                        {
+                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
+                        }
+
+                        await _messenger.Send(new TextPlayVoiceRequest(runningInfo.Parameter, ct));
+                    }
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo.EntityId);
+                    cts.Dispose();
                 }
             });
         }
@@ -142,15 +169,24 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
         {
             _dispatcherQueue.TryEnqueue(async () =>
             {
-                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                try
                 {
-                    if (i != 0)
+                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
                     {
-                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval);
-                    }
+                        if (i != 0)
+                        {
+                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
+                        }
 
-                    await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.Parameter));
+                        await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.Parameter, ct));
+                    }
                 }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo.EntityId);
+                    cts.Dispose();
+                }                
             });
         }
 
@@ -183,7 +219,10 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
         if (args.TryGetValue(TimersToastNotificationConstants.ArgumentKey_TimerId, out string timerId))
         {
             Guid entityId = Guid.Parse(timerId);
-
+            if (_playCancelMap.Remove(entityId, out var cts))
+            {
+                cts.Cancel();
+            }
             return true;
         }
 

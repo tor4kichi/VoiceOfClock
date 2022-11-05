@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
@@ -47,6 +48,12 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         this.InitializeComponent();
 
         Loaded += AlarmTimerEditDialog_Loaded;
+        Closing += AlarmTimerEditDialog_Closing;
+    }
+
+    private void AlarmTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
+    {
+        TryCencelTestPlaySound();
     }
 
     private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
@@ -232,32 +239,53 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         return time > TimeSpan.Zero;
     }
 
-    [RelayCommand]
-    async Task TestPlaySound()
-    {
-        var (soundSourceType, soundContent) = GetSoundParameter();
+    CancellationTokenSource? _testPlaySoundCanceller;
 
-        var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
+    [RelayCommand]
+    void TestPlaySound()
+    {
+        if (_testPlaySoundCanceller is not null)
+        {
+            _testPlaySoundCanceller.Cancel();
+            _testPlaySoundCanceller.Dispose();
+        }
+
+        _testPlaySoundCanceller = new CancellationTokenSource();
+        CancellationTokenSource cts = _testPlaySoundCanceller;
+        CancellationToken ct = cts.Token;
+
+        (SoundSourceType soundSourceType, string soundContent) = GetSoundParameter();
+        IMessenger meseenger = Ioc.Default.GetRequiredService<IMessenger>();
         if (soundSourceType == SoundSourceType.System)
         {
             if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
             {
-                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType, ct));
             }
         }
         else if (soundSourceType == SoundSourceType.Tts)
         {
             if (!string.IsNullOrWhiteSpace(soundContent))
             {
-                await meseenger.Send(new TextPlayVoiceRequest(soundContent));
+                _ = meseenger.Send(new TextPlayVoiceRequest(soundContent, ct));
             }
         }
         else if (soundSourceType == SoundSourceType.TtsWithSSML)
         {
             if (!string.IsNullOrWhiteSpace(soundContent))
             {
-                await meseenger.Send(new SsmlPlayVoiceRequest(soundContent));
+                _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
             }
+        }
+    }
+
+    void TryCencelTestPlaySound()
+    {
+        if (_testPlaySoundCanceller is not null)
+        {
+            _testPlaySoundCanceller.Cancel();
+            _testPlaySoundCanceller.Dispose();
+            _testPlaySoundCanceller = null;
         }
     }
 

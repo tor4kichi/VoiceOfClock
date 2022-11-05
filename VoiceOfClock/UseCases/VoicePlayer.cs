@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Speech.Synthesis;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Markup;
@@ -122,18 +123,18 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             if (currentVoicePlayer is SystemVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, request.CancellationToken));
             }
             else if (currentVoicePlayer is WindowsVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(request.Time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+                message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, request.CancellationToken));
             }            
         }
         else
         {
             string speechData = _translationProcesser.Translate("TimeOfDayToSpeechText", _translationProcesser.TranslateTimeOfDay(request.Time, _timerSettings.IsTimeSpeechWith24h));
-            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+            message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, request.CancellationToken));
         }
     }
 
@@ -153,7 +154,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
             voiceId = null;
         }
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(message.Text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+        message.Reply(currentVoicePlayer.PlayVoiceWithTextAsync(message.Text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, message.CancellationToken));
     }
 
     void IRecipient<SsmlPlayVoiceRequest>.Receive(SsmlPlayVoiceRequest message)
@@ -177,7 +178,7 @@ public sealed class VoicePlayer : IApplicationLifeCycleAware,
 
         _translationProcesser.SetLocale(voiceLanguage);
 
-        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(message.Ssml, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume));
+        message.Reply(currentVoicePlayer.PlayVoiceWithSsmlAsync(message.Ssml, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, message.CancellationToken));
     }
 }
 
@@ -186,8 +187,8 @@ public interface IVoicePlayer
     IReadOnlyCollection<string> GetAllVoiceId();
     bool CanPlayVoice(string? voiceId);
     string SetVoice(string? voiceId);
-    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
-    Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1);
+    Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
+    Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
 }
 
 public class SystemVoicePlayer : IVoicePlayer
@@ -225,7 +226,7 @@ public class SystemVoicePlayer : IVoicePlayer
         return voice.VoiceInfo.Culture.Name;
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -237,6 +238,14 @@ public class SystemVoicePlayer : IVoicePlayer
             SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
             var p = _speechSynthesiser.SpeakAsync(content);
 
+            if (ct != default)
+            {
+                ct.Register(() =>
+                {
+                    _speechSynthesiser.SpeakAsyncCancel(p);
+                });
+            }
+
             await speakCompletedObservable;
 
             return PlayVoiceResult.Success();
@@ -245,7 +254,7 @@ public class SystemVoicePlayer : IVoicePlayer
 
 
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -253,11 +262,19 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted += h,
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
-
+            
             SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
 
             var p = _speechSynthesiser.SpeakSsmlAsync(content);
 
+            if (ct != default)
+            {
+                ct.Register(() => 
+                {
+                    _speechSynthesiser.SpeakAsyncCancel(p);
+                });
+            }
+            
             await speakCompletedObservable;
 
             return PlayVoiceResult.Success();
@@ -359,7 +376,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         return _currentVoiceInfo.Language;
     }
 
-    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithSsmlAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         var stream = await Task.Run(async () =>
         {
@@ -373,13 +390,13 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
 
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
-            await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType));
+            await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType), ct);
             return PlayVoiceResult.Success();
         });
     }
 
 
-    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1)
+    public async Task<PlayVoiceResult> PlayVoiceWithTextAsync(string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         var stream = await Task.Run(async () =>
         {
@@ -396,15 +413,16 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
 
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
-            await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType));
+            await PlayMediaSourceAsync(MediaSource.CreateFromStream(stream, stream.ContentType), ct);
             return PlayVoiceResult.Success();
         });
     }
 
 
-    Task PlayMediaSourceAsync(MediaSource source)
+    Task PlayMediaSourceAsync(MediaSource source, CancellationToken ct = default)
     {
         var cts = new TaskCompletionSource();
+        
         _waitingHandles.Add(source, cts);
         if (_mediaPlayer.Source != null)
         {
@@ -414,6 +432,13 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         {
             _mediaPlayer.Source = source;
         }
+
+        ct.Register(() =>
+        {
+            cts.TrySetCanceled();
+            _mediaPlayer.Pause();
+            _mediaPlayer.Source = null;
+        });
 
         return cts.Task;
     }
@@ -454,7 +479,7 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
             {
                 if (_waitingHandles.Remove(prev, out var cts))
                 {
-                    cts.SetResult();
+                    cts.TrySetResult();
                 }
             }
 
@@ -487,32 +512,38 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
 
 public sealed class TimeOfDayPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
 {
-    public TimeOfDayPlayVoiceRequest(DateTime data)
+    public TimeOfDayPlayVoiceRequest(DateTime data, CancellationToken ct = default)
     {
         Data = new TimeOfDayPlayVoiceRequestData(data);
+        CancellationToken = ct;
     }
 
     public TimeOfDayPlayVoiceRequestData Data { get; }
+    public CancellationToken CancellationToken { get; }
 }
 
 public sealed class TextPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
 {
-    public TextPlayVoiceRequest(string text)
+    public TextPlayVoiceRequest(string text, CancellationToken ct = default)
     {
         Text = text;
+        CancellationToken = ct;
     }
 
     public string Text { get; }
+    public CancellationToken CancellationToken { get; }
 }
 
 public sealed class SsmlPlayVoiceRequest : AsyncRequestMessage<PlayVoiceResult>
 {
-    public SsmlPlayVoiceRequest(string ssml)
+    public SsmlPlayVoiceRequest(string ssml, CancellationToken ct = default)
     {
         Ssml = ssml;
+        CancellationToken = ct;
     }
 
     public string Ssml { get; }
+    public CancellationToken CancellationToken { get; }
 }
 
 public sealed class PlayVoiceResult
@@ -533,8 +564,11 @@ public sealed class PlayVoiceResult
 public sealed class TimeOfDayPlayVoiceRequestData
 {
     public DateTime Time { get; set; }
-    public TimeOfDayPlayVoiceRequestData(DateTime time)
+    public CancellationToken CancellationToken { get; }
+
+    public TimeOfDayPlayVoiceRequestData(DateTime time, CancellationToken ct = default)
     {
         Time = time;
+        CancellationToken = ct;
     }
 }

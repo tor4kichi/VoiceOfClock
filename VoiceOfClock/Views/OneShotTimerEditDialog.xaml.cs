@@ -22,6 +22,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI;
 using DependencyPropertyGenerator;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using System.Threading;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -51,9 +52,13 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         this.InitializeComponent();
 
         Loaded += OneShotTimerEditDialog_Loaded;
+        Closing += OneShotTimerEditDialog_Closing;
     }
 
-
+    private void OneShotTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
+    {
+        TryCencelTestPlaySound();
+    }
 
     private SoundSelectionItemViewModel? _firstSelectedsoundSelectionItem;
 
@@ -109,7 +114,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         Title = dialogTitle;
         TimerTitle = timerTitle;
         Duration = time;
-        SetSoundSource(soundSourceType, soundParameter);        
+        SetSoundSource(soundSourceType, soundParameter);
 
         if (await base.ShowAsync() is ContentDialogResult.Primary)
         {
@@ -181,31 +186,54 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         return time > TimeSpan.Zero;
     }
 
+
+    CancellationTokenSource? _testPlaySoundCanceller;
+    
     [RelayCommand]
-    async Task TestPlaySound()
+    void TestPlaySound()
     {
+        if (_testPlaySoundCanceller is not null)
+        {
+            _testPlaySoundCanceller.Cancel();
+            _testPlaySoundCanceller.Dispose();
+        }
+
+        _testPlaySoundCanceller = new CancellationTokenSource();
+        CancellationTokenSource cts = _testPlaySoundCanceller;
+        CancellationToken ct = cts.Token;
+        
         var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
         var (soundSourceType, soundContent) = GetSoundParameter();
         if (soundSourceType == SoundSourceType.System)
         {
             if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
             {
-                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType));
+                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType, ct));
             }
         }
         else if (soundSourceType == SoundSourceType.Tts)
         {
             if (!string.IsNullOrWhiteSpace(soundContent))
             {
-                await meseenger.Send(new TextPlayVoiceRequest(soundContent));
+                _ = meseenger.Send(new TextPlayVoiceRequest(soundContent, ct));
             }
         }
         else if (soundSourceType == SoundSourceType.TtsWithSSML)
         {
             if (!string.IsNullOrWhiteSpace(soundContent))
             {
-                await meseenger.Send(new SsmlPlayVoiceRequest(soundContent));
-            }            
+                _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
+            }
+        }
+    }
+
+    void TryCencelTestPlaySound()
+    {
+        if (_testPlaySoundCanceller is not null)
+        {
+            _testPlaySoundCanceller.Cancel();
+            _testPlaySoundCanceller.Dispose();
+            _testPlaySoundCanceller = null;
         }
     }
 

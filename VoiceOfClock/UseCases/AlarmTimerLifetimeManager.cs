@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
 using Windows.Foundation.Collections;
@@ -42,24 +43,51 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         return new AlarmTimerRunningInfo(entity, _alarmTimerRepository, _dispatcherQueue, OnAlarmTrigger);
     }
 
+    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
+
     void OnAlarmTrigger(AlarmTimerRunningInfo runningInfo)
     {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _playCancelMap.Add(runningInfo._entity.Id, cts);
+        CancellationToken ct = cts.Token;
         if (runningInfo.SoundSourceType == SoundSourceType.System)
         {
-            _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.SoundContent)));
+            _dispatcherQueue.TryEnqueue(async () =>
+            {
+                try
+                {
+                    await _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.SoundContent), ct));
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo._entity.Id);
+                    cts.Dispose();
+                }
+            });
         }
         else if (runningInfo.SoundSourceType == SoundSourceType.Tts)
         {
             _dispatcherQueue.TryEnqueue(async () => 
             {
-                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                try
                 {
-                    if (i != 0) 
-                    {
-                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval); 
-                    }
 
-                    await _messenger.Send(new TextPlayVoiceRequest(runningInfo.SoundContent));
+                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                    {
+                        if (i != 0)
+                        {
+                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
+                        }
+
+                        await _messenger.Send(new TextPlayVoiceRequest(runningInfo.SoundContent, ct));
+                    }
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo._entity.Id);
+                    cts.Dispose();
                 }
             });            
         }
@@ -67,14 +95,23 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         {
             _dispatcherQueue.TryEnqueue(async () =>
             {
-                foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
+                try
                 {
-                    if (i != 0)
+                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
                     {
-                        await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval);
-                    }
+                        if (i != 0)
+                        {
+                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
+                        }
 
-                    await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.SoundContent));
+                        await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.SoundContent, ct));
+                    }
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo._entity.Id);
+                    cts.Dispose();
                 }
             });
         }
@@ -111,6 +148,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
                     )
                 .AddButton("AlarmTimer_Snooze".Translate(), ToastActivationType.Background, againToastArgs.ToString())
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
+                .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
                 ;
             tcb.Show();
         }
@@ -125,6 +163,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
                 .AddAttributionText($"{runningInfo.Title}\n{runningInfo.TargetTime.ToShortTimeString()}")
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
+                .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
                 ;
             tcb.Show();
         }
@@ -135,9 +174,9 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     {
         if (!IToastActivationAware.IsContainAction(args, TimersToastNotificationConstants.ArgumentValue_Alarm)) { return false; }
 
-        string id = args.Get(TimersToastNotificationConstants.ArgumentKey_TimerId);
-        Guid guid = new Guid(id);
-        AlarmTimerRunningInfo? timer = Timers.FirstOrDefault(x => x._entity.Id == guid);        
+        string timerId = args.Get(TimersToastNotificationConstants.ArgumentKey_TimerId);
+        Guid entityId = Guid.Parse(timerId);
+        AlarmTimerRunningInfo? timer = Timers.FirstOrDefault(x => x._entity.Id == entityId);        
         if (timer is null) 
         {
             return false; 
@@ -145,14 +184,20 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         else if (args.Contains(TimersToastNotificationConstants.ArgumentKey_SnoozeStop))
         {
             timer.AlarmChecked();
-
+            if (_playCancelMap.Remove(timer._entity.Id, out var cts))
+            {
+                cts.Cancel();
+            }
             return true;
         }
         else if (args.Contains(TimersToastNotificationConstants.ArgumentKey_SnoozeAgain))
         {
             TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id]);
             timer.AlarmChecked(snooze);
-
+            if (_playCancelMap.Remove(timer._entity.Id, out var cts))
+            {
+                cts.Cancel();
+            }
             return true;
         }
         else

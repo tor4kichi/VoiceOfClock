@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Media;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Core;
 using Windows.Media.Playback;
@@ -220,9 +221,19 @@ public sealed class SystemSoundPlayer : ObservableRecipient
         {
             var tcs = new TaskCompletionSource();
 
+            if (message.CancellationToken != default)
+            {
+                message.CancellationToken.Register(() => 
+                {
+                    tcs!.TrySetCanceled();
+                    _mediaPlayler.Pause();
+                    _mediaPlayler.Source = null;
+                });
+            }
+
             void _mediaPlayler_MediaEnded(MediaPlayer sender, object args)
             {
-                tcs.SetResult();
+                tcs.TrySetResult();
             }
 
             void _mediaPlayler_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
@@ -278,22 +289,26 @@ public sealed class SystemSoundPlayer : ObservableRecipient
 
 public sealed class PlaySystemSoundRequest : AsyncRequestMessage<PlaySystemSoundResult>
 {
-    public PlaySystemSoundRequest(WindowsNotificationSoundType soundType)
+    public PlaySystemSoundRequest(WindowsNotificationSoundType soundType, CancellationToken ct = default)
     {
         AudioSourceUri = new Uri(soundType.ToMsWinSoundEventUri(), UriKind.RelativeOrAbsolute);
+        CancellationToken = ct;
     }
 
-    public PlaySystemSoundRequest(string audioSourceUri)
+    public PlaySystemSoundRequest(string audioSourceUri, CancellationToken ct = default)
     {
         AudioSourceUri = new Uri(audioSourceUri, UriKind.RelativeOrAbsolute);
+        CancellationToken = ct;
     }
 
-    public PlaySystemSoundRequest(Uri audioSourceUri)
+    public PlaySystemSoundRequest(Uri audioSourceUri, CancellationToken ct = default)
     {
         AudioSourceUri = audioSourceUri;
+        CancellationToken = ct;
     }
 
     public Uri AudioSourceUri { get; }
+    public CancellationToken CancellationToken { get; }
 }
 
 public sealed class PlaySystemSoundResult
