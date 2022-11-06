@@ -69,6 +69,7 @@ SendFeedback = フィードバックを送信
 ProjectSite = プロジェクトサイト
 Privacy-Policy = プライバシーポリシー
 SendReview = レビューを送る
+Third-Party-Library-Notice = サードパーティライブラリに関する通知
 Speech = 読み上げ
 SpeechRate = 話速
 SpeechPitch = ピッチ

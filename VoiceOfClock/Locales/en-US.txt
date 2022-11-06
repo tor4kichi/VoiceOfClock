@@ -69,6 +69,7 @@ SendFeedback = Send feedback
 ProjectSite = Project site
 Privacy-Policy = Privacy policy
 SendReview = Send review
+Third-Party-Library-Notice = Third-Party Libraries Notice
 Speech = Read aloud
 SpeechRate = Speed of speech
 SpeechPitch = Pitch

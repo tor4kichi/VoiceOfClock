@@ -69,6 +69,7 @@ SendFeedback = 发送反馈
 ProjectSite = 项目现场
 Privacy-Policy = 隐私政策
 SendReview = 发送评论
+Third-Party-Library-Notice = 关于第三方库的通知
 Speech = 大声朗读
 SpeechRate = 语速
 SpeechPitch = 沥青
