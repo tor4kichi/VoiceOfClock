@@ -46,7 +46,7 @@ NotSelected = Unselected
 
 
 
-#### Calender
+#### Date and Time
 
 FirstDayOfWeek = First day of the week
 RepeatDayOfWeek = Repetition
@@ -67,6 +67,8 @@ Settings = Settings
 AboutThiApplication = About this app
 SendFeedback = Send feedback
 ProjectSite = Project site
+Privacy-Policy = Privacy policy
+SendReview = Send review
 Speech = Read aloud
 SpeechRate = Speed of speech
 SpeechPitch = Pitch

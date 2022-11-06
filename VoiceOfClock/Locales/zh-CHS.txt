@@ -46,7 +46,7 @@ NotSelected = 未选中
 
 
 
-#### Calender
+#### Date and Time
 
 FirstDayOfWeek = 一周的第一天
 RepeatDayOfWeek = 重复
@@ -67,6 +67,8 @@ Settings = 环境
 AboutThiApplication = 关于这个应用程序
 SendFeedback = 发送反馈
 ProjectSite = 项目现场
+Privacy-Policy = 隐私政策
+SendReview = 发送评论
 Speech = 大声朗读
 SpeechRate = 语速
 SpeechPitch = 沥青

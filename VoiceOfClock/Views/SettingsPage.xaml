@@ -240,13 +240,16 @@
               </TextBlock>
             </StackPanel>
 
-            <HyperlinkButton Content="{i18n:Localize Key=ProjectSite}" Margin="0" Padding="0" NavigateUri="https://github.com/tor4kichi/VoiceOfClock" IsEnabled="False" />
+            <HyperlinkButton Content="{i18n:Localize Key=Privacy-Policy}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/voiceofclock/privacy-policy" />
 
-            <Button Content="{i18n:Localize Key=SendFeedback}" IsEnabled="False" />
+            <HyperlinkButton Content="{i18n:Localize Key=SendReview}" Margin="0" Padding="0" NavigateUri="ms-windows-store://review/?ProductId=9P44GTTGB3Q6" />
+
+            
+            <Button Content="{i18n:Localize Key=SendFeedback}" IsEnabled="False" Visibility="Collapsed">
+              
+            </Button>
           </StackPanel>
-
-
-
+          
         </Grid>
       </ScrollViewer>
     </tkControls:DockPanel>

@@ -46,7 +46,7 @@ NotSelected = 未選択
 
 
 
-#### Calender
+#### Date and Time
 
 FirstDayOfWeek = 最初の曜日
 RepeatDayOfWeek = 繰り返し
@@ -57,7 +57,7 @@ Time_HoursAndSeconds = {1:#}時間 {0:#}秒
 Time_Hours = {0:#}時間
 Time_Minutes = {0:#}分
 Time_Seconds = {0:#}秒
-Time_Elapsed = {0} 経過しました
+Time_Elapsed = {0} 経過
 
 
 
@@ -67,6 +67,8 @@ Settings = 設定
 AboutThiApplication = このアプリについて
 SendFeedback = フィードバックを送信
 ProjectSite = プロジェクトサイト
+Privacy-Policy = プライバシーポリシー
+SendReview = レビューを送る
 Speech = 読み上げ
 SpeechRate = 話速
 SpeechPitch = ピッチ
