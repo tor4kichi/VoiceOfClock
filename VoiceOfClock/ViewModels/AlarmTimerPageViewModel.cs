@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
@@ -35,16 +36,19 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
     private readonly AlarmTimerLifetimeManager _alertTimerLifetimeManager;
     private readonly IAlarmTimerDialogService _alarmTimerDialogService;
     private readonly TimerSettings _timerSettings;
+    private readonly StoreLisenceService _storeLisenceService;
 
     public AlarmTimerPageViewModel(
         AlarmTimerLifetimeManager alertTimerLifetimeManager
         , IAlarmTimerDialogService alarmTimerDialogService
         , TimerSettings timerSettings
+        , StoreLisenceService storeLisenceService
         )
     {
         _alertTimerLifetimeManager = alertTimerLifetimeManager;
         _alarmTimerDialogService = alarmTimerDialogService;
         _timerSettings = timerSettings;
+        _storeLisenceService = storeLisenceService;
     }
 
     protected override void OnActivated()
@@ -71,6 +75,19 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
     [RelayCommand]
     async Task AddTimer()
     {
+        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
+        {
+            await _storeLisenceService.EnsureInitializeAsync();
+            if (_storeLisenceService.IsTrial.Value && _alertTimerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            {
+                var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
+                if (!isSuccess)
+                {
+                    return;
+                }
+            }
+        }
+
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerAddDialog_Title".Translate()
             , ""
@@ -90,7 +107,7 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
                 , result.Snooze
                 , result.SoundSourceType
                 , result.SoundContent
-                );           
+                );
         }
     }
 

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using Windows.Foundation.Collections;
 
 namespace VoiceOfClock.UseCases;
@@ -22,6 +23,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly IMessenger _messenger;
     private readonly AlarmTimerRepository _alarmTimerRepository;
+    private readonly StoreLisenceService _storeLisenceService;
 
     private readonly ObservableCollection<AlarmTimerRunningInfo> _timers;
     public ReadOnlyObservableCollection<AlarmTimerRunningInfo> Timers { get; }
@@ -29,11 +31,13 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     public AlarmTimerLifetimeManager(
         IMessenger messenger
         , AlarmTimerRepository alarmTimerRepository
+        , StoreLisenceService storeLisenceService
         )
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _messenger = messenger;
         _alarmTimerRepository = alarmTimerRepository;
+        _storeLisenceService = storeLisenceService;
         _timers = new ObservableCollection<AlarmTimerRunningInfo>(_alarmTimerRepository.ReadAllItems().Select(ToRunningInfo));
         Timers = new(_timers);
     }
@@ -219,7 +223,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     void IApplicationLifeCycleAware.Suspending()
     {
         
-    }
+    }    
 
     public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent)
     {

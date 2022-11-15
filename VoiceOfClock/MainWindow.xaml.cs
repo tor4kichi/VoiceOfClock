@@ -4,6 +4,7 @@ using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Helpers;
 using CommunityToolkit.WinUI.UI.Helpers;
 using DryIoc;
+using I18NPortable;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -18,8 +19,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -35,6 +38,8 @@ namespace VoiceOfClock;
 /// </summary>
 public sealed partial class MainWindow : SystemBackdropWindow
 {
+    public StoreLisenceService StoreLisenceService { get; }
+
     private readonly AppWindow _appWindow;
 
     public MainWindow()
@@ -52,6 +57,24 @@ public sealed partial class MainWindow : SystemBackdropWindow
         {
             
         }
+
+        StoreLisenceService = Ioc.Default.GetRequiredService<StoreLisenceService>();
+        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
+        {
+            StoreLisenceService.IsTrial.Throttle(TimeSpan.FromSeconds(1)).Subscribe(x =>
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    NVI_PurchaceLisence.Visibility = x ? Visibility.Visible : Visibility.Collapsed;
+                });
+            });
+        }
+        else
+        {
+            NVI_PurchaceLisence.Visibility = Visibility.Collapsed;
+        }
+
+        _ = StoreLisenceService.EnsureInitializeAsync();
 
         _appWindow = GetCurrentAppWindow();
         _appWindow.Closing += AppWindow_Closing;
@@ -157,5 +180,17 @@ public sealed partial class MainWindow : SystemBackdropWindow
     private void Button_ToggleNavigationMenu_Click(object sender, RoutedEventArgs e)
     {
         MyNavigationView.IsPaneOpen = !MyNavigationView.IsPaneOpen;
+    }
+
+    private async void NVI_PurchaceLisence_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        try
+        {            
+            var (isSuccessed, error) = await StoreLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
+        }
+        catch
+        {
+
+        }
     }
 }

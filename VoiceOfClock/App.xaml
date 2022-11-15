@@ -86,7 +86,8 @@
       <Style TargetType="views:PeriodicTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:OneShotTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:AlarmTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
-           
+      <Style TargetType="views:PurchaseConfirmDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+
     </ResourceDictionary>
   </Application.Resources>
 </Application>

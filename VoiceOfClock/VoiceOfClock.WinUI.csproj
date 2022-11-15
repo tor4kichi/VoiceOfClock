@@ -31,6 +31,7 @@
     <None Remove="Views\Controls\ContentWithIcon.xaml" />
     <None Remove="Views\Controls\TimeSelectBox.xaml" />
     <None Remove="Views\OneShotTimerEditDialog.xaml" />
+    <None Remove="Views\PurchaseConfirmDialog.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\Styles\SettingsItemStyle.xaml" />
     <None Remove="Views\Styles\WindowChromeStyle.xaml" />
@@ -41,7 +42,6 @@
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
@@ -85,6 +85,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Models\VoiceOfClock.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\PurchaseConfirmDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Controls\ContentWithIcon.xaml">

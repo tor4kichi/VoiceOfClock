@@ -61,6 +61,18 @@ Time_Elapsed = {0} elapsed
 
 
 
+#### Purchase Lisence
+
+PurchaceLisence = Buy full version
+PurchaseDialog_PrimaryButtonText = Buy
+PurchaseDialog_SecondaryButtonText = Don't buy
+PurchaseDialog_TitleOnInteractFromUser = The following features are unlocked in the VoiceOfClock product version
+PurchaseDialog_TitleOnRecommended = Would you like to purchase VoiceOfClock product version? The following functions will be unlocked
+PurchaseDialog_LisenceFeature_1 = The maximum number of timers that can be created "{0}" is set to "Unlimited"
+PurchaseDialog_LisenceFeature_2 = Remove pop-up prompts to purchase
+
+
+
 #### Settings
 
 Settings = Settings

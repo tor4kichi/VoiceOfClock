@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
@@ -31,17 +32,20 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
 {
     private readonly OneShotTimerLifetimeManager _oneShotTimerLifetimeManager;
     private readonly IOneShotTimerDialogService _oneShotTimerDialogService;
+    private readonly StoreLisenceService _storeLisenceService;
 
     [ObservableProperty]
     private ReadOnlyReactiveCollection<OneShotTimerViewModel>? _timers;
 
     public OneShotTimerPageViewModel(
-        OneShotTimerLifetimeManager oneShotTimerLifetimeManager,
-        IOneShotTimerDialogService oneShotTimerDialogService
+        OneShotTimerLifetimeManager oneShotTimerLifetimeManager
+        , IOneShotTimerDialogService oneShotTimerDialogService
+        , StoreLisenceService storeLisenceService
         )
     {
         _oneShotTimerLifetimeManager = oneShotTimerLifetimeManager;
         _oneShotTimerDialogService = oneShotTimerDialogService;
+        _storeLisenceService = storeLisenceService;
     }
 
     protected override void OnActivated()
@@ -98,6 +102,19 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     [RelayCommand]
     async Task AddTimer()
     {
+        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
+        {
+            await _storeLisenceService.EnsureInitializeAsync();
+            if (_storeLisenceService.IsTrial.Value && _oneShotTimerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            {
+                var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
+                if (!isSuccess)
+                {
+                    return;
+                }
+            }
+        }
+
         var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerAddDialog_Title".Translate(), "", TimeSpan.FromMinutes(3), SoundSourceType.System,  WindowsNotificationSoundType.Default.ToString());
         if (result.IsConfirmed)
         {

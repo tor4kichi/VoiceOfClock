@@ -61,6 +61,18 @@ Time_Elapsed = {0} 経過
 
 
 
+#### Purchase Lisence
+
+PurchaceLisence = 製品版を購入
+PurchaseDialog_PrimaryButtonText = 購入する
+PurchaseDialog_SecondaryButtonText = 購入しない
+PurchaseDialog_TitleOnInteractFromUser = VoiceOfClock製品版では以下の機能が解禁されます
+PurchaseDialog_TitleOnRecommended = VoiceOfClock製品版を購入しませんか？ 以下の機能が解禁されます
+PurchaseDialog_LisenceFeature_1 = 各タイマーの上限数「{0}個」が「無制限」になります
+PurchaseDialog_LisenceFeature_2 = 製品版購入を促すポップアップが表示されなくなります
+
+
+
 #### Settings
 
 Settings = 設定

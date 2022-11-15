@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
@@ -37,7 +38,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
 {
     private readonly IPeriodicTimerDialogService _dialogService;
     private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
-
+    private readonly StoreLisenceService _storeLisenceService;
 
     [ObservableProperty]
     private ReadOnlyReactiveCollection<PeriodicTimerViewModel>? _timers;
@@ -49,16 +50,18 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
 
 
     public PeriodicTimerPageViewModel(
-        IMessenger messenger,
-        IPeriodicTimerDialogService dialogService,
-        PeriodicTimerLifetimeManager timerLifetimeManager,
-        TimerSettings timerSettings
+        IMessenger messenger
+        , IPeriodicTimerDialogService dialogService
+        , PeriodicTimerLifetimeManager timerLifetimeManager
+        , TimerSettings timerSettings
+        , StoreLisenceService storeLisenceService
         )
         : base(messenger)
     {
         _dialogService = dialogService;
         _timerLifetimeManager = timerLifetimeManager;
-        TimerSettings = timerSettings;               
+        TimerSettings = timerSettings;
+        _storeLisenceService = storeLisenceService;
     }
 
     protected override void OnActivated()
@@ -86,6 +89,19 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     [RelayCommand]
     async Task AddTimer()
     {
+        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
+        {
+            await _storeLisenceService.EnsureInitializeAsync();
+            if (_storeLisenceService.IsTrial.Value && _timerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            {
+                var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
+                if (!isSuccess)
+                {
+                    return;
+                }
+            }
+        }
+
         var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerAddDialog_Title".Translate(), "", TimeSpan.Zero, TimeSpan.FromHours(1), TimeSpan.FromMinutes(5), Enum.GetValues<DayOfWeek>(), TimerSettings.FirstDayOfWeek);
         if (result?.IsConfirmed is true)
         {

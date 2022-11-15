@@ -61,6 +61,18 @@ Time_Elapsed = {0} 已过
 
 
 
+#### Purchase Lisence
+
+PurchaceLisence = 购买完整版
+PurchaseDialog_PrimaryButtonText = 买
+PurchaseDialog_SecondaryButtonText = 不要买
+PurchaseDialog_TitleOnInteractFromUser = VoiceOfClock 产品版本中解锁了以下功能
+PurchaseDialog_TitleOnRecommended = 您想购买 VoiceOfClock 产品版本吗？以下功能将被解锁
+PurchaseDialog_LisenceFeature_1 = 可以创建的最大计时器数“{0}”设置为“无限制”
+PurchaseDialog_LisenceFeature_2 = 去除弹窗提示购买
+
+
+
 #### Settings
 
 Settings = 环境

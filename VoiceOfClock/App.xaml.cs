@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI.Helpers;
 using CommunityToolkit.WinUI.UI.Helpers;
 using DryIoc;
 using I18NPortable;
@@ -18,9 +19,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Views;
@@ -28,7 +32,9 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Services.Store;
 using Windows.Storage;
+using Windows.UI;
 using Windows.UI.Core;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -79,6 +85,7 @@ public partial class App : Application
         container.Register<AlarmTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<SystemSoundPlayer>(reuse: new SingletonReuse());
         container.Register<VoicePlayer>(reuse: new SingletonReuse());
+        container.Register<StoreLisenceService>(reuse: new SingletonReuse());
 
         container.RegisterMapping<IApplicationLifeCycleAware, PeriodicTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
@@ -101,6 +108,7 @@ public partial class App : Application
         container.Register<IPeriodicTimerDialogService, PeriodicTimerEditDialogService>();
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
         container.Register<IAlarmTimerDialogService, AlarmTimerEditDialogService>();
+        container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();        
     }    
 
     /// <summary>
@@ -134,7 +142,7 @@ public partial class App : Application
         foreach (var item in _lifeCycleAwareInstances)
         {
             item.Initialize();
-        }
+        }        
     }
 
 
@@ -146,18 +154,19 @@ public partial class App : Application
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         // Register for toast activation. Requires Microsoft.Toolkit.Uwp.Notifications NuGet package version 7.0 or greater
+        ToastNotificationManagerCompat.OnActivated -= ToastNotificationManagerCompat_OnActivated;
         ToastNotificationManagerCompat.OnActivated += ToastNotificationManagerCompat_OnActivated;
 
         // If we weren't launched by a toast, launch our window like normal.
         // Otherwise if launched by a toast, our OnActivated callback will be triggered
         if (!ToastNotificationManagerCompat.WasCurrentProcessToastActivated())
         {
-            LaunchAndBringToForegroundIfNeeded();
-        }
+            LaunchAndBringToForegroundIfNeeded(args);
+        }        
     }
 
 
-    private void LaunchAndBringToForegroundIfNeeded()
+    private async void LaunchAndBringToForegroundIfNeeded(Microsoft.UI.Xaml.LaunchActivatedEventArgs? args = null)
     {
         if (_window is null)
         {            
@@ -168,6 +177,33 @@ public partial class App : Application
             // Additionally we show using our helper, since if activated via a toast, it doesn't
             // activate the window correctly
             WindowHelper.ShowWindow(_window);
+
+
+            // 
+            if (args != null)
+            {
+                SystemInformation.Instance.TrackAppUse(args.UWPLaunchActivatedEventArgs, _window.Content.XamlRoot);
+
+                if (PurchaseItemsConstants.IsTrialLimitationEnabled
+                    && SystemInformation.Instance.IsFirstRun is false 
+                    && SystemInformation.Instance.IsAppUpdated                    
+                    )
+                {
+                    var storeLisenceService = Ioc.Default.GetRequiredService<StoreLisenceService>();
+                    await storeLisenceService.EnsureInitializeAsync();
+                    if (storeLisenceService.IsTrial.Value && !storeLisenceService.IsTrialOwnedByThisUser.Value)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(2))
+                        .ContinueWith(_ =>
+                        {
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                _ = storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnRecommended".Translate());
+                            });
+                        });
+                    }                                    
+                }
+            }
         }
         else
         {
@@ -183,6 +219,7 @@ public partial class App : Application
     }
 
     private MainWindow? _window;
+    private StoreContext _context;
 
     private UIElement WindowContent => _window is not null ? _window.Content : throw new NullReferenceException();
 
@@ -194,7 +231,7 @@ public partial class App : Application
 
     public void InitializeWithWindow(object target)
     {
-        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
         WinRT.Interop.InitializeWithWindow.Initialize(target, hWnd);        
     }    
 

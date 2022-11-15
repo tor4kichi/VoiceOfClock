@@ -71,6 +71,7 @@
       </NavigationView.MenuItems>
 
       <NavigationView.FooterMenuItems>
+        <NavigationViewItem x:Name="NVI_PurchaceLisence" Icon="Favorite" Content="{i18n:Localize Key=PurchaceLisence}" Tapped="NVI_PurchaceLisence_Tapped" Visibility="Visible" />
         <NavigationViewItem x:Name="NVI_Settings" Icon="Setting" Content="{i18n:Localize Key=Settings}" Tapped="NVI_Settings_Tapped" />
       </NavigationView.FooterMenuItems>
 
