@@ -47,7 +47,7 @@ public static class TimeHelpers
             int index = i;
             if (index >= 7)
             {
-                index = 7 - index;
+                index = index - 7;
             }
 
             yield return (DayOfWeek)index;
