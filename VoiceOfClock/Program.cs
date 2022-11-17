@@ -11,12 +11,18 @@ using Windows.Storage;
 
 namespace VoiceOfClock;
 
-class Program
+#if DISABLE_XAML_GENERATED_MAIN
+public static class Program
 {
+    [global::System.Runtime.InteropServices.DllImport("Microsoft.ui.xaml.dll")]
+    private static extern void XamlCheckProcessRequirements();
+
     [STAThread]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:未使用のパラメーターを削除します", Justification = "<保留中>")]
     static async Task Main(string[] args)
     {
+        XamlCheckProcessRequirements();
+
         WinRT.ComWrappersSupport.InitializeComWrappers();
         bool isRedirect = await DecideRedirection();
         if (!isRedirect)
@@ -61,3 +67,5 @@ class Program
         _app.OnRedirectActiavated(args);
     }
 }
+
+#endif
