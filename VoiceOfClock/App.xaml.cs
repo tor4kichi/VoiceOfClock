@@ -75,7 +75,21 @@ public partial class App : Application
 
     private static void RegisterRequiredTypes(Container container)
     {
-        container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={Path.Combine(ApplicationData.Current.LocalFolder.Path, "user.db")}; Async=false;"));
+        string dbFilePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "user.db");
+        try
+        {
+            container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={dbFilePath}; Async=false; Password=eNmaHYFAMksZ"));
+        }
+        catch
+        {
+            if (File.Exists(dbFilePath))
+            {
+                File.Move(dbFilePath, Path.ChangeExtension(dbFilePath, ".db.backup"), overwrite: true);
+                File.Delete(dbFilePath);
+            }
+            
+            container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={dbFilePath}; Async=false; Password=eNmaHYFAMksZ"));
+        }
 
         container.Register<TimerSettings>(reuse: new SingletonReuse());
         container.Register<ApplicationSettings>(reuse: new SingletonReuse());
@@ -178,8 +192,6 @@ public partial class App : Application
             // activate the window correctly
             WindowHelper.ShowWindow(_window);
 
-
-            // 
             if (args != null)
             {
                 SystemInformation.Instance.TrackAppUse(args.UWPLaunchActivatedEventArgs, _window.Content.XamlRoot);
@@ -236,7 +248,7 @@ public partial class App : Application
     }    
 
     public void InitializeDialog(ContentDialog dialog)
-    {
+    {        
         dialog.XamlRoot = WindowContent.XamlRoot;
         dialog.RequestedTheme = WindowContentRequestedTheme;
     }
