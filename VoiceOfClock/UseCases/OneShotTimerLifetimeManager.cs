@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI.Helpers;
 using I18NPortable;
 using LiteDB;
 using Microsoft.Toolkit.Uwp.Notifications;
@@ -12,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
 using Windows.Foundation.Collections;
+using Windows.UI.Notifications;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace VoiceOfClock.UseCases;
@@ -59,6 +61,11 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             _timers.Add(info);
             info.OnTimesUp += RunningInfo_OnTimesUp;
         }
+
+        if (SystemInformation.Instance.IsFirstRun)
+        {
+            CreateTimer("OneShotTimer_TemporaryTitle".Translate(1), TimeSpan.FromMinutes(3), SoundSourceType.System, WindowsNotificationSoundType.Reminder.ToString());
+        }
     }
 
     void IApplicationLifeCycleAware.Resuming()
@@ -90,7 +97,7 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             Time = time,
             SoundType = soundSourceType,
             SoundParameter = soundParameter,
-            Order = int.MaxValue,
+            Order = int.MaxValue,            
         });
         var runningInfo = new OneShotTimerRunningInfo(entity, _oneShotTimerRepository, _oneShotTimerRunningRepository, _messenger);
         _timers.Add(runningInfo);
@@ -121,6 +128,11 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
 
     private void RunningInfo_OnTimesUp(object? sender, OneShotTimerRunningInfo runningInfo)
     {
+        if (_playCancelMap.Remove(runningInfo.EntityId, out var oldCts))
+        {
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
         CancellationTokenSource cts = new CancellationTokenSource();
         _playCancelMap.Add(runningInfo.EntityId, cts);
         CancellationToken ct = cts.Token;
@@ -208,8 +220,7 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             .AddAttributionText($"{runningInfo.Title}\n{"Time_Elapsed".Translate(runningInfo.Time.TranslateTimeSpan())}")
             .SetToastScenario(ToastScenario.Reminder)
             .AddButton("Close".Translate(), ToastActivationType.Background, args.ToString())
-            .Show();
-
+            .Show();        
     }
 
     bool IToastActivationAware.ProcessToastActivation(ToastArguments args, ValueSet props)
@@ -223,6 +234,13 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             {
                 cts.Cancel();
             }
+
+            var timerRunningInfo = _timers.FirstOrDefault(x => x.EntityId == entityId);
+            if (timerRunningInfo != null)
+            {
+                timerRunningInfo.RewindTimer();
+            }
+
             return true;
         }
 

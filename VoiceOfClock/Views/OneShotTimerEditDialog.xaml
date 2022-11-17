@@ -35,7 +35,7 @@
           <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
         </myControls:ContentWithIcon.Icon>
 
-        <TextBox x:Name="TextBox_EditTitle" PlaceholderText="{i18n:Localize Key=AlarmTimer_Label_Placeholder}"                 
+        <TextBox x:Name="TextBox_EditTitle" 
                  />
       </myControls:ContentWithIcon>
 
@@ -64,6 +64,7 @@
         </myControls:ContentWithIcon.Icon>
         <TextBox x:Name="TextBox_Tts"                 
                  TextChanged="TextBox_SoundParameter_TextChanged"
+                 InputScope="ChatWithoutEmoji"
                  >
         </TextBox>
       </myControls:ContentWithIcon>

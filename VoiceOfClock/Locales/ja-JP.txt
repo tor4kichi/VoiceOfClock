@@ -131,7 +131,7 @@ AlarmTimer_ToastNotificationSnoozeTimeDescription = 再通知までの時間:
 AlarmTimer_Snooze = 再通知時間
 AlarmTimer_SnoozeIgnore = 無効
 AlarmTimer_SnoozeWithMinutes = {0} 分後
-
+AlarmTimer_TemporaryTitle = アラーム（{0}）
 
 
 #### Periodic Timer
@@ -151,7 +151,7 @@ PeriodicTimerLabel_Title = ラベル
 PeriodicTimerLabel_Placeholder = 例）朝の時報
 PeriodicTimerEditDialog_Title = タイマーを編集
 PeriodicTimerAddDialog_Title = タイマーを追加
-
+PeriodicTimer_TemporaryTitle = 時報（{0}）
 
 
 #### OneShot Timer
@@ -162,3 +162,4 @@ OneShotTimerLabel_Placeholder = 例）洗濯物回収
 OneShotTimerEditDialog_Title = タイマーを編集
 OneShotTimerAddDialog_Title = タイマーを追加
 OneShotTimer_ToastNotificationTitle = タイマー
+OneShotTimer_TemporaryTitle = タイマー（{0}）

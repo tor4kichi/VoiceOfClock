@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI.Helpers;
 using I18NPortable;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.UI.Dispatching;
@@ -213,6 +214,11 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
     void IApplicationLifeCycleAware.Initialize()
     {
         _messenger.RegisterAll(this);
+
+        if (SystemInformation.Instance.IsFirstRun)
+        {
+            CreateAlarmTimer("AlarmTimer_TemporaryTitle".Translate(1), TimeOnly.FromTimeSpan(TimeSpan.FromHours(9)), Enum.GetValues<DayOfWeek>(), null, SoundSourceType.System, WindowsNotificationSoundType.Reminder.ToString(), isEnabled: false);
+        }
     }
 
     void IApplicationLifeCycleAware.Resuming()
@@ -225,7 +231,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         
     }    
 
-    public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent)
+    public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = false)
     {
         AlarmTimerEntity newEntity = _alarmTimerRepository.CreateItem(new AlarmTimerEntity
         {
@@ -235,6 +241,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
             Snooze = snoozeTime,
             SoundSourceType = soundSourceType,
             SoundContent = soundContent,            
+            IsEnabled = isEnabled,
         });
 
         AlarmTimerRunningInfo newTimerRunningInfo = ToRunningInfo(newEntity);

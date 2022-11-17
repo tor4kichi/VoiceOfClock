@@ -5,6 +5,7 @@ using Reactive.Bindings.Extensions;
 using System;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
 
@@ -20,7 +21,7 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
         _time = RunningInfo.Time;
         _title = RunningInfo.Title;
         _remainingTime = RunningInfo.RemainingTime;
-        IsTimerActive = RunningInfo.Time != RunningInfo.RemainingTime;
+        _isTimerActive = RunningInfo.Time != RunningInfo.RemainingTime;
 
         RunningInfo.ObserveProperty(x => x.RemainingTime)
             .Subscribe(x => RemainingTime = x)
@@ -49,6 +50,7 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
     private readonly Action<OneShotTimerViewModel> _onDeleteAction;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
     private TimeSpan _time;
 
     partial void OnTimeChanged(TimeSpan value)
@@ -67,7 +69,7 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
         RunningInfo.Title = value;
     }
 
-    [ObservableProperty]
+    [ObservableProperty]   
     private TimeSpan _remainingTime;
 
     [ObservableProperty]
@@ -79,6 +81,12 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
     private bool _isTimerActive;
+
+
+    partial void OnRemainingTimeChanged(TimeSpan value)
+    {
+        IsTimerActive = value != Time;
+    }
 
     public OneShotTimerRunningInfo RunningInfo { get; }
 
@@ -125,7 +133,6 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
 
             RemainingTime = RunningInfo.RemainingTime;
             EndTime = TimeOnly.FromDateTime(RunningInfo.StartTime + Time);
-            IsTimerActive = true;
         }
     }   
 
@@ -139,7 +146,6 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
 #if DEBUG
         _sw.Reset();
 #endif
-        IsTimerActive = RunningInfo.IsRunning;
     }
 
     bool CanExecuteRewindTimer()

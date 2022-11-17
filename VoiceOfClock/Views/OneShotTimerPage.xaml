@@ -39,9 +39,6 @@
         </i:Interaction.Behaviors>
 
         <Grid x:Name="Grid_Content">
-          
-          
-
           <StackPanel Spacing="4">
 
             <uiControls:DockPanel>
@@ -162,7 +159,7 @@
   </Page.Resources>
 
   <Grid>
-
+    
     <uiControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Timers, Mode=OneWay}"
                                  ItemTemplate="{StaticResource PeriodicTimerTemplate}"                                 
                                  Margin="8"

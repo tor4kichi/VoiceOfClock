@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.WinUI.Helpers;
 using I18NPortable;
 using Microsoft.UI.Dispatching;
 using Reactive.Bindings.Extensions;
@@ -54,6 +55,11 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
     void IApplicationLifeCycleAware.Initialize()
     {
         _messenger.RegisterAll(this);
+
+        if (SystemInformation.Instance.IsFirstRun)
+        {
+            CreatePeriodicTimer("PeriodicTimer_TemporaryTitle".Translate(1), TimeSpan.FromHours(9), TimeSpan.FromHours(10), TimeSpan.FromMinutes(5), Enum.GetValues<DayOfWeek>(), isEnabled: false);
+        }
     }
 
     void IApplicationLifeCycleAware.Resuming() { }
