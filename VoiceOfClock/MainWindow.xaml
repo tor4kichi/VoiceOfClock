@@ -4,13 +4,13 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:local="using:VoiceOfClock"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  mc:Ignorable="d"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:i="using:Microsoft.Xaml.Interactivity"
   xmlns:core="using:Microsoft.Xaml.Interactions.Core"
   xmlns:i18n="using:I18NPortable.Xaml.Extensions"
-  mc:Ignorable="d"
   xmlns:tkTiggers="using:CommunityToolkit.WinUI.UI.Triggers" 
-  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"  
+  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"    
   >
   <Grid  >
 
@@ -45,7 +45,7 @@
       IsPaneToggleButtonVisible="True"
       PaneDisplayMode="Auto"                    
       DisplayModeChanged="MyNavigationView_DisplayModeChanged"                   
-      IsSettingsVisible="False"          
+      IsSettingsVisible="False"                
       >
 
       <NavigationView.PaneHeader>
@@ -55,7 +55,7 @@
       <NavigationView.MenuItems>
         <NavigationViewItem x:Name="NVI_Alerm" Content="{i18n:Localize Key=AlermMenuTitle}" Tapped="NVI_Alerm_Tapped">
           <NavigationViewItem.Icon>
-            <SymbolIcon Symbol="Clock" />
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xea8f;" />
           </NavigationViewItem.Icon>
         </NavigationViewItem>
         <NavigationViewItem x:Name="NVI_OneShotTimer" Content="{i18n:Localize Key=OneShotTimerMenuTitle}" Tapped="NVI_OneShotTimer_Tapped" >
@@ -65,7 +65,7 @@
         </NavigationViewItem>
         <NavigationViewItem x:Name="NVI_PeriodicTimer" Content="{i18n:Localize Key=PeriodicTimerMenuTitle}" Tapped="NVI_PeriodicTimer_Tapped">
           <NavigationViewItem.Icon>
-            <SymbolIcon Symbol="Clock" />
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE994;" />
           </NavigationViewItem.Icon>
         </NavigationViewItem>
       </NavigationView.MenuItems>
