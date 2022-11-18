@@ -244,43 +244,69 @@
         </StackPanel>
       </uiControls:AdaptiveGridView.Header>
     </uiControls:AdaptiveGridView>
-    
-    <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="32"
+
+    <StackPanel VerticalAlignment="Bottom" >
+      <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" Margin="24"
           Background="{ThemeResource MicaBackgroundBrush}" Padding="4"
           BorderBrush="{ThemeResource MicaBorderBrush}"
           BorderThickness="1"
           CornerRadius="6"
           Translation="0, 0, 8"             
           >
-      <Grid.Shadow>
-        <ThemeShadow  />
-      </Grid.Shadow>
-      <Grid.Resources>
-        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
-          <Setter Property="Background" Value="Transparent" />
-          <Setter Property="BorderBrush" Value="Transparent" />
-          <Setter Property="Width" Value="40" />
-          <Setter Property="Height" Value="40" />
-          <Setter Property="Padding" Value="4" />
-        </Style>
-        <Style TargetType="SymbolIcon" x:Name="ActionButtonIconStyle">
-          <Setter Property="RenderTransformOrigin" Value="0.5, 0.5" />
-          <Setter Property="RenderTransform">
-            <Setter.Value>
-              <ScaleTransform ScaleX="0.80" ScaleY="0.8" />
-            </Setter.Value>
-          </Setter>
-        </Style>
-      </Grid.Resources>
-      <StackPanel Orientation="Horizontal" Spacing="2">
-        <Button x:Name="Button_EditTimers" Command="{x:Bind _vm.DeleteToggleCommand}">
-          <SymbolIcon x:Name="SymbolIcon_Edit" Symbol="Edit" Style="{StaticResource ActionButtonIconStyle}" />
-        </Button>
-        <Button x:Name="Button_AddTimer" Command="{x:Bind _vm.AddTimerCommand}" IsEnabled="{x:Bind _vm.NowEditting, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
-          <SymbolIcon Symbol="Add" Style="{StaticResource ActionButtonIconStyle}"  />
-        </Button>
-      </StackPanel>
-    </Grid>
- 
+        <Grid.Shadow>
+          <ThemeShadow  />
+        </Grid.Shadow>
+        <Grid.Resources>
+          <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="4" />
+          </Style>
+          <Style TargetType="SymbolIcon" x:Name="ActionButtonIconStyle">
+            <Setter Property="RenderTransformOrigin" Value="0.5, 0.5" />
+            <Setter Property="RenderTransform">
+              <Setter.Value>
+                <ScaleTransform ScaleX="0.80" ScaleY="0.8" />
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </Grid.Resources>
+        <StackPanel Orientation="Horizontal" Spacing="2">
+          <Button x:Name="Button_EditTimers" Command="{x:Bind _vm.DeleteToggleCommand}">
+            <SymbolIcon x:Name="SymbolIcon_Edit" Symbol="Edit" Style="{StaticResource ActionButtonIconStyle}" />
+          </Button>
+          <Button x:Name="Button_AddTimer" Command="{x:Bind _vm.AddTimerCommand}" IsEnabled="{x:Bind _vm.NowEditting, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
+            <SymbolIcon Symbol="Add" Style="{StaticResource ActionButtonIconStyle}"  />
+          </Button>
+        </StackPanel>
+      </Grid>
+      <Grid x:Name="Grid_ActiveAlarmInformation" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" Height="40" VerticalAlignment="Bottom" Visibility="Collapsed">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" >
+          <SymbolIcon Symbol="Important" Foreground="{ThemeResource SystemFillColorCautionBrush}" RenderTransformOrigin="0.5, 0.5">
+            <SymbolIcon.RenderTransform>
+              <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+            </SymbolIcon.RenderTransform>
+          </SymbolIcon>
+          <TextBlock Text="{i18n:Localize Key=PeriodicTimer_CautionWhenActive}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+      </Grid>
+    </StackPanel>
+    
+
+
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{x:Bind _vm.SomeTimerIsActive.Value, Mode=OneWay}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="Grid_ActiveAlarmInformation.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
   </Grid>
 </Page>

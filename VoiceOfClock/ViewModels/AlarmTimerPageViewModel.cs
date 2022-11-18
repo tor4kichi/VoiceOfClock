@@ -2,9 +2,11 @@
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +40,12 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
     private readonly TimerSettings _timerSettings;
     private readonly StoreLisenceService _storeLisenceService;
 
+    [ObservableProperty]
+    private ReadOnlyReactiveCollection<AlarmTimerViewModel>? _timers;
+
+    [ObservableProperty]
+    private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
+
     public AlarmTimerPageViewModel(
         AlarmTimerLifetimeManager alertTimerLifetimeManager
         , IAlarmTimerDialogService alarmTimerDialogService
@@ -55,6 +63,7 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
     {
         base.OnActivated();
         Timers = _alertTimerLifetimeManager.Timers.ToReadOnlyReactiveCollection(ToAlarmTimerVM, disposeElement: true);
+        SomeTimerIsActive = Timers.ObserveElementProperty(x => x.IsEnabled.Value).Select(x => Timers.Any(x => x.IsEnabled.Value)).ToReadOnlyReactiveProperty();
     }
 
     protected override void OnDeactivated()
@@ -62,6 +71,8 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
         base.OnDeactivated();
         Timers!.Dispose();
         Timers = null;
+        SomeTimerIsActive!.Dispose();
+        SomeTimerIsActive = null;
     }
 
     private AlarmTimerViewModel ToAlarmTimerVM(AlarmTimerRunningInfo runningInfo)
@@ -69,8 +80,6 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
         return new AlarmTimerViewModel(runningInfo, _timerSettings.FirstDayOfWeek, DeleteTimer);
     }    
 
-    [ObservableProperty]
-    private ReadOnlyReactiveCollection<AlarmTimerViewModel>? _timers;
 
     [RelayCommand]
     async Task AddTimer()
@@ -88,10 +97,11 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
             }
         }
 
+        TimeSpan now = DateTime.Now.TimeOfDay;
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerAddDialog_Title".Translate()
             , ""
-            , TimeOnly.FromDateTime(DateTime.Now)
+            , new TimeOnly(now.Hours, now.Minutes)
             , null
             , Enum.GetValues<DayOfWeek>()
             , _timerSettings.FirstDayOfWeek

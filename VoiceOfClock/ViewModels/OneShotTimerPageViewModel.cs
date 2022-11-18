@@ -2,10 +2,12 @@
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
@@ -37,6 +39,9 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     [ObservableProperty]
     private ReadOnlyReactiveCollection<OneShotTimerViewModel>? _timers;
 
+    [ObservableProperty]
+    private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
+
     public OneShotTimerPageViewModel(
         OneShotTimerLifetimeManager oneShotTimerLifetimeManager
         , IOneShotTimerDialogService oneShotTimerDialogService
@@ -51,6 +56,7 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     protected override void OnActivated()
     {
         Timers = _oneShotTimerLifetimeManager.Timers.ToReadOnlyReactiveCollection(x => new OneShotTimerViewModel(x, Messenger, DeleteTimer));
+        SomeTimerIsActive = Timers.ObserveElementProperty(x => x.RunningInfo.IsRunning).Select(x => Timers.Any(x => x.RunningInfo.IsRunning)).ToReadOnlyReactiveProperty();
         base.OnActivated();
     }
 
@@ -58,7 +64,32 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
     {
         _timers?.Dispose();
         Timers = null;
+        SomeTimerIsActive!.Dispose();
+        SomeTimerIsActive = null;
         base.OnDeactivated();
+    }
+
+    [RelayCommand]
+    async Task AddTimer()
+    {
+        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
+        {
+            await _storeLisenceService.EnsureInitializeAsync();
+            if (_storeLisenceService.IsTrial.Value && _oneShotTimerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            {
+                var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
+                if (!isSuccess)
+                {
+                    return;
+                }
+            }
+        }
+
+        var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerAddDialog_Title".Translate(), "", TimeSpan.FromMinutes(3), SoundSourceType.System, WindowsNotificationSoundType.Default.ToString());
+        if (result.IsConfirmed)
+        {
+            _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time, result.SoundSourceType, result.SoundParameter);
+        }
     }
 
     [ObservableProperty]
@@ -96,29 +127,6 @@ public sealed partial class OneShotTimerPageViewModel : ObservableRecipient
         foreach (var timer in Timers ?? Enumerable.Empty<OneShotTimerViewModel>())
         {
             timer.IsEditting = NowEditting;
-        }
-    }
-
-    [RelayCommand]
-    async Task AddTimer()
-    {
-        if (PurchaseItemsConstants.IsTrialLimitationEnabled)
-        {
-            await _storeLisenceService.EnsureInitializeAsync();
-            if (_storeLisenceService.IsTrial.Value && _oneShotTimerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
-            {
-                var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
-                if (!isSuccess)
-                {
-                    return;
-                }
-            }
-        }
-
-        var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerAddDialog_Title".Translate(), "", TimeSpan.FromMinutes(3), SoundSourceType.System,  WindowsNotificationSoundType.Default.ToString());
-        if (result.IsConfirmed)
-        {
-            _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time, result.SoundSourceType, result.SoundParameter);
         }
     }
 }

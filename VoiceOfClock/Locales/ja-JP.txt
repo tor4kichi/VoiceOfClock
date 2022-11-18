@@ -132,6 +132,8 @@ AlarmTimer_Snooze = 再通知時間
 AlarmTimer_SnoozeIgnore = 無効
 AlarmTimer_SnoozeWithMinutes = {0} 分後
 AlarmTimer_TemporaryTitle = アラーム（{0}）
+AlarmTimer_CautionWhenActive = アラームは、アプリが起動しているときにのみ鳴動します。
+
 
 
 #### Periodic Timer
@@ -152,6 +154,8 @@ PeriodicTimerLabel_Placeholder = 例）朝の時報
 PeriodicTimerEditDialog_Title = タイマーを編集
 PeriodicTimerAddDialog_Title = タイマーを追加
 PeriodicTimer_TemporaryTitle = 時報（{0}）
+PeriodicTimer_CautionWhenActive = 時刻読み上げは、アプリが起動しているときにのみ鳴動します。
+
 
 
 #### OneShot Timer
@@ -163,3 +167,4 @@ OneShotTimerEditDialog_Title = タイマーを編集
 OneShotTimerAddDialog_Title = タイマーを追加
 OneShotTimer_ToastNotificationTitle = タイマー
 OneShotTimer_TemporaryTitle = タイマー（{0}）
+OneShotTimer_CautionWhenActive = タイマーは、アプリが起動しているときにのみ鳴動します。

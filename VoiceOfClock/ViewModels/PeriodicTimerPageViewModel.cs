@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
@@ -49,6 +50,10 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
     public TimerSettings TimerSettings { get; }
 
 
+    [ObservableProperty]
+    private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
+
+
     public PeriodicTimerPageViewModel(
         IMessenger messenger
         , IPeriodicTimerDialogService dialogService
@@ -70,6 +75,13 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         
         Timers = _timerLifetimeManager.Timers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
         InstantPeriodicTimer = new PeriodicTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
+        SomeTimerIsActive = 
+            new[] 
+            {
+                InstantPeriodicTimer.PeriodicTimerRunningInfo.ObserveProperty(x => x.IsEnabled).ToUnit(),
+                Timers.ObserveElementProperty(x => x.IsEnabled).ToUnit(),
+            }
+            .Merge().Select(x => InstantPeriodicTimer.PeriodicTimerRunningInfo.IsEnabled || Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
     }
 
     protected override void OnDeactivated()
@@ -79,10 +91,10 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
             (timer as IDisposable)?.Dispose();
         }
         Timers = null;
-
         (InstantPeriodicTimer as IDisposable)?.Dispose();
         InstantPeriodicTimer = null;
-
+        SomeTimerIsActive!.Dispose();
+        SomeTimerIsActive = null;
         base.OnDeactivated();
     }
 

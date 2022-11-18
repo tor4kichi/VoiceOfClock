@@ -132,6 +132,8 @@ AlarmTimer_Snooze = Reminder time
 AlarmTimer_SnoozeIgnore = Ignore
 AlarmTimer_SnoozeWithMinutes = {0} minutes later
 AlarmTimer_TemporaryTitle = Alarm ({0})
+AlarmTimer_CautionWhenActive = The alarm will only ring when the app is running.
+
 
 
 #### Periodic Timer
@@ -152,6 +154,8 @@ PeriodicTimerLabel_Placeholder = Example) Morning time signal
 PeriodicTimerEditDialog_Title = Edit timer
 PeriodicTimerAddDialog_Title = Add timer
 PeriodicTimer_TemporaryTitle = Time signal ({0})
+PeriodicTimer_CautionWhenActive = Time time signal sounds only when the app is running.
+
 
 
 #### OneShot Timer
@@ -163,3 +167,4 @@ OneShotTimerEditDialog_Title = Edit timer
 OneShotTimerAddDialog_Title = Add timer
 OneShotTimer_ToastNotificationTitle = Timer
 OneShotTimer_TemporaryTitle = Timer ({0})
+OneShotTimer_CautionWhenActive = The timer will only ring when the app is running.

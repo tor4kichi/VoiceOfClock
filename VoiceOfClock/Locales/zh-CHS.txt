@@ -132,6 +132,8 @@ AlarmTimer_Snooze = 提醒时间
 AlarmTimer_SnoozeIgnore = 忽視
 AlarmTimer_SnoozeWithMinutes = {0} 分钟后
 AlarmTimer_TemporaryTitle = 闹钟（{0}）
+AlarmTimer_CautionWhenActive = 闹钟只会在应用程序运行时响起。
+
 
 
 #### Periodic Timer
@@ -152,6 +154,8 @@ PeriodicTimerLabel_Placeholder = 示例）早晨时间信号
 PeriodicTimerEditDialog_Title = 编辑计时器
 PeriodicTimerAddDialog_Title = 添加计时器
 PeriodicTimer_TemporaryTitle = 时间信号（{0}）
+PeriodicTimer_CautionWhenActive = 仅当应用程序运行时，时间读出声音。
+
 
 
 #### OneShot Timer
@@ -163,3 +167,4 @@ OneShotTimerEditDialog_Title = 编辑计时器
 OneShotTimerAddDialog_Title = 添加计时器
 OneShotTimer_ToastNotificationTitle = 计时器
 OneShotTimer_TemporaryTitle = 定时器（{0}）
+OneShotTimer_CautionWhenActive = 计时器只会在应用程序运行时响起。

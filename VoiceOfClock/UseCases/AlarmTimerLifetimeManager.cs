@@ -231,7 +231,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
         
     }    
 
-    public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = false)
+    public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = true)
     {
         AlarmTimerEntity newEntity = _alarmTimerRepository.CreateItem(new AlarmTimerEntity
         {
