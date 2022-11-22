@@ -26,6 +26,7 @@ using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
 using Windows.ApplicationModel;
 using Windows.Media.SpeechSynthesis;
+using ApplicationTheme = VoiceOfClock.Models.Domain.ApplicationTheme;
 
 namespace VoiceOfClock.ViewModels
 {
@@ -191,11 +192,11 @@ namespace VoiceOfClock.ViewModels
                 .ToList();
 
                 using var themeListener = new ThemeListener();
-                var currentThemeItem = themeItems.First(x => (ElementTheme)x.Source == _applicationSettings.Theme);
+                var currentThemeItem = themeItems.First(x => (ApplicationTheme)x.Source == _applicationSettings.Theme);
 
                 void ThemeChanged(ComboBoxSettingContent sender, ComboBoxSettingContentItem selected)
                 {
-                    _applicationSettings.Theme = (ElementTheme)selected.Source;
+                    _applicationSettings.Theme = (ApplicationTheme)selected.Source;
                     sender.Description = "ThemeApplyRequireRestartApp".Translate();
                 }
 

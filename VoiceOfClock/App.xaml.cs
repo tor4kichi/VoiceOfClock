@@ -23,6 +23,7 @@ using System.Reactive.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
@@ -91,6 +92,7 @@ public partial class App : Application
             container.RegisterInstance<ILiteDatabase>(new LiteDatabase($"Filename={dbFilePath}; Async=false; Password=eNmaHYFAMksZ"));
         }
 
+        container.RegisterInstance<IStorageHelper>(new BytesApplicationDataStorageHelper(ApplicationData.Current, new BinaryJsonObjectSerializer()));
         container.Register<TimerSettings>(reuse: new SingletonReuse());
         container.Register<ApplicationSettings>(reuse: new SingletonReuse());
 

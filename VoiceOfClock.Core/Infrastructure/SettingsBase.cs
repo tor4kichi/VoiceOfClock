@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Uwp.Helpers;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,7 +7,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Storage;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Models.Infrastructure;
 
 namespace VoiceOfClock.Models.Infrastructure
 {
@@ -19,22 +20,15 @@ namespace VoiceOfClock.Models.Infrastructure
         public T Deserialize<T>(string value) => string.IsNullOrEmpty(value) || value == "null" ? default(T) : System.Text.Json.JsonSerializer.Deserialize<T>(value);
     }
     */
-
-    public class BinaryJsonObjectSerializer : IBytesObjectSerializer
-    {
-        public static BinaryJsonObjectSerializer Default { get; } = new BinaryJsonObjectSerializer();
-        public byte[] Serialize<T>(T value) => System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(value);
-
-        public T? Deserialize<T>(byte[] value) => value == null || value.Length == 0 ? default : System.Text.Json.JsonSerializer.Deserialize<T>(value);
-    }
+    
 
     /// <remarks>
     /// 注意：BinaryJsonObjectSerializer は Nullale[T] をシリアライズできない
     /// </remarks>
     public abstract class SettingsBase : ObservableObject
     {
-        private readonly static BytesApplicationDataStorageHelper _localStorageHelper = BytesApplicationDataStorageHelper.GetCurrent(objectSerializer: BinaryJsonObjectSerializer.Default);
-        private readonly static Infrastructure.AsyncLock _fileUpdateLock = new();
+        private readonly static IStorageHelper _localStorageHelper = Ioc.Default.GetRequiredService<IStorageHelper>();
+        private readonly static AsyncLock _fileUpdateLock = new();
         public SettingsBase()
         {
         }

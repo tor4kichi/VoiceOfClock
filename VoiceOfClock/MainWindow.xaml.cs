@@ -45,7 +45,12 @@ public sealed partial class MainWindow : SystemBackdropWindow
     public MainWindow()
     {
         this.InitializeComponent();        
-        (this.Content as FrameworkElement)!.RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme;
+        (this.Content as FrameworkElement)!.RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme switch 
+        {
+            Models.Domain.ApplicationTheme.Default => ElementTheme.Default,
+            Models.Domain.ApplicationTheme.Dark => ElementTheme.Dark,
+            Models.Domain.ApplicationTheme.Light => ElementTheme.Light,
+        };
         TextBlock_AppTitle.Text = SystemInformation.Instance.ApplicationName;
 
         ExtendsContentIntoTitleBar = true;
