@@ -180,7 +180,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanExecuteStartImmidiateTimer))]
     void StartImmidiateTimer(TimeSpan intervalTime)
     {
         if (InstantPeriodicTimer is null) { return; }
@@ -188,6 +188,12 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);            
         InstantPeriodicTimer.IsEnabled = true;            
     }
+
+    bool CanExecuteStartImmidiateTimer(TimeSpan intervalTime)
+    {
+        return intervalTime >= TimeSpan.FromSeconds(1);
+    }
+
 
     [RelayCommand]
     void StopImmidiateTimer()
