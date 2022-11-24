@@ -22,6 +22,7 @@
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <Nullable>Enable</Nullable>
+    <DefaultLanguage>ja-JP</DefaultLanguage>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Locales\en-US.txt" />
