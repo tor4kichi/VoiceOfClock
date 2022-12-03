@@ -168,3 +168,19 @@ OneShotTimerAddDialog_Title = Add timer
 OneShotTimer_ToastNotificationTitle = Timer
 OneShotTimer_TemporaryTitle = Timer ({0})
 OneShotTimer_CautionWhenActive = The timer will only ring when the app is running.
+
+
+
+#### AudioSoundSource
+
+AudioSoundSourceMenuTitle = Manage notification sounds
+AudioSoundSource_DialogTitle_New = Add notification sound
+AudioSoundSource_DialogTitle_Edit = Edit notification sound
+AudioSoundSource_AudioBeginSetToCurrentPosition = Start at current playback position
+AudioSoundSource_AudioEndSetToCurrentPosition = End at current playback position
+SoundVolume = Volume
+AudioSoundSource_Label = Label
+AudioSoundSource_AudioPlayRange_Begin = Start
+AudioSoundSource_AudioPlayRange_End = End
+AudioSoundSource_AudioPlayRange = Playback range
+AudioSoundSource_FilePath_Label = Music file path

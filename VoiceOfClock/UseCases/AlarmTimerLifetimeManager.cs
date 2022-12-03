@@ -120,6 +120,22 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
                 }
             });
         }
+        else if (runningInfo.SoundSourceType == SoundSourceType.AudioFile)
+        {
+            _dispatcherQueue.TryEnqueue(async () =>
+            {
+                try
+                {
+                    await _messenger.Send(new PlayAudioRequestMessage(runningInfo.SoundContent, ct));
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _playCancelMap.Remove(runningInfo._entity.Id);
+                    cts.Dispose();
+                }
+            });
+        }
 
         var stopToastArgs = new ToastArguments()
         {

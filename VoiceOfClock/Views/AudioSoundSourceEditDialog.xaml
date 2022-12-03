@@ -1,0 +1,141 @@
+﻿<ContentDialog
+    x:Class="VoiceOfClock.Views.AudioSoundSourceEditDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:VoiceOfClock.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+  xmlns:myControls="using:VoiceOfClock.Views.Controls"
+  xmlns:i18nExt="using:I18NPortable.Xaml.Extensions" 
+  xmlns:myConv="using:VoiceOfClock.Views.Converters"
+  mc:Ignorable="d"
+  PrimaryButtonText="{i18nExt:Localize Key=Save}"
+  CloseButtonText="{i18nExt:Localize Key=Cancel}"  
+  PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
+  CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"    
+  >
+  <ScrollViewer>
+    <StackPanel Spacing="16" Margin="0 0 16 0">
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_FilePath_Label}">
+        <myControls:ContentWithIcon.Icon>
+          <Button x:Name="Button_ChangeFilePath" Tapped="Button_ChangeFilePath_Tapped"                                
+                >
+            <SymbolIcon Symbol="OpenFile" />
+          </Button>
+          
+        </myControls:ContentWithIcon.Icon>
+        <TextBox x:Name="TextBox_FilePath" Text="{x:Bind FilePath, Mode=TwoWay}" IsReadOnly="True" MaxWidth="320" HorizontalTextAlignment="End" />
+      </myControls:ContentWithIcon>
+
+      <StackPanel>
+        <myControls:ContentWithIcon>
+          <myControls:ContentWithIcon.Icon>
+            <Button x:Name="Button_AudioPlayPauseToggle" Tapped="Button_AudioPlayPauseToggle_Tapped"    
+                    Padding="4"
+                    Margin="0 0 0 0"
+                >
+              <SymbolIcon Symbol="Play" />
+            </Button>
+          </myControls:ContentWithIcon.Icon>
+          <Grid>
+            <StackPanel Orientation="Horizontal" Opacity="0.7" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+              <TextBlock x:Name="TextBlock_CurrentPlaybackPosition"
+                       Text="{x:Bind CurrentPlaybackPosition, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                       >
+              </TextBlock>
+              <TextBlock Text="/" />
+              <TextBlock x:Name="TextBlock_Duration" Text="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter},Mode=OneWay}" controls:DockPanel.Dock="Right"                                                                  
+                     />
+            </StackPanel>
+            
+            <Slider x:Name="Slider_PlaybackPosition" 
+                Value="{x:Bind CurrentPlaybackPosition, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                Minimum="0"
+                Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}" 
+                StepFrequency="1.0"
+                TickPlacement="Inline"
+                />
+
+          </Grid>
+        </myControls:ContentWithIcon>
+      </StackPanel>
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Trim" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <controls:RangeSelector x:Name="RangeSelector_AudioSpan" 
+                                RangeStart="{x:Bind AudioBegin, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                                RangeEnd="{x:Bind AudioEnd, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}" 
+                                Background="Transparent" 
+                                Margin="0 8 0 0"                                                                
+                                />
+      </myControls:ContentWithIcon>
+
+
+
+
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <myControls:ContentWithIcon HorizontalAlignment="Left"
+                                      >
+          <myControls:ContentWithIcon.Icon>
+            <Button x:Name="Button_SetBeginPosition" Tapped="Button_SetBeginPosition_Tapped" ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioBeginSetToCurrentPosition}">
+              <SymbolIcon Symbol="Previous" />
+            </Button>
+          </myControls:ContentWithIcon.Icon>
+          <NumberBox Value="{x:Bind RangeSelector_AudioSpan.RangeStart, Mode=TwoWay}" SpinButtonPlacementMode="Inline" 
+                       Minimum="0"
+                   Maximum="{x:Bind AudioEnd, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                     ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange_Begin}"
+                   />
+        </myControls:ContentWithIcon>
+
+        <myControls:ContentWithIcon HorizontalAlignment="Right"                                      
+                                      Grid.Column="1"
+                                      >
+          <myControls:ContentWithIcon.Icon>
+            <Button x:Name="Button_SetEndPosition" Tapped="Button_SetEndPosition_Tapped" ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioEndSetToCurrentPosition}">
+              <SymbolIcon Symbol="Next" />
+            </Button>
+          </myControls:ContentWithIcon.Icon>
+          <NumberBox Value="{x:Bind RangeSelector_AudioSpan.RangeEnd, Mode=TwoWay}" SpinButtonPlacementMode="Inline" 
+                       Minimum="0"
+                   Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                     ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange_End}"
+                   />
+        </myControls:ContentWithIcon>
+      </Grid>
+      
+      
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18nExt:Localize Key=SoundVolume}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Volume" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <Slider x:Name="Slider_SoundVolume" Minimum="0.0" Maximum="1.0"
+                Value="{x:Bind SoundVolume, Mode=TwoWay}"               
+              HorizontalContentAlignment="Right"
+              StepFrequency="0.01"              
+              />
+      </myControls:ContentWithIcon>
+
+
+      <myControls:ContentWithIcon ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_Label}">
+        <myControls:ContentWithIcon.Icon>
+          <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
+        </myControls:ContentWithIcon.Icon>
+        <TextBox x:Name="TextBox_Title" Text="{x:Bind Label, Mode=TwoWay}"
+                 TextChanged="TextBox_Title_TextChanged"
+               />
+      </myControls:ContentWithIcon>
+
+    </StackPanel>
+  </ScrollViewer>
+</ContentDialog>

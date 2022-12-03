@@ -50,7 +50,7 @@
               >
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="viewModels:SoundSelectionItemViewModel">
-              <TextBlock Text="{x:Bind}" />
+              <TextBlock Text="{x:Bind Label}" />
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>

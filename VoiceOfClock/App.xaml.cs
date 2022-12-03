@@ -33,6 +33,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.UI;
@@ -101,6 +102,7 @@ public partial class App : Application
         container.Register<AlarmTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<SystemSoundPlayer>(reuse: new SingletonReuse());
         container.Register<VoicePlayer>(reuse: new SingletonReuse());
+        container.Register<AudioSoundSourcePlayer>(reuse: new SingletonReuse());        
         container.Register<StoreLisenceService>(reuse: new SingletonReuse());
 
         container.RegisterMapping<IApplicationLifeCycleAware, PeriodicTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
@@ -108,6 +110,7 @@ public partial class App : Application
         container.RegisterMapping<IApplicationLifeCycleAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, SystemSoundPlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IApplicationLifeCycleAware, AudioSoundSourcePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
         container.RegisterMapping<IToastActivationAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IToastActivationAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
@@ -124,7 +127,8 @@ public partial class App : Application
         container.Register<IPeriodicTimerDialogService, PeriodicTimerEditDialogService>();
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
         container.Register<IAlarmTimerDialogService, AlarmTimerEditDialogService>();
-        container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();        
+        container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();
+        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();
     }    
 
     /// <summary>
@@ -217,7 +221,7 @@ public partial class App : Application
                         });
                     }                                    
                 }
-            }
+            }            
         }
         else
         {
@@ -232,8 +236,7 @@ public partial class App : Application
         LaunchAndBringToForegroundIfNeeded();
     }
 
-    private MainWindow? _window;
-    private StoreContext _context;
+    private MainWindow? _window;    
 
     private UIElement WindowContent => _window is not null ? _window.Content : throw new NullReferenceException();
 

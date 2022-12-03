@@ -1,0 +1,97 @@
+﻿<Page
+  x:Class="VoiceOfClock.Views.AudioSoundSourcePage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:VoiceOfClock.Views"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"  
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:io="using:System.IO"
+  xmlns:viewModels="using:VoiceOfClock.ViewModels"
+  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"
+  xmlns:uiExt="using:CommunityToolkit.WinUI.UI"
+  xmlns:i18n="using:I18NPortable.Xaml.Extensions" 
+  xmlns:myConv="using:VoiceOfClock.Views.Converters"
+  mc:Ignorable="d"
+    >
+
+  <Page.Resources>
+
+  </Page.Resources>
+  <Grid>
+    <tkControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Items}"
+              IsItemClickEnabled="True"
+              uiExt:ListViewExtensions.Command="{x:Bind _vm.EditAudioSoundSourceCommand}"
+                                 DesiredWidth="320"
+                                 SelectionMode="None"
+                                 ItemHeight="140"
+              >
+      <tkControls:AdaptiveGridView.ItemContainerStyle>
+        <Style TargetType="GridViewItem" BasedOn="{StaticResource GridViewItemMicaStyle}">
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          <Setter Property="VerticalContentAlignment" Value="Stretch" />
+          <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+          <Setter Property="MaxWidth" Value="420" />
+          <Setter Property="MinWidth" Value="120" />
+          <Setter Property="Margin" Value="12" />
+          <Setter Property="CornerRadius" Value="6" />
+          <Setter Property="BorderThickness" Value="0.5" />
+          <Setter Property="BorderBrush" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}" />
+          <Setter Property="ContextFlyout" >
+            <Setter.Value>
+              <MenuFlyout Opening="MenuFlyout_Opening">
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_DeleteItem" Icon="Delete" Text="{i18n:Localize Key=Delete}" Command="{x:Bind _vm.DeleteAudioSoundSourceCommand}" CommandParameter="{Binding}" />
+              </MenuFlyout>
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </tkControls:AdaptiveGridView.ItemContainerStyle>
+      <ListViewBase.ItemTemplate>
+        <DataTemplate x:DataType="viewModels:AudioSoundSourceViewModel">
+          <Grid ToolTipService.ToolTip="{x:Bind FilePath, Mode=OneWay}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*" />
+              <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+
+
+            <!-- Top, audio infomation and actions -->
+            <Border Grid.Column="0" Margin="8 8 8 0">
+              <StackPanel>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" >
+                  <Run Text="{x:Bind Title, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Text="{x:Bind Duration, Mode=OneWay, Converter={StaticResource DurationToTextConverter}}"
+                           Opacity="0.7"
+                           />
+              </StackPanel>
+            </Border>
+
+            <!-- Bottom, Range of playing audio -->
+            <Border Grid.Row="1" Height="14">
+              <tkControls:RangeSelector RangeStart="{x:Bind AudioSpanBegin, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}" 
+                                        RangeEnd="{x:Bind AudioSpanEnd, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                                        Minimum="0"
+                                        Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                                        IsTapEnabled="False"
+                                        IsHitTestVisible="False"
+                                        RenderTransformOrigin="0.5, 0.5"
+                                        >
+                <tkControls:RangeSelector.RenderTransform>
+                  <TranslateTransform Y="9" />
+                </tkControls:RangeSelector.RenderTransform>
+              </tkControls:RangeSelector>
+            </Border>
+          </Grid>
+        </DataTemplate>
+      </ListViewBase.ItemTemplate>
+    </tkControls:AdaptiveGridView>
+
+    <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24">
+      <StackPanel Orientation="Horizontal">
+        <Button Command="{x:Bind _vm.AddNewAudioSoundSourceCommand}">
+          <SymbolIcon Symbol="Add" />
+        </Button>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Page>

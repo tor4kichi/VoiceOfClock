@@ -29,6 +29,8 @@
     <None Remove="Locales\ja-JP.txt" />
     <None Remove="Locales\zh-CHS.txt" />
     <None Remove="Views\AlarmTimerEditDialog.xaml" />
+    <None Remove="Views\AudioSoundSourceEditDialog.xaml" />
+    <None Remove="Views\AudioSoundSourcePage.xaml" />
     <None Remove="Views\Controls\ContentWithIcon.xaml" />
     <None Remove="Views\Controls\TimeSelectBox.xaml" />
     <None Remove="Views\OneShotTimerEditDialog.xaml" />
@@ -60,6 +62,7 @@
     <PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Behaviors" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Input" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Primitives" Version="7.1.2" />
     <PackageReference Include="DependencyPropertyGenerator" Version="1.0.3" ExcludeAssets="runtime">
       <PrivateAssets>all</PrivateAssets>
@@ -85,6 +88,16 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Core\VoiceOfClock.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\AudioSoundSourceEditDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\AudioSoundSourcePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\PurchaseConfirmDialog.xaml">

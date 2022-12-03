@@ -168,3 +168,19 @@ OneShotTimerAddDialog_Title = タイマーを追加
 OneShotTimer_ToastNotificationTitle = タイマー
 OneShotTimer_TemporaryTitle = タイマー（{0}）
 OneShotTimer_CautionWhenActive = タイマーは、アプリが起動しているときにのみ鳴動します。
+
+
+
+#### AudioSoundSource
+
+AudioSoundSourceMenuTitle = 通知音の管理
+AudioSoundSource_DialogTitle_New = 通知音を追加
+AudioSoundSource_DialogTitle_Edit = 通知音を編集
+AudioSoundSource_AudioBeginSetToCurrentPosition = 現在の再生位置を始端に
+AudioSoundSource_AudioEndSetToCurrentPosition = 現在の再生位置を終端に
+SoundVolume = 音量
+AudioSoundSource_Label = ラベル
+AudioSoundSource_AudioPlayRange_Begin = 始端
+AudioSoundSource_AudioPlayRange_End = 終端
+AudioSoundSource_AudioPlayRange = 再生範囲
+AudioSoundSource_FilePath_Label = 音楽ファイルのパス

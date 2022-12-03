@@ -23,6 +23,8 @@ using Microsoft.UI;
 using DependencyPropertyGenerator;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Threading;
+using VoiceOfClock.Core.Domain;
+using I18NPortable;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -53,6 +55,15 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
         Loaded += OneShotTimerEditDialog_Loaded;
         Closing += OneShotTimerEditDialog_Closing;
+
+        _soundSelectionItems = new[]
+        {
+            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts, Label = SoundSourceType.Tts.Translate() } },
+            Ioc.Default.GetRequiredService<AudioSoundSourceRepository>().ReadAllItems().Select(x => new SoundSelectionItemViewModel {SoundSourceType = SoundSourceType.AudioFile,  SoundContent = x.Id.ToString(), Label = !string.IsNullOrWhiteSpace(x.Title) ? x.Title : Path.GetFileNameWithoutExtension(x.FilePath) }),
+            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x, Label = x }),
+        }
+        .SelectMany(x => x)
+        .ToArray();
     }
 
     private void OneShotTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
@@ -62,14 +73,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
 
     private SoundSelectionItemViewModel? _firstSelectedsoundSelectionItem;
 
-    private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
-        new[]
-        {
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } },
-            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),            
-        }
-        .SelectMany(x => x)
-        .ToArray();
+    private readonly SoundSelectionItemViewModel[] _soundSelectionItems;
+       
 
     public TimeSpan Duration
     {
@@ -171,6 +176,10 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         {
             isValid = IsValidInput(parameter) && IsValidTime(Duration);
         }
+        else if (type == SoundSourceType.AudioFile)
+        {
+            isValid = IsValidTime(Duration);
+        }
 
         IsPrimaryButtonEnabled = isValid;
         Button_TestPlaySound.IsEnabled = isValid;
@@ -224,6 +233,10 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
             {
                 _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
             }
+        }
+        else if (soundSourceType == SoundSourceType.AudioFile)
+        {
+            _ = meseenger.Send(new PlayAudioRequestMessage(soundContent, ct));
         }
     }
 

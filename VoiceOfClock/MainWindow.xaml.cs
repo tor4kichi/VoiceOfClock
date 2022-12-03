@@ -198,4 +198,9 @@ public sealed partial class MainWindow : SystemBackdropWindow
 
         }
     }
+
+    private void NVI_AudioSoundSource_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        Navigate(typeof(Views.AudioSoundSourcePage), null);
+    }
 }

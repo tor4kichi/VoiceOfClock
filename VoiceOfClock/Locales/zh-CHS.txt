@@ -168,3 +168,19 @@ OneShotTimerAddDialog_Title = 添加计时器
 OneShotTimer_ToastNotificationTitle = 计时器
 OneShotTimer_TemporaryTitle = 定时器（{0}）
 OneShotTimer_CautionWhenActive = 计时器只会在应用程序运行时响起。
+
+
+
+#### AudioSoundSource
+
+AudioSoundSourceMenuTitle = 管理通知声音
+AudioSoundSource_DialogTitle_New = 添加通知声音
+AudioSoundSource_DialogTitle_Edit = 编辑通知声音
+AudioSoundSource_AudioBeginSetToCurrentPosition = 从当前播放位置开始
+AudioSoundSource_AudioEndSetToCurrentPosition = 在当前播放位置结束
+SoundVolume = 体积
+AudioSoundSource_Label = 标签
+AudioSoundSource_AudioPlayRange_Begin = 开始
+AudioSoundSource_AudioPlayRange_End = 终止
+AudioSoundSource_AudioPlayRange = 播放范围
+AudioSoundSource_FilePath_Label = 音乐文件路径

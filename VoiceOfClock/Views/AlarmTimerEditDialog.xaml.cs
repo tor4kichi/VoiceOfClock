@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DependencyPropertyGenerator;
+using I18NPortable;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -18,6 +19,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
@@ -49,6 +51,15 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
 
         Loaded += AlarmTimerEditDialog_Loaded;
         Closing += AlarmTimerEditDialog_Closing;
+
+        _soundSelectionItems = new[]
+        {
+            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts, Label = SoundSourceType.Tts.Translate() } },
+            Ioc.Default.GetRequiredService<AudioSoundSourceRepository>().ReadAllItems().Select(x => new SoundSelectionItemViewModel {SoundSourceType = SoundSourceType.AudioFile,  SoundContent = x.Id.ToString(), Label = !string.IsNullOrWhiteSpace(x.Title) ? x.Title : Path.GetFileNameWithoutExtension(x.FilePath) }),
+            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x, Label = x }),            
+        }
+        .SelectMany(x => x)
+        .ToArray();
     }
 
     private void AlarmTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
@@ -56,14 +67,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         TryCencelTestPlaySound();
     }
 
-    private readonly SoundSelectionItemViewModel[] _soundSelectionItems =
-        new[]
-        {
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts } },
-            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x }),
-        }
-        .SelectMany(x => x)
-        .ToArray();
+    private readonly SoundSelectionItemViewModel[] _soundSelectionItems;
 
     private readonly TimeSpan[] _snoozeTimes = new TimeSpan[]
         {
@@ -226,6 +230,10 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         {
             return IsValidInput(TextBox_Tts.Text);
         }
+        else if (selectedSoundItem.SoundSourceType == SoundSourceType.AudioFile)
+        {
+            return true;
+        }
         else { throw new NotSupportedException(selectedSoundItem.SoundSourceType.ToString()); }
     }
 
@@ -276,6 +284,10 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
             {
                 _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
             }
+        }
+        else if (soundSourceType == SoundSourceType.AudioFile)
+        {
+            _ = meseenger.Send(new PlayAudioRequestMessage(soundContent, ct));
         }
     }
 

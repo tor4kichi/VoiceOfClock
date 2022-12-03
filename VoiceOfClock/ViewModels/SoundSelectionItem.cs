@@ -15,19 +15,8 @@ namespace VoiceOfClock.ViewModels
         public SoundSourceType SoundSourceType { get; init; }
 
         [ObservableProperty]
-        private string _soundContent = string.Empty;
+        private string _soundContent = string.Empty;        
 
-
-        public override string ToString()
-        {
-            if (SoundSourceType == SoundSourceType.System)
-            {
-                return _soundContent;
-            }
-            else
-            {
-                return SoundSourceType.Translate();
-            }
-        }
+        public string? Label { get; init; }
     }
 }
