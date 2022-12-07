@@ -19,9 +19,8 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Contract.Services;
 using VoiceOfClock.Models.Domain;
-using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -52,14 +51,11 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         Loaded += AlarmTimerEditDialog_Loaded;
         Closing += AlarmTimerEditDialog_Closing;
 
-        _soundSelectionItems = new[]
-        {
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts, Label = SoundSourceType.Tts.Translate() } },
-            Ioc.Default.GetRequiredService<AudioSoundSourceRepository>().ReadAllItems().Select(x => new SoundSelectionItemViewModel {SoundSourceType = SoundSourceType.AudioFile,  SoundContent = x.Id.ToString(), Label = !string.IsNullOrWhiteSpace(x.Title) ? x.Title : Path.GetFileNameWithoutExtension(x.FilePath) }),
-            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x, Label = x }),            
-        }
-        .SelectMany(x => x)
-        .ToArray();
+        _soundContentPlayerService = Ioc.Default.GetRequiredService<ISoundContentPlayerService>();
+        _soundSelectionItems = _soundContentPlayerService
+            .GetAllSoundContents()
+            .Select(x => new SoundSelectionItemViewModel { SoundSourceType = x.SoundSourceType, Label = x.Label, SoundContent = x.SoundParameter })
+            .ToArray();
     }
 
     private void AlarmTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
@@ -67,6 +63,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         TryCencelTestPlaySound();
     }
 
+    private readonly ISoundContentPlayerService _soundContentPlayerService;
     private readonly SoundSelectionItemViewModel[] _soundSelectionItems;
 
     private readonly TimeSpan[] _snoozeTimes = new TimeSpan[]
@@ -250,7 +247,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     CancellationTokenSource? _testPlaySoundCanceller;
 
     [RelayCommand]
-    void TestPlaySound()
+    async Task TestPlaySound()
     {
         if (_testPlaySoundCanceller is not null)
         {
@@ -263,32 +260,8 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         CancellationToken ct = cts.Token;
 
         (SoundSourceType soundSourceType, string soundContent) = GetSoundParameter();
-        IMessenger meseenger = Ioc.Default.GetRequiredService<IMessenger>();
-        if (soundSourceType == SoundSourceType.System)
-        {
-            if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
-            {
-                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.Tts)
-        {
-            if (!string.IsNullOrWhiteSpace(soundContent))
-            {
-                _ = meseenger.Send(new TextPlayVoiceRequest(soundContent, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.TtsWithSSML)
-        {
-            if (!string.IsNullOrWhiteSpace(soundContent))
-            {
-                _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.AudioFile)
-        {
-            _ = meseenger.Send(new PlayAudioRequestMessage(soundContent, ct));
-        }
+
+        await _soundContentPlayerService.PlaySoundContentAsync(soundSourceType, soundContent, ct);
     }
 
     void TryCencelTestPlaySound()

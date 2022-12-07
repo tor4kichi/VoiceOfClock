@@ -11,5 +11,6 @@ public enum SoundSourceType
     System,
     Tts,
     TtsWithSSML,
-    AudioFile,
+    DateTimeToSpeech,
+    AudioFile,    
 }

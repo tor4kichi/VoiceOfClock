@@ -1,20 +1,17 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using CommunityToolkit.WinUI;
-using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Media;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Models.Domain;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
-namespace VoiceOfClock.UseCases;
+namespace VoiceOfClock.Services.SoundPlayer;
+
 
 
 public enum WindowsNotificationSoundType
@@ -45,6 +42,49 @@ public enum WindowsNotificationSoundType
     Looping_Call9,
     Looping_Call10,
 }
+
+
+public sealed class SystemSoundPlayer : ISoundPlayer
+{
+    public SystemSoundPlayer()
+    {
+    }
+
+    IEnumerable<SoundSourceToken> ISoundPlayer.GetSoundSources()
+    {
+        return Enum.GetNames<WindowsNotificationSoundType>()
+            .Select(x => new SoundSourceToken(x, SoundSourceType.System, x));            
+    }
+
+    SoundSourceType[] ISoundPlayer.SupportedSourceTypes { get; } = new[] { SoundSourceType.System };
+
+    async Task ISoundPlayer.PlayAsync(MediaPlayer mediaPlayer, SoundSourceType soundSourceType, string soundParameter, CancellationToken cancellationToken)
+    {
+        if (Enum.TryParse(soundParameter, out WindowsNotificationSoundType soundType) is false)
+        {
+            throw new InvalidOperationException();
+        }
+
+        await PlayAsync(mediaPlayer, soundType, cancellationToken);
+    }
+
+    public async Task PlayAsync(MediaPlayer mediaPlayer, WindowsNotificationSoundType soundType, CancellationToken cancellationToken = default)
+    {
+        try
+        {            
+            using var mediaSource = MediaSource.CreateFromUri(new Uri(soundType.ToMsWinSoundEventUri()));
+            await mediaPlayer.PlayAsync(mediaSource, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.WriteLine("SystemSoundPlayer.PlayAsync() was cancelled.");
+        }
+    }
+}
+
+
+
+
 
 public static class SystemSoundConstants
 {
@@ -83,7 +123,7 @@ public static class SystemSoundConstants
         {
             WindowsNotificationSoundType.Default => Default,
             WindowsNotificationSoundType.IM => IM,
-            WindowsNotificationSoundType.Mail => Mail ,
+            WindowsNotificationSoundType.Mail => Mail,
             WindowsNotificationSoundType.Reminder => Reminder,
             WindowsNotificationSoundType.SMS => SMS,
             WindowsNotificationSoundType.Looping_Alarm => Looping_Alarm,
@@ -184,135 +224,4 @@ public static class SystemSoundConstants
 }
 
 
-public sealed class SystemSoundPlayer : ObservableRecipient
-    , IRecipient<PlaySystemSoundRequest>
-    , IApplicationLifeCycleAware
-{
-    private readonly MediaPlayer _mediaPlayler;
-    private readonly DispatcherQueue _dispatcherQueue;
 
-    public SystemSoundPlayer(IMessenger messenger)
-        : base(messenger)
-    {
-        _mediaPlayler = new()
-        {
-            AutoPlay = true
-        };
-        _mediaPlayler.SourceChanged += OnMediaPlaylerSourceChanged;
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-    }
-
-
-    IDisposable? _prevMediaSource;
-    private void OnMediaPlaylerSourceChanged(MediaPlayer sender, object args)
-    {
-        if (_prevMediaSource != null)
-        {
-            _prevMediaSource.Dispose();
-            _prevMediaSource = null;
-        }
-        
-        _prevMediaSource = sender.Source as IDisposable;
-    }
-
-    void IRecipient<PlaySystemSoundRequest>.Receive(PlaySystemSoundRequest message)
-    {
-        message.Reply(_dispatcherQueue.EnqueueAsync(async () => 
-        {
-            var tcs = new TaskCompletionSource();
-
-            if (message.CancellationToken != default)
-            {
-                message.CancellationToken.Register(() => 
-                {
-                    tcs!.TrySetCanceled();
-                    _mediaPlayler.Pause();
-                    _mediaPlayler.Source = null;
-                });
-            }
-
-            void _mediaPlayler_MediaEnded(MediaPlayer sender, object args)
-            {
-                tcs.TrySetResult();
-            }
-
-            void _mediaPlayler_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
-            {
-                tcs.SetException(args.ExtendedErrorCode);
-            }
-
-            _mediaPlayler.MediaEnded += _mediaPlayler_MediaEnded;
-            _mediaPlayler.MediaFailed += _mediaPlayler_MediaFailed;
-            try
-            {
-                _mediaPlayler.Source = MediaSource.CreateFromUri(message.AudioSourceUri);
-
-                await tcs.Task;
-                return new PlaySystemSoundResult()
-                {
-                    IsCompleted = true
-                };
-            }
-            catch
-            {
-                return new PlaySystemSoundResult()
-                {
-                    IsFailed = true
-                };
-            }
-            finally
-            {
-                _mediaPlayler.MediaEnded -= _mediaPlayler_MediaEnded;
-                _mediaPlayler.MediaFailed -= _mediaPlayler_MediaFailed;
-            }
-        }));
-    }
-
-    void IApplicationLifeCycleAware.Initialize()
-    {
-        this.IsActive = true;
-    }
-
-    void IApplicationLifeCycleAware.Suspending()
-    {
-        
-    }
-
-    void IApplicationLifeCycleAware.Resuming()
-    {
-        
-    }
-}
-
-
-// https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/custom-audio-on-toasts
-
-public sealed class PlaySystemSoundRequest : AsyncRequestMessage<PlaySystemSoundResult>
-{
-    public PlaySystemSoundRequest(WindowsNotificationSoundType soundType, CancellationToken ct = default)
-    {
-        AudioSourceUri = new Uri(soundType.ToMsWinSoundEventUri(), UriKind.RelativeOrAbsolute);
-        CancellationToken = ct;
-    }
-
-    public PlaySystemSoundRequest(string audioSourceUri, CancellationToken ct = default)
-    {
-        AudioSourceUri = new Uri(audioSourceUri, UriKind.RelativeOrAbsolute);
-        CancellationToken = ct;
-    }
-
-    public PlaySystemSoundRequest(Uri audioSourceUri, CancellationToken ct = default)
-    {
-        AudioSourceUri = audioSourceUri;
-        CancellationToken = ct;
-    }
-
-    public Uri AudioSourceUri { get; }
-    public CancellationToken CancellationToken { get; }
-}
-
-public sealed class PlaySystemSoundResult
-{
-    public bool IsCompleted { get; init; }
-    public bool IsFailed { get; init; }
-}

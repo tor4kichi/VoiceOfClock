@@ -3,7 +3,7 @@ using Microsoft.Toolkit.Uwp.Notifications;
 using VoiceOfClock.Models.Domain;
 using Windows.Foundation.Collections;
 
-namespace VoiceOfClock.UseCases;
+namespace VoiceOfClock.Contract.UseCases;
 
 public interface IToastActivationAware
 {

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.UseCases
+namespace VoiceOfClock.Contract.UseCases;
+
+public interface IRunningTimer
 {
-    public interface IRunningTimer
-    {
-        string Title { get; }
-    }
+    string Title { get; }
 }

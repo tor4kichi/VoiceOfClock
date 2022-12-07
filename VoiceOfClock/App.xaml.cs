@@ -24,8 +24,10 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.Services;
+using VoiceOfClock.Services.SoundPlayer;
 using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Views;
@@ -100,17 +102,12 @@ public partial class App : Application
         container.Register<PeriodicTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<OneShotTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<AlarmTimerLifetimeManager>(reuse: new SingletonReuse());
-        container.Register<SystemSoundPlayer>(reuse: new SingletonReuse());
-        container.Register<VoicePlayer>(reuse: new SingletonReuse());
-        container.Register<AudioSoundSourcePlayer>(reuse: new SingletonReuse());        
-        container.Register<StoreLisenceService>(reuse: new SingletonReuse());
+        container.Register<IStoreLisenceService, StoreLisenceService >(reuse: new SingletonReuse());
+        container.Register<ISoundContentPlayerService, SoundContentPlayerService>(reuse: new SingletonReuse());
 
         container.RegisterMapping<IApplicationLifeCycleAware, PeriodicTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        container.RegisterMapping<IApplicationLifeCycleAware, VoicePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        container.RegisterMapping<IApplicationLifeCycleAware, SystemSoundPlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        container.RegisterMapping<IApplicationLifeCycleAware, AudioSoundSourcePlayer>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
         container.RegisterMapping<IToastActivationAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IToastActivationAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
@@ -128,7 +125,7 @@ public partial class App : Application
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
         container.Register<IAlarmTimerDialogService, AlarmTimerEditDialogService>();
         container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();
-        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();
+        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();        
     }    
 
     /// <summary>

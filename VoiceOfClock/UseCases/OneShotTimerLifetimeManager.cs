@@ -11,10 +11,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Services.SoundPlayer;
 using Windows.Foundation.Collections;
 using Windows.UI.Notifications;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace VoiceOfClock.UseCases;
 
@@ -24,23 +26,24 @@ static class OneShotTimerConstants
     public const int UpdateFPS = 6;
 }
 
-public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
+public sealed class OneShotTimerLifetimeManager 
+    : IApplicationLifeCycleAware
     , IRecipient<ActiveTimerCollectionRequestMessage>
     , IToastActivationAware
 {
     private readonly DispatcherQueue _dispatcherQueue;
-    private readonly IMessenger _messenger;
+    private readonly ISoundContentPlayerService _soundContentPlayerService;
     private readonly OneShotTimerRepository _oneShotTimerRepository;
     private readonly OneShotTimerRunningRepository _oneShotTimerRunningRepository;
 
     public OneShotTimerLifetimeManager(
-        IMessenger messenger,
+        ISoundContentPlayerService soundContentPlayerService,
         OneShotTimerRepository oneShotTimerRepository,
         OneShotTimerRunningRepository oneShotTimerRunningRepository
         )
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        _messenger = messenger;
+        _soundContentPlayerService = soundContentPlayerService;
         _oneShotTimerRepository = oneShotTimerRepository;
         _oneShotTimerRunningRepository = oneShotTimerRunningRepository;        
         _timers = new ObservableCollection<OneShotTimerRunningInfo>();
@@ -52,12 +55,10 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
 
     void IApplicationLifeCycleAware.Initialize()
     {
-        _messenger.RegisterAll(this);
-
         var timers = _oneShotTimerRepository.ReadAllItems().OrderBy(x => x.Order);
         foreach (var timer in timers)
         {
-            var info = new OneShotTimerRunningInfo(timer, _oneShotTimerRepository, _oneShotTimerRunningRepository, _messenger);
+            var info = new OneShotTimerRunningInfo(timer, _oneShotTimerRepository, _oneShotTimerRunningRepository);
             _timers.Add(info);
             info.OnTimesUp += RunningInfo_OnTimesUp;
         }
@@ -99,7 +100,7 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             SoundParameter = soundParameter,
             Order = int.MaxValue,            
         });
-        var runningInfo = new OneShotTimerRunningInfo(entity, _oneShotTimerRepository, _oneShotTimerRunningRepository, _messenger);
+        var runningInfo = new OneShotTimerRunningInfo(entity, _oneShotTimerRepository, _oneShotTimerRunningRepository);
         _timers.Add(runningInfo);
         runningInfo.OnTimesUp += RunningInfo_OnTimesUp;
 
@@ -128,6 +129,12 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
 
     private void RunningInfo_OnTimesUp(object? sender, OneShotTimerRunningInfo runningInfo)
     {
+        ShowOneShotTimerToastNotification(runningInfo);
+        PlayTimerSound(runningInfo);
+    }
+
+    private async void PlayTimerSound(OneShotTimerRunningInfo runningInfo)
+    {
         if (_playCancelMap.Remove(runningInfo.EntityId, out var oldCts))
         {
             oldCts.Cancel();
@@ -136,88 +143,22 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
         CancellationTokenSource cts = new CancellationTokenSource();
         _playCancelMap.Add(runningInfo.EntityId, cts);
         CancellationToken ct = cts.Token;
-        if (runningInfo.SoundSourceType == SoundSourceType.System)
-        {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    await _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.Parameter), ct));
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo.EntityId);
-                    cts.Dispose();
-                }
-            });            
-        }
-        else if (runningInfo.SoundSourceType == SoundSourceType.Tts)
-        {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
 
-                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
-                    {
-                        if (i != 0)
-                        {
-                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
-                        }
-
-                        await _messenger.Send(new TextPlayVoiceRequest(runningInfo.Parameter, ct));
-                    }
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo.EntityId);
-                    cts.Dispose();
-                }
-            });
-        }
-        else if (runningInfo.SoundSourceType == SoundSourceType.TtsWithSSML)
+        try
         {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
-                    {
-                        if (i != 0)
-                        {
-                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
-                        }
+            await _soundContentPlayerService.PlaySoundContentAsync(runningInfo.SoundSourceType, runningInfo.Parameter, cancellationToken: ct);
 
-                        await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.Parameter, ct));
-                    }
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo.EntityId);
-                    cts.Dispose();
-                }                
-            });
         }
-        else if (runningInfo.SoundSourceType == SoundSourceType.AudioFile)
+        catch (OperationCanceledException) { }
+        finally
         {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    await _messenger.Send(new PlayAudioRequestMessage(runningInfo.Parameter, ct));
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo._entity.Id);
-                    cts.Dispose();
-                }
-            });
+            _playCancelMap.Remove(runningInfo.EntityId);
+            cts.Dispose();
         }
+    }
 
+    private static void ShowOneShotTimerToastNotification(OneShotTimerRunningInfo runningInfo)
+    {
         var args = new ToastArguments()
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_OneShot },
@@ -231,12 +172,12 @@ public sealed class OneShotTimerLifetimeManager : IApplicationLifeCycleAware
             tcb.AddArgument(arg.Key, arg.Value);
         }
 
-        tcb.AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)            
+        tcb.AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
             .AddText("OneShotTimer_ToastNotificationTitle".Translate())
             .AddAttributionText($"{runningInfo.Title}\n{"Time_Elapsed".Translate(runningInfo.Time.TranslateTimeSpan())}")
             .SetToastScenario(ToastScenario.Reminder)
             .AddButton("Close".Translate(), ToastActivationType.Background, args.ToString())
-            .Show();        
+            .Show();
     }
 
     bool IToastActivationAware.ProcessToastActivation(ToastArguments args, ValueSet props)

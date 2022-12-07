@@ -23,8 +23,7 @@ using Microsoft.UI;
 using DependencyPropertyGenerator;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Threading;
-using VoiceOfClock.Core.Domain;
-using I18NPortable;
+using VoiceOfClock.Contract.Services;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -56,14 +55,11 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         Loaded += OneShotTimerEditDialog_Loaded;
         Closing += OneShotTimerEditDialog_Closing;
 
-        _soundSelectionItems = new[]
-        {
-            new [] { new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.Tts, Label = SoundSourceType.Tts.Translate() } },
-            Ioc.Default.GetRequiredService<AudioSoundSourceRepository>().ReadAllItems().Select(x => new SoundSelectionItemViewModel {SoundSourceType = SoundSourceType.AudioFile,  SoundContent = x.Id.ToString(), Label = !string.IsNullOrWhiteSpace(x.Title) ? x.Title : Path.GetFileNameWithoutExtension(x.FilePath) }),
-            Enum.GetNames<WindowsNotificationSoundType>().Select(x => new SoundSelectionItemViewModel { SoundSourceType = SoundSourceType.System, SoundContent = x, Label = x }),
-        }
-        .SelectMany(x => x)
-        .ToArray();
+        _soundContentPlayerService = Ioc.Default.GetRequiredService<ISoundContentPlayerService>();
+        _soundSelectionItems = _soundContentPlayerService
+            .GetAllSoundContents()
+            .Select(x => new SoundSelectionItemViewModel { SoundSourceType = x.SoundSourceType, Label = x.Label, SoundContent = x.SoundParameter })
+            .ToArray();
     }
 
     private void OneShotTimerEditDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)
@@ -72,7 +68,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     }
 
     private SoundSelectionItemViewModel? _firstSelectedsoundSelectionItem;
-
+    private readonly ISoundContentPlayerService _soundContentPlayerService;
     private readonly SoundSelectionItemViewModel[] _soundSelectionItems;
        
 
@@ -199,7 +195,7 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     CancellationTokenSource? _testPlaySoundCanceller;
     
     [RelayCommand]
-    void TestPlaySound()
+    async Task TestPlaySound()
     {
         if (_testPlaySoundCanceller is not null)
         {
@@ -211,33 +207,8 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
         CancellationTokenSource cts = _testPlaySoundCanceller;
         CancellationToken ct = cts.Token;
         
-        var meseenger = Ioc.Default.GetRequiredService<IMessenger>();
         var (soundSourceType, soundContent) = GetSoundParameter();
-        if (soundSourceType == SoundSourceType.System)
-        {
-            if (Enum.TryParse<WindowsNotificationSoundType>(soundContent, out var notificationSoundType))
-            {
-                _ = meseenger.Send(new PlaySystemSoundRequest(notificationSoundType, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.Tts)
-        {
-            if (!string.IsNullOrWhiteSpace(soundContent))
-            {
-                _ = meseenger.Send(new TextPlayVoiceRequest(soundContent, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.TtsWithSSML)
-        {
-            if (!string.IsNullOrWhiteSpace(soundContent))
-            {
-                _ = meseenger.Send(new SsmlPlayVoiceRequest(soundContent, ct));
-            }
-        }
-        else if (soundSourceType == SoundSourceType.AudioFile)
-        {
-            _ = meseenger.Send(new PlayAudioRequestMessage(soundContent, ct));
-        }
+        await _soundContentPlayerService.PlaySoundContentAsync(soundSourceType, soundContent, ct);
     }
 
     void TryCencelTestPlaySound()

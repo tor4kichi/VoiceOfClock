@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Models.Domain;
 using VoiceOfClock.Services;
+using VoiceOfClock.Services.SoundPlayer;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;

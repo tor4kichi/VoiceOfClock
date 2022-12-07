@@ -7,18 +7,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
 using Windows.Services.Store;
 using Windows.UI;
 using WinRT.Interop;
 
 namespace VoiceOfClock.Services;
 
-public interface ILisencePurchaseDialogService
-{
-    Task<bool> ShowPurchaseMainProductConfirmDialogAsync(string dialogTitle);
-}
-
-public sealed class StoreLisenceService
+public sealed class StoreLisenceService : IStoreLisenceService
 {
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly StoreContext _context;
@@ -26,10 +22,10 @@ public sealed class StoreLisenceService
 
     public StoreLisenceService(
         ILisencePurchaseDialogService lisencePurchaseConfirmDialogService
-        ) 
+        )
     {
         _isActive = new ReactiveProperty<bool>();
-        IsActive = _isActive.ToReadOnlyReactiveProperty();        
+        IsActive = _isActive.ToReadOnlyReactiveProperty();
         _isTrial = new ReactiveProperty<bool>();
         IsTrial = _isTrial.ToReadOnlyReactiveProperty();
         _nowUpdating = new ReactiveProperty<bool>();

@@ -13,8 +13,9 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
-using VoiceOfClock.Models.Services;
 
 namespace VoiceOfClock.UseCases;
 
@@ -22,6 +23,7 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
     , IRecipient<ActiveTimerCollectionRequestMessage>
 {
     private readonly IMessenger _messenger;
+    private readonly ISoundContentPlayerService _soundContentPlayerService;
     private readonly PeriodicTimerRepository _periodicTimerRepository;
     private readonly ObservableCollection<PeriodicTimerRunningInfo> _timers;
     private readonly DispatcherQueueTimer _timer;
@@ -30,10 +32,12 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
     public PeriodicTimerRunningInfo InstantPeriodicTimer { get; }
 
     public PeriodicTimerLifetimeManager(IMessenger messenger,
+        ISoundContentPlayerService soundContentPlayerService,
         PeriodicTimerRepository periodicTimerRepository
         )
     {
         _messenger = messenger;
+        _soundContentPlayerService = soundContentPlayerService;
         _periodicTimerRepository = periodicTimerRepository;
         _timers = new ObservableCollection<PeriodicTimerRunningInfo>(_periodicTimerRepository.ReadAllItems().OrderBy(x => x.Order).Select(x => new PeriodicTimerRunningInfo(x, _periodicTimerRepository)));
         Timers = new(_timers);
@@ -91,7 +95,6 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
                         Debug.WriteLine($"ピリオドダイマー： {timer.Title} を開始");
                         
                         timer.IncrementNextTime();
-                        //_messenger.Send(new PeriodicTimerUpdated(timer._entity));
                     }
                     else if (timer.NextTime.TimeOfDay == timer.EndTime)
                     {
@@ -99,7 +102,6 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
                         Debug.WriteLine($"ピリオドダイマー： {timer.Title} が完了");
                         
                         timer.OnEnded();
-                        _messenger.Send(new PeriodicTimerUpdated(timer._entity));
                     }
                     else
                     {
@@ -107,7 +109,6 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
                         Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
 
                         timer.IncrementNextTime();
-                        //_messenger.Send(new PeriodicTimerUpdated(timer._entity));
                     }
                 }
 
@@ -119,9 +120,9 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
         //Debug.WriteLine(_lastTickTime.TimeOfDay);
     }
 
-    async Task SendCurrentTimeVoiceAsync(DateTime time)
+    Task SendCurrentTimeVoiceAsync(DateTime time)
     {
-        var result = await _messenger.Send(new TimeOfDayPlayVoiceRequest(time));            
+        return _soundContentPlayerService.PlayTimeOfDayAsync(time);
     }
 
     IEnumerable<PeriodicTimerRunningInfo> GetInsideEnablingTimeTimers()
@@ -193,9 +194,3 @@ public sealed class PeriodicTimerLifetimeManager : IApplicationLifeCycleAware
 
 }
 
-public sealed class PeriodicTimerUpdated : ValueChangedMessage<PeriodicTimerEntity>
-{
-    public PeriodicTimerUpdated(PeriodicTimerEntity value) : base(value)
-    {
-    }
-}

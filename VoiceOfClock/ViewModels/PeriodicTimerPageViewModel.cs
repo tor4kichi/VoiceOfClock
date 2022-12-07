@@ -34,8 +34,7 @@ public sealed class PeriodicTimerDialogResult
 
 // ページを開いていなくても時刻読み上げは動作し続けることを前提に
 // ページの表示状態を管理する
-public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
-    IRecipient<PeriodicTimerUpdated>
+public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
 {
     private readonly IPeriodicTimerDialogService _dialogService;
     private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
@@ -228,12 +227,5 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient,
         {
             return "ElapsedTime_Seconds".Translate(timeSpan.Seconds);
         }            
-    }
-
-    void IRecipient<PeriodicTimerUpdated>.Receive(PeriodicTimerUpdated message)
-    {
-        if (Timers is null) { return; }
-
-        Timers.FirstOrDefault(x => x.PeriodicTimerRunningInfo._entity.Id == message.Value.Id)?.RefrectValue();
     }
 }

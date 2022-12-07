@@ -13,32 +13,33 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
-using VoiceOfClock.Services;
+using VoiceOfClock.Services.SoundPlayer;
 using Windows.Foundation.Collections;
 
 namespace VoiceOfClock.UseCases;
 
-public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAware, IToastActivationAware
+public sealed partial class AlarmTimerLifetimeManager 
+    : IApplicationLifeCycleAware
+    , IToastActivationAware
 {
-    private readonly DispatcherQueue _dispatcherQueue;
-    private readonly IMessenger _messenger;
+    private readonly DispatcherQueue _dispatcherQueue;    
+    private readonly ISoundContentPlayerService _soundContentPlayerService;
     private readonly AlarmTimerRepository _alarmTimerRepository;
-    private readonly StoreLisenceService _storeLisenceService;
-
+    
     private readonly ObservableCollection<AlarmTimerRunningInfo> _timers;
     public ReadOnlyObservableCollection<AlarmTimerRunningInfo> Timers { get; }
 
-    public AlarmTimerLifetimeManager(
-        IMessenger messenger
+    public AlarmTimerLifetimeManager(        
+        ISoundContentPlayerService soundContentPlayerService       
         , AlarmTimerRepository alarmTimerRepository
-        , StoreLisenceService storeLisenceService
         )
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        _messenger = messenger;
-        _alarmTimerRepository = alarmTimerRepository;
-        _storeLisenceService = storeLisenceService;
+        _soundContentPlayerService = soundContentPlayerService;
+        _alarmTimerRepository = alarmTimerRepository;        
         _timers = new ObservableCollection<AlarmTimerRunningInfo>(_alarmTimerRepository.ReadAllItems().Select(ToRunningInfo));
         Timers = new(_timers);
     }
@@ -50,93 +51,31 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
 
     private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
 
-    void OnAlarmTrigger(AlarmTimerRunningInfo runningInfo)
+    async void OnAlarmTrigger(AlarmTimerRunningInfo runningInfo)
+    {
+        ShowAlarmToastNotification(runningInfo);
+        PlayTimerSound(runningInfo);
+    }
+
+    private async void PlayTimerSound(AlarmTimerRunningInfo runningInfo)
     {
         CancellationTokenSource cts = new CancellationTokenSource();
         _playCancelMap.Add(runningInfo._entity.Id, cts);
         CancellationToken ct = cts.Token;
-        if (runningInfo.SoundSourceType == SoundSourceType.System)
+        try
         {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    await _messenger.Send(new PlaySystemSoundRequest(Enum.Parse<WindowsNotificationSoundType>(runningInfo.SoundContent), ct));
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo._entity.Id);
-                    cts.Dispose();
-                }
-            });
+            await _soundContentPlayerService.PlaySoundContentAsync(runningInfo.SoundSourceType, runningInfo.SoundContent, cancellationToken: ct);
         }
-        else if (runningInfo.SoundSourceType == SoundSourceType.Tts)
+        catch (OperationCanceledException) { }
+        finally
         {
-            _dispatcherQueue.TryEnqueue(async () => 
-            {
-                try
-                {
-
-                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
-                    {
-                        if (i != 0)
-                        {
-                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
-                        }
-
-                        await _messenger.Send(new TextPlayVoiceRequest(runningInfo.SoundContent, ct));
-                    }
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo._entity.Id);
-                    cts.Dispose();
-                }
-            });            
+            _playCancelMap.Remove(runningInfo._entity.Id);
+            cts.Dispose();
         }
-        else if (runningInfo.SoundSourceType == SoundSourceType.TtsWithSSML)
-        {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    foreach (var i in Enumerable.Range(0, TimersToastNotificationConstants.VoiceNotificationRepeatCount))
-                    {
-                        if (i != 0)
-                        {
-                            await Task.Delay(TimersToastNotificationConstants.VoiceNotificationRepeatInterval, ct);
-                        }
+    }
 
-                        await _messenger.Send(new SsmlPlayVoiceRequest(runningInfo.SoundContent, ct));
-                    }
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo._entity.Id);
-                    cts.Dispose();
-                }
-            });
-        }
-        else if (runningInfo.SoundSourceType == SoundSourceType.AudioFile)
-        {
-            _dispatcherQueue.TryEnqueue(async () =>
-            {
-                try
-                {
-                    await _messenger.Send(new PlayAudioRequestMessage(runningInfo.SoundContent, ct));
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _playCancelMap.Remove(runningInfo._entity.Id);
-                    cts.Dispose();
-                }
-            });
-        }
-
+    private static void ShowAlarmToastNotification(AlarmTimerRunningInfo runningInfo)
+    {
         var stopToastArgs = new ToastArguments()
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_Alarm },
@@ -160,7 +99,7 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
             }
 
             string defaultSelectComboBoxId = runningInfo.Snooze.Value.ToString();
-            tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())                
+            tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
                 .AddAttributionText($"{runningInfo.Title}\n{runningInfo.TargetTime.ToShortTimeString()}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
                 .AddComboBox(
                     TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id
@@ -189,7 +128,6 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
             tcb.Show();
         }
     }
-
 
     public bool ProcessToastActivation(ToastArguments args, ValueSet props)
     {
@@ -229,8 +167,6 @@ public sealed partial class AlarmTimerLifetimeManager : IApplicationLifeCycleAwa
 
     void IApplicationLifeCycleAware.Initialize()
     {
-        _messenger.RegisterAll(this);
-
         if (SystemInformation.Instance.IsFirstRun)
         {
             CreateAlarmTimer("AlarmTimer_TemporaryTitle".Translate(1), TimeOnly.FromTimeSpan(TimeSpan.FromHours(9)), Enum.GetValues<DayOfWeek>(), null, SoundSourceType.System, WindowsNotificationSoundType.Reminder.ToString(), isEnabled: false);

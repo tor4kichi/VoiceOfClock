@@ -21,8 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
-using VoiceOfClock.Services;
 using VoiceOfClock.UseCases;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -38,7 +39,7 @@ namespace VoiceOfClock;
 /// </summary>
 public sealed partial class MainWindow : SystemBackdropWindow
 {
-    public StoreLisenceService StoreLisenceService { get; }
+    public IStoreLisenceService StoreLisenceService { get; }
 
     private readonly AppWindow _appWindow;
 
@@ -63,7 +64,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
             
         }
 
-        StoreLisenceService = Ioc.Default.GetRequiredService<StoreLisenceService>();
+        StoreLisenceService = Ioc.Default.GetRequiredService<IStoreLisenceService>();
         if (PurchaseItemsConstants.IsTrialLimitationEnabled)
         {
             StoreLisenceService.IsTrial.Throttle(TimeSpan.FromSeconds(1)).Subscribe(x =>

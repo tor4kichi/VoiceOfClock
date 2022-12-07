@@ -4,6 +4,7 @@ using I18NPortable;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.UI.Dispatching;
 using System;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
 
 namespace VoiceOfClock.UseCases;
@@ -14,18 +15,16 @@ public sealed partial class OneShotTimerRunningInfo : DeferUpdatable, IDisposabl
     internal OneShotTimerEntity _entity;
     private readonly OneShotTimerRepository _repository;
     private readonly OneShotTimerRunningRepository _oneShotTimerRunningRepository;
-    private readonly IMessenger _messenger;
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly OneShotTimerRunningEntity _oneShotTimerRunningEntity;
 
     private readonly DispatcherQueueTimer _timer;
 
-    public OneShotTimerRunningInfo(OneShotTimerEntity entity, OneShotTimerRepository repository, OneShotTimerRunningRepository oneShotTimerRunningRepository, IMessenger messenger, DispatcherQueue? dispatcherQueue = null)
+    public OneShotTimerRunningInfo(OneShotTimerEntity entity, OneShotTimerRepository repository, OneShotTimerRunningRepository oneShotTimerRunningRepository, DispatcherQueue? dispatcherQueue = null)
     {
         _entity = entity;
         _repository = repository;
         _oneShotTimerRunningRepository = oneShotTimerRunningRepository;
-        _messenger = messenger;
         _dispatcherQueue = dispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
         _timer = _dispatcherQueue.CreateTimer();
         _timer.Tick += OnTimerTick;

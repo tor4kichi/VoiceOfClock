@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using System;
 using System.Linq;
+using VoiceOfClock.Contract.UseCases;
 using VoiceOfClock.Models.Domain;
 
 namespace VoiceOfClock.UseCases;
