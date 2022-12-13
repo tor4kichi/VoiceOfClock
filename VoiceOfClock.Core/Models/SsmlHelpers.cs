@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Core.Domain
+namespace VoiceOfClock.Core.Models
 {
     // ref@ : https://www.asahi-net.or.jp/~ax2s-kmtn/ref/accessibility/REC-speech-synthesis11-20100907.html#S3.1.5
     public static class SsmlHelpers

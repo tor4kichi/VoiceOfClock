@@ -14,13 +14,12 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Contracts.UseCases;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Contracts.Models;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
-
-
 
 public sealed partial class OneShotTimerPageViewModel 
     : ObservableRecipient
@@ -38,24 +37,28 @@ public sealed partial class OneShotTimerPageViewModel
     private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
 
     public OneShotTimerPageViewModel(
-        OneShotTimerLifetimeManager oneShotTimerLifetimeManager
-        , IOneShotTimerDialogService oneShotTimerDialogService
+        IOneShotTimerDialogService oneShotTimerDialogService
         , IStoreLisenceService storeLisenceService
+        , OneShotTimerLifetimeManager oneShotTimerLifetimeManager
         )
     {
-        _oneShotTimerLifetimeManager = oneShotTimerLifetimeManager;
         _oneShotTimerDialogService = oneShotTimerDialogService;
         _storeLisenceService = storeLisenceService;
-        _timers = new ObservableCollection<OneShotTimerViewModel>(
-            _oneShotTimerLifetimeManager.GetOneShotTimers()
-            .OrderBy(x => x.Order)
-            .Select(x => new OneShotTimerViewModel(x, _oneShotTimerLifetimeManager, Messenger, DeleteTimer))
-            );
-        Timers = new(_timers);
-
+        _oneShotTimerLifetimeManager = oneShotTimerLifetimeManager;
         _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _timer.Tick += OnTimerTick;
         _timer.Interval = TimeSpan.FromSeconds(1d / 6);
+        _timers = new ObservableCollection<OneShotTimerViewModel>(
+            _oneShotTimerLifetimeManager.GetOneShotTimers()
+            .OrderBy(x => x.Order)
+            .Select(ToTimerViewModel)
+            );
+        Timers = new(_timers);
+    }
+
+    private OneShotTimerViewModel ToTimerViewModel(OneShotTimerEntity entity)
+    {
+        return new OneShotTimerViewModel(entity, _oneShotTimerLifetimeManager, Messenger, DeleteTimerCommand);
     }
 
     protected override void OnActivated()
@@ -124,7 +127,7 @@ public sealed partial class OneShotTimerPageViewModel
         if (result.IsConfirmed)
         {
             var newEntity = _oneShotTimerLifetimeManager.CreateTimer(result.Title, result.Time, result.SoundSourceType, result.SoundParameter);
-            _timers.Add(new OneShotTimerViewModel(newEntity, _oneShotTimerLifetimeManager, Messenger, DeleteTimer));
+            _timers.Add(ToTimerViewModel(newEntity));
         }
     }
 
@@ -152,7 +155,7 @@ public sealed partial class OneShotTimerPageViewModel
     }
 
     [RelayCommand]
-    async void DeleteTimer(OneShotTimerViewModel timerVM)
+    async Task DeleteTimer(OneShotTimerViewModel timerVM)
     {
         await _oneShotTimerLifetimeManager.DeleteTimer(timerVM.Entity);
         _timers.Remove(timerVM);

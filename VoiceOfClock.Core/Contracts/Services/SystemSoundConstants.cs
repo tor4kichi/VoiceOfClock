@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VoiceOfClock.Contracts.Services;
+namespace VoiceOfClock.Core.Contracts.Services;
 
 public static class SystemSoundConstants
 {

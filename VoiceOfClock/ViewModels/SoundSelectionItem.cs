@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 
 namespace VoiceOfClock.ViewModels
 {

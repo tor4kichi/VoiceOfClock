@@ -7,9 +7,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 
-namespace VoiceOfClock.UseCases
+namespace VoiceOfClock.Services.SoundPlayer
 {
     public sealed class TranslationProcesser 
     {

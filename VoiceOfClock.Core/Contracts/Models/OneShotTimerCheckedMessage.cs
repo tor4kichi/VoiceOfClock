@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models.Timers;
 
-namespace VoiceOfClock.Contracts.UseCases;
+namespace VoiceOfClock.Core.Contracts.Models;
 
 public sealed class OneShotTimerCheckedMessage : ValueChangedMessage<OneShotTimerEntity>
 {

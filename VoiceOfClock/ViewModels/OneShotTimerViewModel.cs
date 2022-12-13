@@ -1,15 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Reactive.Bindings.Extensions;
 using System;
 using System.Threading;
 using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
 
@@ -21,14 +19,14 @@ public sealed partial class OneShotTimerViewModel : IDisposable
     private readonly CompositeDisposable _disposables = new();
     private readonly OneShotTimerLifetimeManager _oneShotTimerLifetimeManager;
     private readonly IMessenger _messenger;
-    private readonly Action<OneShotTimerViewModel> _onDeleteAction;
+    public ICommand DeleteCommand { get; }
 
-    public OneShotTimerViewModel(OneShotTimerEntity entity, OneShotTimerLifetimeManager oneShotTimerLifetimeManager, IMessenger messenger, Action<OneShotTimerViewModel> onDeleteAction)
+    public OneShotTimerViewModel(OneShotTimerEntity entity, OneShotTimerLifetimeManager oneShotTimerLifetimeManager, IMessenger messenger, ICommand deleteCommand)
     {
         Entity = entity;
         _oneShotTimerLifetimeManager = oneShotTimerLifetimeManager;
         _messenger = messenger;
-        _onDeleteAction = onDeleteAction;
+        DeleteCommand = deleteCommand;
         _time = Entity.Time;
         _title = Entity.Title;        
         (_isTimerActive, _endTime, _remainingTime) = oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
@@ -179,12 +177,6 @@ public sealed partial class OneShotTimerViewModel : IDisposable
     //{
 
     //}
-
-    [RelayCommand]
-    void Delete()
-    {
-        _onDeleteAction(this);
-    }
 
     public void Dispose()
     {

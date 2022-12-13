@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
 

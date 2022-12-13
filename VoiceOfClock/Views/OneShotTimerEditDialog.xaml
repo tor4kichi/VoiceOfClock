@@ -14,7 +14,7 @@
   CloseButtonText="{i18n:Localize Key=Cancel}"
   PrimaryButtonStyle="{StaticResource ButtonWithSaveIconStyle}"  
   CloseButtonStyle="{StaticResource ButtonWithCancelIconStyle}"    
-  xmlns:models="using:VoiceOfClock.Core.Domain" 
+  xmlns:models="using:VoiceOfClock.Core.Models" 
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
   >
   <ScrollViewer>

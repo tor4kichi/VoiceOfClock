@@ -24,14 +24,14 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Contracts.UseCases;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 using VoiceOfClock.Core.Services;
 using VoiceOfClock.Services;
 using VoiceOfClock.Services.Dialogs;
 using VoiceOfClock.Services.SoundPlayer;
-using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -104,23 +104,27 @@ public partial class App : Application
         // Core.Services
         container.RegisterInstance<IStorageHelper>(new BytesApplicationDataStorageHelper(ApplicationData.Current, new BinaryJsonObjectSerializer()));
         container.Register<ITimeTriggerService, TimeTriggerService>(reuse: new SingletonReuse());
+        container.Register<ToastNotificationService>(reuse: new SingletonReuse());
 
         // UseCases
         container.Register<PeriodicTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<OneShotTimerLifetimeManager>(reuse: new SingletonReuse());
         container.Register<AlarmTimerLifetimeManager>(reuse: new SingletonReuse());
-        
+
         // Services
         container.Register<IStoreLisenceService, StoreLisenceService >(reuse: new SingletonReuse());
         container.Register<ISoundContentPlayerService, SoundContentPlayerService>(reuse: new SingletonReuse());
         container.Register<ISingleTimeTrigger, DispatcherQueueTimerTimeTrigger>(reuse: new SingletonReuse());
+        container.Register<ILocalizationService, LocalizationService>();
+        container.Register<AddSampleTimersOnFirstRunService>();
 
+        container.RegisterMapping<IApplicationLifeCycleAware, AddSampleTimersOnFirstRunService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, PeriodicTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
 
-        container.RegisterMapping<IToastActivationAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
-        container.RegisterMapping<IToastActivationAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IToastNotificationService, ToastNotificationService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IToastActivationAware, ToastNotificationService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         
         container.Register<SettingsPageViewModel>();
         container.Register<PeriodicTimerPageViewModel>();

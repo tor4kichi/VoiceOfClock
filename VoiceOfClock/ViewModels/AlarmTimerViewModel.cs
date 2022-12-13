@@ -2,13 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
 using Microsoft.UI.Dispatching;
-using Microsoft.VisualBasic;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Linq;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using System.Windows.Input;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
 
@@ -17,13 +17,13 @@ public sealed partial class AlarmTimerViewModel
 {
     public AlarmTimerEntity Entity { get; }
     private readonly AlarmTimerLifetimeManager _alarmTimerLifetimeManager;
-    private readonly Action<AlarmTimerViewModel> _onDeleteAction;    
+    public ICommand DeleteCommand { get; }  
 
-    public AlarmTimerViewModel(AlarmTimerEntity entity, DayOfWeek firstDayOfWeek, AlarmTimerLifetimeManager alarmTimerLifetimeManager, Action<AlarmTimerViewModel> onDeleteAction)
+    public AlarmTimerViewModel(AlarmTimerEntity entity, DayOfWeek firstDayOfWeek, AlarmTimerLifetimeManager alarmTimerLifetimeManager, ICommand deleteCommand)
     {
         Entity = entity;
         _alarmTimerLifetimeManager = alarmTimerLifetimeManager;
-        _onDeleteAction = onDeleteAction;
+        DeleteCommand = deleteCommand;
         _title = Entity.Title;
         _timeOfDay = Entity.TimeOfDay;
         _soundSourceType = Entity.SoundSourceType;
@@ -161,11 +161,5 @@ public sealed partial class AlarmTimerViewModel
         {
             return "IntervalTime_PerSeconds".Translate(timeSpan.Seconds);
         }
-    }
-
-    [RelayCommand]
-    public void Delete()
-    {
-        _onDeleteAction(this);
-    }
+    }    
 }

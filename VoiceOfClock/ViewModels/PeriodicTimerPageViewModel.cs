@@ -13,24 +13,22 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Contracts.UseCases;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
+using VoiceOfClock.Core.Contracts.Models;
 
 namespace VoiceOfClock.ViewModels;
 
-// ページを開いていなくても時刻読み上げは動作し続けることを前提に
-// ページの表示状態を管理する
 public sealed partial class PeriodicTimerPageViewModel 
     : ObservableRecipient
-    , IRecipient<UpdatePeriodicTimerMessage>
-    , IRecipient<ProgressPeriodPeriodicTimerMessage>
+    , IRecipient<PeriodicTimerUpdatedMessage>
+    , IRecipient<PeriodicTimerProgressPeriodMessage>
 {
-    private readonly DispatcherQueueTimer _dispatcherQueueTimer;
     private readonly IPeriodicTimerDialogService _dialogService;
-    private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
     private readonly IStoreLisenceService _storeLisenceService;
+    private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
     public TimerSettings TimerSettings { get; }
+    private readonly DispatcherQueueTimer _dispatcherQueueTimer;
     private readonly ObservableCollection<PeriodicTimerViewModel> _timers;
     public ReadOnlyObservableCollection<PeriodicTimerViewModel> Timers { get; }
     public PeriodicTimerViewModel InstantPeriodicTimer { get; }
@@ -43,21 +41,19 @@ public sealed partial class PeriodicTimerPageViewModel
     public PeriodicTimerPageViewModel(
         IMessenger messenger
         , IPeriodicTimerDialogService dialogService
+        , IStoreLisenceService storeLisenceService
         , PeriodicTimerLifetimeManager timerLifetimeManager
         , TimerSettings timerSettings
-        , IStoreLisenceService storeLisenceService
         )
         : base(messenger)
     {
-        _dispatcherQueueTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _dispatcherQueueTimer.Interval = TimeSpan.FromSeconds(PeriodicTimerUpdateFrequencyOnSeconds);
-        _dispatcherQueueTimer.IsRepeating = true;        
-
         _dialogService = dialogService;
+        _storeLisenceService = storeLisenceService;
         _timerLifetimeManager = timerLifetimeManager;
         TimerSettings = timerSettings;
-        _storeLisenceService = storeLisenceService;
-
+        _dispatcherQueueTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _dispatcherQueueTimer.Interval = TimeSpan.FromSeconds(PeriodicTimerUpdateFrequencyOnSeconds);
+        _dispatcherQueueTimer.IsRepeating = true;
         _timers = new ObservableCollection<PeriodicTimerViewModel>(_timerLifetimeManager.GetTimers().OrderBy(x => x.Order).Select(ToTimerViewModel));
         Timers = new(_timers);
         InstantPeriodicTimer = ToTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer);
@@ -95,7 +91,6 @@ public sealed partial class PeriodicTimerPageViewModel
         SomeTimerIsActive = null;        
     }
 
-
     private void OnTimerTick(DispatcherQueueTimer sender, object args)
     {
         if (InstantPeriodicTimer.IsEnabled)
@@ -112,7 +107,7 @@ public sealed partial class PeriodicTimerPageViewModel
         }
     }
 
-    void IRecipient<UpdatePeriodicTimerMessage>.Receive(UpdatePeriodicTimerMessage message)
+    void IRecipient<PeriodicTimerUpdatedMessage>.Receive(PeriodicTimerUpdatedMessage message)
     {
         var destEntity = message.Value;
         var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
@@ -136,7 +131,7 @@ public sealed partial class PeriodicTimerPageViewModel
         timerVM.CulcNextTime();
     }
 
-    void IRecipient<ProgressPeriodPeriodicTimerMessage>.Receive(ProgressPeriodPeriodicTimerMessage message)
+    void IRecipient<PeriodicTimerProgressPeriodMessage>.Receive(PeriodicTimerProgressPeriodMessage message)
     {
         var destEntity = message.Value;
         var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
@@ -214,7 +209,6 @@ public sealed partial class PeriodicTimerPageViewModel
         get => _nowEditting;
         private set => SetProperty(ref _nowEditting, value);
     }
-
 
     [RelayCommand]
     void DeleteToggle()

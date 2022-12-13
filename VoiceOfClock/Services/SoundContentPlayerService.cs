@@ -11,14 +11,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Media;
-using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Models;
 using VoiceOfClock.Services.SoundPlayer;
-using VoiceOfClock.UseCases;
-using Windows.Devices.Radios;
 using Windows.Media.Playback;
 using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 

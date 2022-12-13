@@ -1,9 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.WinUI.Helpers;
-using I18NPortable;
-using LiteDB;
-using Microsoft.Toolkit.Uwp.Notifications;
-using Microsoft.UI.Dispatching;
+﻿using CommunityToolkit.Diagnostics;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,24 +7,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Contracts.UseCases;
 using VoiceOfClock.Core.Contracts.Services;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.Services.SoundPlayer;
-using VoiceOfClock.ViewModels;
-using Windows.Foundation.Collections;
-using Windows.UI.Notifications;
+using VoiceOfClock.Core.Contracts.Models;
 
-namespace VoiceOfClock.UseCases;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class OneShotTimerLifetimeManager 
-    : IApplicationLifeCycleAware
+    : IApplicationLifeCycleAware   
     , IRecipient<ActiveTimerCollectionRequestMessage>
-    , IToastActivationAware     
+    , IRecipient<ToastNotificationActivatedMessage>
 { 
     private readonly ITimeTriggerService _timeTriggerService;
     private readonly ISoundContentPlayerService _soundContentPlayerService;
+    private readonly IToastNotificationService _toastNotificationService;
     private readonly OneShotTimerRepository _oneShotTimerRepository;
     private readonly OneShotTimerRunningRepository _oneShotTimerRunningRepository;
     private readonly IMessenger _messenger;
@@ -36,60 +27,74 @@ public sealed class OneShotTimerLifetimeManager
     private const string TimeTriggerGroupId = nameof(OneShotTimerLifetimeManager);
 
     public OneShotTimerLifetimeManager(
+        IMessenger messenger,
         ITimeTriggerService timeTriggerService,
         ISoundContentPlayerService soundContentPlayerService,
+        IToastNotificationService toastNotificationService,
         OneShotTimerRepository oneShotTimerRepository,
-        OneShotTimerRunningRepository oneShotTimerRunningRepository,
-        IMessenger messenger
+        OneShotTimerRunningRepository oneShotTimerRunningRepository        
         )
     {
+        _messenger = messenger;
         _timeTriggerService = timeTriggerService;
         _soundContentPlayerService = soundContentPlayerService;
+        _toastNotificationService = toastNotificationService;
         _oneShotTimerRepository = oneShotTimerRepository;
-        _oneShotTimerRunningRepository = oneShotTimerRunningRepository;
-        _messenger = messenger;
-        _timeTriggerService.TimeTriggered += _timeTriggerService_TimeTriggered;
+        _oneShotTimerRunningRepository = oneShotTimerRunningRepository;        
+        _timeTriggerService.TimeTriggered += OnTimeTriggered;        
     }
 
-    private void _timeTriggerService_TimeTriggered(object? sender, TimeTriggeredEventArgs e)
+    void IRecipient<ToastNotificationActivatedMessage>.Receive(ToastNotificationActivatedMessage message)
+    {
+        var e = message.Value;
+        if (e.IsHandled) { return; }
+
+
+        var args = e.Args;
+        var props = e.Props;
+        if (!IToastNotificationService.IsContainAction(args, TimersToastNotificationConstants.ArgumentValue_OneShot)) { return; }
+        
+        if (args.TryGetValue(TimersToastNotificationConstants.ArgumentKey_TimerId, out string? timerId))
+        {
+            Guid entityId = Guid.Parse(timerId);
+            if (_playCancelMap.Remove(entityId, out var cts))
+            {
+                cts.Cancel();
+            }
+
+            var entity = _oneShotTimerRepository.FindById(entityId);
+            _messenger.Send(new OneShotTimerCheckedMessage(entity));
+
+            e.IsHandled = true;
+        }
+    }
+
+    private void OnTimeTriggered(object? sender, TimeTriggeredEventArgs e)
     {
         if (e.GroupId != TimeTriggerGroupId) { return; }
         if (!Guid.TryParse(e.Id, out Guid timerId)) { return; }
 
         var entity = _oneShotTimerRepository.FindById(timerId);
-
-        ShowOneShotTimerToastNotification(entity);
+        Guard.IsNotNull(entity);
+        _toastNotificationService.ShowOneShotTimerToastNotification(entity);
         PlayTimerSound(entity);
-
     }
 
     void IApplicationLifeCycleAware.Initialize()
     {
-        var timers = _oneShotTimerRepository.ReadAllItems().OrderBy(x => x.Order);
-
-        if (SystemInformation.Instance.IsFirstRun)
-        {
-            CreateTimer("OneShotTimer_TemporaryTitle".Translate(1), TimeSpan.FromMinutes(3), SoundSourceType.System, WindowsNotificationSoundType.Reminder.ToString());
-        }
+        _messenger.RegisterAll(this);
     }
 
-    void IApplicationLifeCycleAware.Resuming()
-    {
-        
-    }
+    void IApplicationLifeCycleAware.Resuming() { }
 
-    void IApplicationLifeCycleAware.Suspending()
-    {
-        
-    }
+    void IApplicationLifeCycleAware.Suspending() { }
 
-
-
+    
     void IRecipient<ActiveTimerCollectionRequestMessage>.Receive(ActiveTimerCollectionRequestMessage message)
     {
         foreach (var timer in GetOneShotTimers())
         {            
-            if (_oneShotTimerRunningRepository.FindById(timer.Id) is not null and var runningTimer)
+            if (TimerIsRunning(timer))
             {
                 message.Reply(timer);
             }
@@ -157,11 +162,12 @@ public sealed class OneShotTimerLifetimeManager
         TimeSpan timerDuration = lastRemainingTime ?? entity.Time;
         if (runningEntity == null)
         {
-            _oneShotTimerRunningRepository.CreateItem(new OneShotTimerRunningEntity { Id = entity.Id, Time = timerDuration });
+            _oneShotTimerRunningRepository.CreateItem(new OneShotTimerRunningEntity { Id = entity.Id, Time = timerDuration, IsRunning = true });
         }
         else
         {
             runningEntity.Time = timerDuration;
+            runningEntity.IsRunning = true;
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
         }
 
@@ -184,11 +190,12 @@ public sealed class OneShotTimerLifetimeManager
             var runningEntity = _oneShotTimerRunningRepository.FindById(entity.Id);
             if (runningEntity == null)
             {
-                _oneShotTimerRunningRepository.CreateItem(new OneShotTimerRunningEntity { Id = entity.Id, Time = remainingTime });
+                _oneShotTimerRunningRepository.CreateItem(new OneShotTimerRunningEntity { Id = entity.Id, Time = remainingTime, IsRunning = false });
             }
             else
             {
                 runningEntity.Time = remainingTime;
+                runningEntity.IsRunning = false;
                 _oneShotTimerRunningRepository.UpdateItem(runningEntity);
             }
         }       
@@ -201,7 +208,8 @@ public sealed class OneShotTimerLifetimeManager
             var runningEntity = _oneShotTimerRunningRepository.FindById(entity.Id)
                 ?? new OneShotTimerRunningEntity() { Id = entity.Id };
 
-            runningEntity.Time = entity.Time; 
+            runningEntity.Time = entity.Time;
+            runningEntity.IsRunning = true;
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
             await _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), DateTime.Now + entity.Time, TimeTriggerGroupId);
         }
@@ -234,6 +242,11 @@ public sealed class OneShotTimerLifetimeManager
         return _timeTriggerService.GetTimeTrigger(entity.Id.ToString());
     }
 
+    public bool TimerIsRunning(OneShotTimerEntity entity)
+    {
+        return _oneShotTimerRunningRepository.FindById(entity.Id)?.IsRunning ?? false;
+    }
+
     public int GetTimersCount()
     {
         return _oneShotTimerRepository.Count();
@@ -263,50 +276,5 @@ public sealed class OneShotTimerLifetimeManager
             _playCancelMap.Remove(entity.Id);
             cts.Dispose();
         }
-    }
-
-
-    private static void ShowOneShotTimerToastNotification(OneShotTimerEntity entity)
-    {
-        var args = new ToastArguments()
-        {
-            { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_OneShot },
-            { TimersToastNotificationConstants.ArgumentKey_Confirmed },
-            { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
-        };
-
-        var tcb = new ToastContentBuilder();
-        foreach (var arg in args)
-        {
-            tcb.AddArgument(arg.Key, arg.Value);
-        }
-
-        tcb.AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
-            .AddText("OneShotTimer_ToastNotificationTitle".Translate())
-            .AddAttributionText($"{entity.Title}\n{"Time_Elapsed".Translate(entity.Time.TranslateTimeSpan())}")
-            .SetToastScenario(ToastScenario.Reminder)
-            .AddButton("Close".Translate(), ToastActivationType.Background, args.ToString())
-            .Show();
-    }
-
-    bool IToastActivationAware.ProcessToastActivation(ToastArguments args, ValueSet props)
-    {
-        if (!IToastActivationAware.IsContainAction(args, TimersToastNotificationConstants.ArgumentValue_OneShot)) { return false; }
-
-        if (args.TryGetValue(TimersToastNotificationConstants.ArgumentKey_TimerId, out string timerId))
-        {
-            Guid entityId = Guid.Parse(timerId);
-            if (_playCancelMap.Remove(entityId, out var cts))
-            {
-                cts.Cancel();
-            }
-
-            var entity = _oneShotTimerRepository.FindById(entityId);
-            _messenger.Send(new OneShotTimerCheckedMessage(entity));            
-
-            return true;
-        }
-
-        return false;
-    }
+    }    
 }

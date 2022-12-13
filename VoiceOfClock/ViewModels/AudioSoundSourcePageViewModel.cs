@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Diagnostics;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
 using Reactive.Bindings;
@@ -6,11 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
 
@@ -106,6 +108,7 @@ public sealed partial class AudioSoundSourcePageViewModel : ObservableRecipient
         _items.Remove(itemVM);
     }
 }
+
 
 [ObservableObject]
 public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
@@ -219,4 +222,29 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
     {
         return time.TrimMilliSeconds().ToString("T");
     }
+}
+
+public abstract class DeferUpdatable
+{
+    public IDisposable DeferUpdate()
+    {
+        Guard.IsFalse(NowDeferUpdateRequested, nameof(NowDeferUpdateRequested));
+
+        NowDeferUpdateRequested = true;
+        return Disposable.Create(OnDeferUpdate_Internal);
+    }
+
+    bool _nowDeferUpdateRequested;
+    protected bool NowDeferUpdateRequested
+    {
+        get => _nowDeferUpdateRequested;
+        private set => _nowDeferUpdateRequested = value;
+    }
+
+    private void OnDeferUpdate_Internal()
+    {
+        NowDeferUpdateRequested = false;
+        OnDeferUpdate();
+    }
+    protected abstract void OnDeferUpdate();
 }

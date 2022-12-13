@@ -5,15 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Models;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
 namespace VoiceOfClock.Services.SoundPlayer;
-
-
-
 
 public sealed class SystemSoundPlayer : ISoundPlayer
 {

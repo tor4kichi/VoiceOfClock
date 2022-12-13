@@ -15,8 +15,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
 using VoiceOfClock.ViewModels;
 using Microsoft.UI.Xaml.Controls.Primitives;
 

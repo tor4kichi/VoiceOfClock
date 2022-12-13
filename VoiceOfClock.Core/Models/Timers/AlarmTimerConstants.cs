@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Core.Domain
+namespace VoiceOfClock.Core.Models.Timers
 {
     public static class AlarmTimerConstants
     {

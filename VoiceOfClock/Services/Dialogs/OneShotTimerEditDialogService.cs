@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 using VoiceOfClock.Contracts.Services;
 
 namespace VoiceOfClock.Services.Dialogs;

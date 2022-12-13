@@ -9,8 +9,6 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
 {
     private readonly DispatcherQueueTimer _dispatcherQueueTimer;
 
-    
-
     public DispatcherQueueTimerTimeTrigger()        
     {
         _dispatcherQueueTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
@@ -20,10 +18,12 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
             OnTimeArrived(_lastTriggerTime!.Value, _lastArgument!);
         };
     }
+    
+    public event EventHandler<TimeTriggerRecievedEventArgs>? TimeArrived;
 
     DateTime? _lastTriggerTime;
     string? _lastArgument;
-    public void SetTimeTrigger(DateTime triggerTime, string argument)
+    void ISingleTimeTrigger.SetTimeTrigger(DateTime triggerTime, string argument)
     {
         _dispatcherQueueTimer.Stop();
 
@@ -52,13 +52,11 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
         TimeArrived?.Invoke(this, new(dateTime, argument));
     }
 
-    public void Clear()
+    void ISingleTimeTrigger.Clear()
     {
         Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] Clear: ");
         _dispatcherQueueTimer.Stop();
         _lastTriggerTime = null;
         _lastArgument = null;
     }
-
-    public event EventHandler<TimeTriggerRecievedEventArgs>? TimeArrived;
 }

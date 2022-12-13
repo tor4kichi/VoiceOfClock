@@ -15,7 +15,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models.Timers;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation;
 using Windows.Foundation.Collections;

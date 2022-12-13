@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Contracts.UseCases;
+namespace VoiceOfClock.Core.Contracts.Models;
 
-internal interface IApplicationLifeCycleAware
+public interface IApplicationLifeCycleAware
 {
     void Initialize();
 

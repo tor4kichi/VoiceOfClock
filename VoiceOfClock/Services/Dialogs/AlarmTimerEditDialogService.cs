@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 
 namespace VoiceOfClock.Services.Dialogs;
 

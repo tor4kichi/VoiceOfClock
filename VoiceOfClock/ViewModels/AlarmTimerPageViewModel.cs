@@ -12,43 +12,53 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Contracts.UseCases;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Contracts.Models;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.ViewModels;
 
-
-
 public sealed partial class AlarmTimerPageViewModel 
     : ObservableRecipient
-    , IRecipient<AlarmTimerValueChangedMessage>
+    , IRecipient<AlarmTimerUpdatedMessage>
 {
-    private readonly AlarmTimerLifetimeManager _alertTimerLifetimeManager;
     private readonly IAlarmTimerDialogService _alarmTimerDialogService;
-    private readonly TimerSettings _timerSettings;
     private readonly IStoreLisenceService _storeLisenceService;
-
+    private readonly AlarmTimerLifetimeManager _alertTimerLifetimeManager;
+    private readonly TimerSettings _timerSettings;
     private readonly ObservableCollection<AlarmTimerViewModel> _timers;
-
     public ReadOnlyObservableCollection<AlarmTimerViewModel> Timers { get; }
 
     [ObservableProperty]
     private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
 
     public AlarmTimerPageViewModel(
-        AlarmTimerLifetimeManager alertTimerLifetimeManager
-        , IAlarmTimerDialogService alarmTimerDialogService
-        , TimerSettings timerSettings
+        IAlarmTimerDialogService alarmTimerDialogService
         , IStoreLisenceService storeLisenceService
+        , AlarmTimerLifetimeManager alertTimerLifetimeManager
+        , TimerSettings timerSettings        
         )
     {
-        _alertTimerLifetimeManager = alertTimerLifetimeManager;
         _alarmTimerDialogService = alarmTimerDialogService;
-        _timerSettings = timerSettings;
         _storeLisenceService = storeLisenceService;
-        _timers = new ObservableCollection<AlarmTimerViewModel>(_alertTimerLifetimeManager.GetAlarmTimers().OrderBy(x => x.Order).Select(ToAlarmTimerVM));
+        _alertTimerLifetimeManager = alertTimerLifetimeManager;
+        _timerSettings = timerSettings;
+        _timers = new ObservableCollection<AlarmTimerViewModel>(
+            _alertTimerLifetimeManager.GetAlarmTimers()
+            .OrderBy(x => x.Order)
+            .Select(ToAlarmTimerVM)
+            );
         Timers = new ReadOnlyObservableCollection<AlarmTimerViewModel>(_timers);
+    }
+
+    private AlarmTimerViewModel ToAlarmTimerVM(AlarmTimerEntity alarmTimerEntity)
+    {
+        return new AlarmTimerViewModel(alarmTimerEntity, 
+            _timerSettings.FirstDayOfWeek, 
+            _alertTimerLifetimeManager, 
+            DeleteTimerCommand
+            );
     }
 
     protected override void OnActivated()
@@ -64,11 +74,14 @@ public sealed partial class AlarmTimerPageViewModel
         SomeTimerIsActive = null;
     }
 
-    private AlarmTimerViewModel ToAlarmTimerVM(AlarmTimerEntity alarmTimerEntity)
+    void IRecipient<AlarmTimerUpdatedMessage>.Receive(AlarmTimerUpdatedMessage message)
     {
-        return new AlarmTimerViewModel(alarmTimerEntity, _timerSettings.FirstDayOfWeek, _alertTimerLifetimeManager, DeleteTimer);
-    }    
+        var timerVM = Timers.FirstOrDefault(x => x.EntityId == message.Value.Id);
+        if (timerVM == null) { return; }
+        if (timerVM.Entity == message.Value) { return; }
 
+        timerVM.RefrectValues();
+    }
 
     [RelayCommand]
     async Task AddTimer()
@@ -165,14 +178,5 @@ public sealed partial class AlarmTimerPageViewModel
         {
             timerVM.IsEditting = NowEditting;
         }
-    }
-
-    void IRecipient<AlarmTimerValueChangedMessage>.Receive(AlarmTimerValueChangedMessage message)
-    {        
-        var timerVM = Timers.FirstOrDefault(x => x.EntityId == message.Value.Id);
-        if (timerVM == null) { return; }
-        if (timerVM.Entity == message.Value) { return; }
-
-        timerVM.RefrectValues();
     }
 }

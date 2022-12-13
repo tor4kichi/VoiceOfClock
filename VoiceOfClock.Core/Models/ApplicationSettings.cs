@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models;
 
 public enum ApplicationTheme
 {

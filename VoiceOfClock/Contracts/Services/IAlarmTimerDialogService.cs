@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 
 namespace VoiceOfClock.Contracts.Services;
 

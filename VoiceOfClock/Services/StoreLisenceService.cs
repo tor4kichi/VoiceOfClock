@@ -15,8 +15,7 @@ using WinRT.Interop;
 namespace VoiceOfClock.Services;
 
 public sealed class StoreLisenceService : IStoreLisenceService
-{
-    private readonly DispatcherQueue _dispatcherQueue;
+{    
     private readonly StoreContext _context;
     private readonly ILisencePurchaseDialogService _lisencePurchaseConfirmDialogService;
 
@@ -32,8 +31,7 @@ public sealed class StoreLisenceService : IStoreLisenceService
         NowUpdating = _nowUpdating.ToReadOnlyReactiveProperty(true);
         _isTrialOwnedByThisUser = new ReactiveProperty<bool>();
         IsTrialOwnedByThisUser = _isTrialOwnedByThisUser.ToReadOnlyReactiveProperty();
-
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        
         _context = StoreContext.GetDefault();
         _context.OfflineLicensesChanged += _context_OfflineLicensesChanged;
         _lisencePurchaseConfirmDialogService = lisencePurchaseConfirmDialogService;

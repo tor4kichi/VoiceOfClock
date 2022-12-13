@@ -17,9 +17,10 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading;
-using VoiceOfClock.Core.Domain;
+using VoiceOfClock.Core.Models;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Core.Contracts.Services;
 
 namespace VoiceOfClock.Views;
 

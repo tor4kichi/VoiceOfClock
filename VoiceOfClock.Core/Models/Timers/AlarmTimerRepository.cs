@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
-using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class AlarmTimerRepository : LiteDBRepositoryBase<AlarmTimerEntity>
 {

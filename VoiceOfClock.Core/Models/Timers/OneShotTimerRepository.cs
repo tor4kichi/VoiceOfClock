@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class OneShotTimerRepository : LiteDBRepositoryBase<OneShotTimerEntity>
 {
@@ -30,6 +30,8 @@ public sealed class OneShotTimerRunningEntity
     public Guid Id { get; init; }
 
     public TimeSpan Time { get; set; }
+
+    public bool IsRunning { get; set; }
 }
 
 public sealed class OneShotTimerEntity : ITimer

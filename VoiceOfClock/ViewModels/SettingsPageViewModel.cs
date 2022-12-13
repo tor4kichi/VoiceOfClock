@@ -24,11 +24,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.UseCases;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Models;
+using VoiceOfClock.Core.Models.Timers;
 using Windows.ApplicationModel;
 using Windows.Media.SpeechSynthesis;
-using ApplicationTheme = VoiceOfClock.Core.Domain.ApplicationTheme;
+using ApplicationTheme = VoiceOfClock.Core.Models.ApplicationTheme;
 
 namespace VoiceOfClock.ViewModels;
 

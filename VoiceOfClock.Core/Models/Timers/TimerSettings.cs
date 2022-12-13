@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class TimerSettings : SettingsBase
 {
@@ -36,7 +36,7 @@ public sealed class TimerSettings : SettingsBase
 
 
     public const double MinSpeechRate = 0.5d;
-    public const double MaxSpeechRate = 4.0d;   
+    public const double MaxSpeechRate = 4.0d;
     private double _speechRate;
     /// <summary>
     /// スピーチの話速設定（デフォルトは1.0）
@@ -103,7 +103,7 @@ public sealed class TimerSettings : SettingsBase
 
 
 
-    private readonly Dictionary<string, AMPMPosition> _defaultAmpmPositionByLanguage = new ()
+    private readonly Dictionary<string, AMPMPosition> _defaultAmpmPositionByLanguage = new()
     {
         { "ja", AMPMPosition.Prefix },
         { "ko", AMPMPosition.Prefix },
@@ -141,7 +141,7 @@ public sealed class TimerSettings : SettingsBase
         else
         {
             return AMPMPosition.NoChange;
-        }        
+        }
     }
 
     public void SetAmpmPosition(string languageCode, AMPMPosition position)
@@ -177,5 +177,5 @@ public enum AMPMPosition
 {
     NoChange,
     Prefix,
-    Postfix,    
+    Postfix,
 }

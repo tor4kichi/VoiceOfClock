@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models;
 
 public sealed class PeriodicTimerRepository : LiteDBRepositoryBase<PeriodicTimerEntity>
 {

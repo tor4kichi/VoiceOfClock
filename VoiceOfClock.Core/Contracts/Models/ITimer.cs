@@ -1,6 +1,6 @@
-﻿using VoiceOfClock.Core.Domain;
+﻿using VoiceOfClock.Core.Models;
 
-namespace VoiceOfClock.Core.Contracts.Domain;
+namespace VoiceOfClock.Core.Contracts.Models;
 
 public interface ITimer
 {

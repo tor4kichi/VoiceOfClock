@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using VoiceOfClock.Core.Domain;
-using VoiceOfClock.Services.SoundPlayer;
+﻿using VoiceOfClock.Core.Models;
 
-namespace VoiceOfClock.Contracts.Services;
+namespace VoiceOfClock.Core.Contracts.Services;
 
 public readonly record struct SoundSourceToken(string Label, SoundSourceType SoundSourceType, string SoundParameter);
 

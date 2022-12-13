@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Core.Domain;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public static class TimeHelpers
 {
@@ -32,16 +32,16 @@ public static class TimeHelpers
         else
         {
             return !(endTimeOfDay <= targetTimeOfDay && targetTimeOfDay <= startTimeOfDay);
-        }        
+        }
     }
 
     public static TimeSpan TrimMilliSeconds(this TimeSpan ts)
-    {        
+    {
         return new TimeSpan(ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
     }
 
     public static IEnumerable<DayOfWeek> ToWeek(this DayOfWeek firstDayOfWeek)
-    {        
+    {
         foreach (var i in Enumerable.Range((int)firstDayOfWeek, 7))
         {
             int index = i;
@@ -80,7 +80,7 @@ public static class TimeHelpers
                     return canidateNextTime;
                 }
             }
-        }        
+        }
 
         throw new NotSupportedException();
     }

@@ -41,10 +41,6 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
     private readonly ISingleTimeTrigger _timeTrigger;
     private readonly TimeTriggerRepository _timeTriggerRepository;
 
-    // 単純なコールバック呼び出しだとバックグラウンドなどの別サービス、外部から起動できない
-    // 
-    //       
-
     public event EventHandler<TimeTriggeredEventArgs>? TimeTriggered;
 
 
@@ -55,15 +51,15 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
     {
         _timeTrigger = timeTrigger;
         _timeTriggerRepository = timeTriggerRepository;
-        _timeTrigger.TimeArrived += _timeTrigger_TimeArrived;
+        _timeTrigger.TimeArrived += OnTimeArrived;
     }
 
     public void Dispose()
     {
-        _timeTrigger.TimeArrived -= _timeTrigger_TimeArrived;
+        _timeTrigger.TimeArrived -= OnTimeArrived;
     }
 
-    private void _timeTrigger_TimeArrived(object? sender, TimeTriggerRecievedEventArgs e)
+    private void OnTimeArrived(object? sender, TimeTriggerRecievedEventArgs e)
     {
         var entity = _timeTriggerRepository.FindById(e.argument);
         if (entity == null)
