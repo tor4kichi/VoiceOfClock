@@ -12,39 +12,16 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using VoiceOfClock.ViewModels;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Domain;
-using VoiceOfClock.UseCases;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.UI;
-using DependencyPropertyGenerator;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Threading;
-using VoiceOfClock.Contract.Services;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using VoiceOfClock.Core.Domain;
+using VoiceOfClock.ViewModels;
+using VoiceOfClock.Contracts.Services;
 
 namespace VoiceOfClock.Views;
-
-public sealed class OneShotTimerEditDialogService : IOneShotTimerDialogService
-{
-    public async Task<OneShotTimerDialogResult> ShowEditTimerAsync(
-        string dialogTitle
-        , string timerTitle
-        , TimeSpan time
-        , SoundSourceType soundSourceType
-        , string soundParameter
-        )
-    {
-        var dialog = new OneShotTimerEditDialog();
-        App.Current.InitializeDialog(dialog);
-        return await dialog.ShowAsync(dialogTitle, timerTitle, time, soundSourceType, soundParameter);
-    }
-}
 
 public sealed partial class OneShotTimerEditDialog : ContentDialog
 {

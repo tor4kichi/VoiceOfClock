@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Models.Infrastructure;
+namespace VoiceOfClock.Core.Infrastructure;
 
 public abstract class LiteDBRepositoryBase<T>
 {
@@ -42,6 +42,11 @@ public abstract class LiteDBRepositoryBase<T>
     public virtual bool DeleteItem(BsonValue id)
     {
         return _collection.Delete(id);
+    }
+
+    public int DeleteMany(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
+    {
+        return _collection.DeleteMany(predicate);
     }
 
     public virtual List<T> ReadAllItems()

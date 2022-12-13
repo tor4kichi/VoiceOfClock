@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.ViewModels;
@@ -21,37 +20,6 @@ using Windows.Media.Playback;
 using Windows.Storage.Pickers;
 
 namespace VoiceOfClock.Views;
-
-public sealed class AudioSoundSourceDialogService : IAudioSoundSourceDialogService
-{
-    async Task<AudioSoundSourceDialogResult> IAudioSoundSourceDialogService.ShowAsync(string dialogTitle, string filePath, TimeSpan duration, TimeSpan start, TimeSpan end, string title, double soundVolume)
-    {
-        var dialog = new AudioSoundSourceEditDialog();
-        App.Current.InitializeDialog(dialog);
-        dialog.Title = dialogTitle;
-        dialog.FilePath = filePath;
-        dialog.Duration = duration;
-        dialog.AudioBegin = start;
-        dialog.AudioEnd = end;
-        dialog.Label= title;
-        dialog.SoundVolume = soundVolume;
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            return AudioSoundSourceDialogResult.Success(
-                dialog.FilePath!, 
-                dialog.Duration,
-                dialog.AudioBegin,
-                dialog.AudioEnd,
-                dialog.Label!,
-                dialog.SoundVolume
-                );
-        }   
-        else
-        {
-            return AudioSoundSourceDialogResult.Failed;
-        }
-    }
-}
 
 [DependencyProperty<TimeSpan>("Duration")]
 [DependencyProperty<string>("FilePath")]

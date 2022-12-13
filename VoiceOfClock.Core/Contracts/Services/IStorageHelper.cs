@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace VoiceOfClock.Contract.Services;
+namespace VoiceOfClock.Core.Contracts.Services;
 
 public enum DirectoryItemType
 {

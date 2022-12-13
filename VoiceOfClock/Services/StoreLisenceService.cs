@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contracts.Services;
 using Windows.Services.Store;
 using Windows.UI;
 using WinRT.Interop;

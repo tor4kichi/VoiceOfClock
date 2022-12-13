@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Models.Domain;
+namespace VoiceOfClock.Core.Domain;
 
 public enum SoundSourceType
 {

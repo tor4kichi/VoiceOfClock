@@ -1,48 +1,37 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using I18NPortable;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Domain;
-using VoiceOfClock.Services;
-using VoiceOfClock.Services.SoundPlayer;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Contracts.UseCases;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
 
 
-public interface IAlarmTimerDialogService
-{
-    Task<AlarmTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent);
-}
 
-public sealed class AlarmTimerDialogResult
-{
-    public bool IsConfirmed { get; init; }
-    public string Title { get; init; } = String.Empty;
-    public TimeOnly TimeOfDay { get; init; }
-    public TimeSpan? Snooze { get; init; }
-    public DayOfWeek[] EnabledDayOfWeeks { get; init; } = Array.Empty<DayOfWeek>();
-    public SoundSourceType SoundSourceType { get; init; }
-    public string SoundContent { get; init; } = string.Empty;
-}
-
-public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
+public sealed partial class AlarmTimerPageViewModel 
+    : ObservableRecipient
+    , IRecipient<AlarmTimerValueChangedMessage>
 {
     private readonly AlarmTimerLifetimeManager _alertTimerLifetimeManager;
     private readonly IAlarmTimerDialogService _alarmTimerDialogService;
     private readonly TimerSettings _timerSettings;
-    private readonly StoreLisenceService _storeLisenceService;
+    private readonly IStoreLisenceService _storeLisenceService;
 
-    [ObservableProperty]
-    private ReadOnlyReactiveCollection<AlarmTimerViewModel>? _timers;
+    private readonly ObservableCollection<AlarmTimerViewModel> _timers;
+
+    public ReadOnlyObservableCollection<AlarmTimerViewModel> Timers { get; }
 
     [ObservableProperty]
     private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
@@ -51,34 +40,33 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
         AlarmTimerLifetimeManager alertTimerLifetimeManager
         , IAlarmTimerDialogService alarmTimerDialogService
         , TimerSettings timerSettings
-        , StoreLisenceService storeLisenceService
+        , IStoreLisenceService storeLisenceService
         )
     {
         _alertTimerLifetimeManager = alertTimerLifetimeManager;
         _alarmTimerDialogService = alarmTimerDialogService;
         _timerSettings = timerSettings;
         _storeLisenceService = storeLisenceService;
+        _timers = new ObservableCollection<AlarmTimerViewModel>(_alertTimerLifetimeManager.GetAlarmTimers().OrderBy(x => x.Order).Select(ToAlarmTimerVM));
+        Timers = new ReadOnlyObservableCollection<AlarmTimerViewModel>(_timers);
     }
 
     protected override void OnActivated()
     {
         base.OnActivated();
-        Timers = _alertTimerLifetimeManager.Timers.ToReadOnlyReactiveCollection(ToAlarmTimerVM, disposeElement: true);
-        SomeTimerIsActive = Timers.ObserveElementProperty(x => x.IsEnabled.Value).Select(x => Timers.Any(x => x.IsEnabled.Value)).ToReadOnlyReactiveProperty();
+        SomeTimerIsActive = Timers.ObserveElementProperty(x => x.IsEnabled).Select(x => Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
-        Timers!.Dispose();
-        Timers = null;
         SomeTimerIsActive!.Dispose();
         SomeTimerIsActive = null;
     }
 
-    private AlarmTimerViewModel ToAlarmTimerVM(AlarmTimerRunningInfo runningInfo)
+    private AlarmTimerViewModel ToAlarmTimerVM(AlarmTimerEntity alarmTimerEntity)
     {
-        return new AlarmTimerViewModel(runningInfo, _timerSettings.FirstDayOfWeek, DeleteTimer);
+        return new AlarmTimerViewModel(alarmTimerEntity, _timerSettings.FirstDayOfWeek, _alertTimerLifetimeManager, DeleteTimer);
     }    
 
 
@@ -88,7 +76,7 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
         if (PurchaseItemsConstants.IsTrialLimitationEnabled)
         {
             await _storeLisenceService.EnsureInitializeAsync();
-            if (_storeLisenceService.IsTrial.Value && _alertTimerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            if (_storeLisenceService.IsTrial.Value && Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
             {
                 var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
                 if (!isSuccess)
@@ -111,7 +99,7 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
             );
         if (result.IsConfirmed)
         {
-            _alertTimerLifetimeManager.CreateAlarmTimer(
+            var entity = _alertTimerLifetimeManager.CreateAlarmTimer(
                 result.Title
                 , result.TimeOfDay
                 , result.EnabledDayOfWeeks
@@ -119,36 +107,39 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
                 , result.SoundSourceType
                 , result.SoundContent
                 );
+
+            _timers.Add(ToAlarmTimerVM(entity));
         }
     }
 
     [RelayCommand]
     async Task EditTimer(AlarmTimerViewModel timerVM)
-    {
-        AlarmTimerRunningInfo runningInfo = timerVM.RunningInfo;
+    {        
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerEditDialog_Title".Translate()
-            , runningInfo.Title
-            , runningInfo.TimeOfDay
-            , runningInfo.Snooze
-            , runningInfo.EnabledDayOfWeeks
+            , timerVM.Title
+            , timerVM.TimeOfDay
+            , timerVM.Snooze
+            , timerVM.EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray()
             , _timerSettings.FirstDayOfWeek
-            , runningInfo.SoundSourceType
-            , runningInfo.SoundContent
+            , timerVM.SoundSourceType
+            , timerVM.SoundContent
             );
         if (result.IsConfirmed)
         {
-            using (runningInfo.DeferUpdate())
+            timerVM.IsEnabled = true;
+            timerVM.Title = result.Title;
+            timerVM.Snooze = result.Snooze;
+            timerVM.TimeOfDay = result.TimeOfDay;
+            timerVM.SoundSourceType = result.SoundSourceType;
+            timerVM.SoundContent = result.SoundContent;
+
+            foreach (var dayOfWeekVM in timerVM.EnabledDayOfWeeks)
             {
-                runningInfo.IsEnabled = true;
-                runningInfo.Title = result.Title;
-                runningInfo.Snooze = result.Snooze;
-                runningInfo.TimeOfDay = result.TimeOfDay;
-                runningInfo.EnabledDayOfWeeks = result.EnabledDayOfWeeks;
-                runningInfo.SoundSourceType = result.SoundSourceType;
-                runningInfo.SoundContent = result.SoundContent;
-                timerVM.RefrectValues();
+                dayOfWeekVM.IsEnabled = result.EnabledDayOfWeeks.Any(x => x == dayOfWeekVM.DayOfWeek);
             }
+
+            timerVM.RefrectBackValues();
         }
     }
 
@@ -156,7 +147,8 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
     [RelayCommand]
     void DeleteTimer(AlarmTimerViewModel timerVM)
     {
-        _alertTimerLifetimeManager.DeleteAlarmTimer(timerVM.RunningInfo);        
+        _alertTimerLifetimeManager.DeleteAlarmTimer(timerVM.Entity);
+        _timers.Remove(timerVM);
     }
 
     [ObservableProperty]
@@ -173,5 +165,14 @@ public sealed partial class AlarmTimerPageViewModel : ObservableRecipient
         {
             timerVM.IsEditting = NowEditting;
         }
+    }
+
+    void IRecipient<AlarmTimerValueChangedMessage>.Receive(AlarmTimerValueChangedMessage message)
+    {        
+        var timerVM = Timers.FirstOrDefault(x => x.EntityId == message.Value.Id);
+        if (timerVM == null) { return; }
+        if (timerVM.Entity == message.Value) { return; }
+
+        timerVM.RefrectValues();
     }
 }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VoiceOfClock.Core.Contracts.Domain;
 
-namespace VoiceOfClock.Contract.UseCases;
+namespace VoiceOfClock.Contracts.UseCases;
 
-public sealed class ActiveTimerCollectionRequestMessage : CollectionRequestMessage<IRunningTimer>
+public sealed class ActiveTimerCollectionRequestMessage : CollectionRequestMessage<ITimer>
 {
 }

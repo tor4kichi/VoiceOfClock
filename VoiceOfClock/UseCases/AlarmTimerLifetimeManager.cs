@@ -13,84 +13,90 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Contract.Services;
-using VoiceOfClock.Contract.UseCases;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Contracts.UseCases;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.Services.SoundPlayer;
 using Windows.Foundation.Collections;
 
 namespace VoiceOfClock.UseCases;
 
-public sealed partial class AlarmTimerLifetimeManager 
+public sealed partial class AlarmTimerLifetimeManager     
     : IApplicationLifeCycleAware
     , IToastActivationAware
+    , IRecipient<ActiveTimerCollectionRequestMessage>
 {
-    private readonly DispatcherQueue _dispatcherQueue;    
+    private readonly IMessenger _messenger;
     private readonly ISoundContentPlayerService _soundContentPlayerService;
+    private readonly ITimeTriggerService _timeTriggerService;
     private readonly AlarmTimerRepository _alarmTimerRepository;
-    
-    private readonly ObservableCollection<AlarmTimerRunningInfo> _timers;
-    public ReadOnlyObservableCollection<AlarmTimerRunningInfo> Timers { get; }
 
-    public AlarmTimerLifetimeManager(        
-        ISoundContentPlayerService soundContentPlayerService       
+    private const string AlarmTimerTriggerGroupId = nameof(AlarmTimerLifetimeManager);
+    
+    public AlarmTimerLifetimeManager(    
+        IMessenger messenger
+        , ISoundContentPlayerService soundContentPlayerService       
+        , ITimeTriggerService timeTriggerService
         , AlarmTimerRepository alarmTimerRepository
         )
     {
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        _messenger = messenger;
         _soundContentPlayerService = soundContentPlayerService;
-        _alarmTimerRepository = alarmTimerRepository;        
-        _timers = new ObservableCollection<AlarmTimerRunningInfo>(_alarmTimerRepository.ReadAllItems().Select(ToRunningInfo));
-        Timers = new(_timers);
+        _timeTriggerService = timeTriggerService;
+        _alarmTimerRepository = alarmTimerRepository;
+
+        _timeTriggerService.TimeTriggered += OnTimeTriggered;
     }
 
-    AlarmTimerRunningInfo ToRunningInfo(AlarmTimerEntity entity)
+    private void OnTimeTriggered(object? sender, TimeTriggeredEventArgs e)
     {
-        return new AlarmTimerRunningInfo(entity, _alarmTimerRepository, _dispatcherQueue, OnAlarmTrigger);
+        if (e.GroupId != AlarmTimerTriggerGroupId) { return; }
+
+        Guid entityId = Guid.Parse(e.Id);
+        AlarmTimerEntity? timer = _alarmTimerRepository.FindById(entityId);        
+        if (timer == null) { return; }
+
+        ShowAlarmToastNotification(timer, e.TriggerTime);
+        PlayTimerSound(timer);
     }
 
     private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
 
-    async void OnAlarmTrigger(AlarmTimerRunningInfo runningInfo)
-    {
-        ShowAlarmToastNotification(runningInfo);
-        PlayTimerSound(runningInfo);
-    }
-
-    private async void PlayTimerSound(AlarmTimerRunningInfo runningInfo)
+    private async void PlayTimerSound(AlarmTimerEntity entity)
     {
         CancellationTokenSource cts = new CancellationTokenSource();
-        _playCancelMap.Add(runningInfo._entity.Id, cts);
+        _playCancelMap.Add(entity.Id, cts);
         CancellationToken ct = cts.Token;
         try
         {
-            await _soundContentPlayerService.PlaySoundContentAsync(runningInfo.SoundSourceType, runningInfo.SoundContent, cancellationToken: ct);
+            await _soundContentPlayerService.PlaySoundContentAsync(entity.SoundSourceType, entity.SoundContent, cancellationToken: ct);
         }
         catch (OperationCanceledException) { }
         finally
         {
-            _playCancelMap.Remove(runningInfo._entity.Id);
+            _playCancelMap.Remove(entity.Id);
             cts.Dispose();
         }
     }
 
-    private static void ShowAlarmToastNotification(AlarmTimerRunningInfo runningInfo)
-    {
+    private static void ShowAlarmToastNotification(AlarmTimerEntity entity, DateTime targetTime)
+   {
         var stopToastArgs = new ToastArguments()
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_Alarm },
             { TimersToastNotificationConstants.ArgumentKey_SnoozeStop },
-            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo._entity.Id.ToString() }
+            { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
         };
 
         var againToastArgs = new ToastArguments()
         {
             { TimersToastNotificationConstants.ArgumentKey_Action, TimersToastNotificationConstants.ArgumentValue_Alarm },
             { TimersToastNotificationConstants.ArgumentKey_SnoozeAgain },
-            { TimersToastNotificationConstants.ArgumentKey_TimerId, runningInfo._entity.Id.ToString() }
+            { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
         };
 
-        if (TimeSpan.Zero < runningInfo.Snooze)
+        if (TimeSpan.Zero < entity.Snooze)
         {
             var tcb = new ToastContentBuilder();
             foreach (var kvp in againToastArgs)
@@ -98,9 +104,9 @@ public sealed partial class AlarmTimerLifetimeManager
                 tcb.AddArgument(kvp.Key, kvp.Value);
             }
 
-            string defaultSelectComboBoxId = runningInfo.Snooze.Value.ToString();
+            string defaultSelectComboBoxId = entity.Snooze.Value.ToString();
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
-                .AddAttributionText($"{runningInfo.Title}\n{runningInfo.TargetTime.ToShortTimeString()}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
+                .AddAttributionText($"{entity.Title}\n{targetTime.ToShortTimeString()}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
                 .AddComboBox(
                     TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id
                     , defaultSelectComboBoxId
@@ -121,7 +127,7 @@ public sealed partial class AlarmTimerLifetimeManager
             }
 
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
-                .AddAttributionText($"{runningInfo.Title}\n{runningInfo.TargetTime.ToShortTimeString()}")
+                .AddAttributionText($"{entity.Title}\n{targetTime.ToShortTimeString()}")
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
                 ;
@@ -135,25 +141,23 @@ public sealed partial class AlarmTimerLifetimeManager
 
         string timerId = args.Get(TimersToastNotificationConstants.ArgumentKey_TimerId);
         Guid entityId = Guid.Parse(timerId);
-        AlarmTimerRunningInfo? timer = Timers.FirstOrDefault(x => x._entity.Id == entityId);        
+        AlarmTimerEntity? timer = _alarmTimerRepository.FindById(entityId);
         if (timer is null) 
         {
             return false; 
         }
         else if (args.Contains(TimersToastNotificationConstants.ArgumentKey_SnoozeStop))
         {
-            timer.AlarmChecked();
-            if (_playCancelMap.Remove(timer._entity.Id, out var cts))
-            {
-                cts.Cancel();
-            }
+            TimerChecked(timer);
             return true;
         }
         else if (args.Contains(TimersToastNotificationConstants.ArgumentKey_SnoozeAgain))
-        {
+        {            
             TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id]);
-            timer.AlarmChecked(snooze);
-            if (_playCancelMap.Remove(timer._entity.Id, out var cts))
+            var nextAlarmTime = DateTime.Now + snooze;
+            _timeTriggerService.SetTimeTrigger(timerId, nextAlarmTime, AlarmTimerTriggerGroupId);
+
+            if (_playCancelMap.Remove(entityId, out var cts))
             {
                 cts.Cancel();
             }
@@ -165,12 +169,34 @@ public sealed partial class AlarmTimerLifetimeManager
         }
     }
 
+    public void TimerChecked(AlarmTimerEntity timer)
+    {
+        if (timer.IsEnabled && timer.EnabledDayOfWeeks.Any())
+        {
+            var nextAlarmTime = TimeHelpers.CulcNextTime(DateTime.Now, timer.TimeOfDay.ToTimeSpan(), timer.EnabledDayOfWeeks);
+            _timeTriggerService.SetTimeTrigger(timer.Id.ToString(), nextAlarmTime, AlarmTimerTriggerGroupId);
+        }
+
+        if (_playCancelMap.Remove(timer.Id, out var cts))
+        {
+            cts.Cancel();
+        }
+    }
+
     void IApplicationLifeCycleAware.Initialize()
     {
         if (SystemInformation.Instance.IsFirstRun)
         {
             CreateAlarmTimer("AlarmTimer_TemporaryTitle".Translate(1), TimeOnly.FromTimeSpan(TimeSpan.FromHours(9)), Enum.GetValues<DayOfWeek>(), null, SoundSourceType.System, WindowsNotificationSoundType.Reminder.ToString(), isEnabled: false);
         }
+
+        _timeTriggerService.ClearTimeTrigger(AlarmTimerTriggerGroupId);
+        DateTime now = DateTime.Now;
+        _timeTriggerService.SetTimeTriggerGroup(AlarmTimerTriggerGroupId,
+            _alarmTimerRepository.ReadAllItems()
+            .Where(x => x.IsEnabled && x.EnabledDayOfWeeks.Any())
+            .Select(x => (x.Id.ToString(), TimeHelpers.CulcNextTime(now, x.TimeOfDay.ToTimeSpan(), x.EnabledDayOfWeeks)))
+            );
     }
 
     void IApplicationLifeCycleAware.Resuming()
@@ -183,7 +209,7 @@ public sealed partial class AlarmTimerLifetimeManager
         
     }    
 
-    public AlarmTimerRunningInfo CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = true)
+    public AlarmTimerEntity CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = true)
     {
         AlarmTimerEntity newEntity = _alarmTimerRepository.CreateItem(new AlarmTimerEntity
         {
@@ -194,25 +220,60 @@ public sealed partial class AlarmTimerLifetimeManager
             SoundSourceType = soundSourceType,
             SoundContent = soundContent,            
             IsEnabled = isEnabled,
+            Order = int.MaxValue,
         });
 
-        AlarmTimerRunningInfo newTimerRunningInfo = ToRunningInfo(newEntity);
-        _timers.Add(newTimerRunningInfo);
-
         // 並び順を確実に指定する
-        foreach (var (timer, index) in _timers.Select((x, i) => (x, i)))
+        foreach (var (timer, index) in _alarmTimerRepository.ReadAllItems().OrderBy(x => x.Order).Select((x, i) => (x, i)))
         {
-            timer._entity.Order = index;
-            _alarmTimerRepository.UpdateItem(timer._entity);
+            timer.Order = index;
+            _alarmTimerRepository.UpdateItem(timer);
         }
 
-        return newTimerRunningInfo;
+        if (newEntity.IsEnabled && newEntity.EnabledDayOfWeeks.Any())
+        {
+            _timeTriggerService.SetTimeTrigger(newEntity.Id.ToString(), TimeHelpers.CulcNextTime(DateTime.Now, newEntity.TimeOfDay.ToTimeSpan(), newEntity.EnabledDayOfWeeks), AlarmTimerTriggerGroupId);
+        }
+
+        return newEntity;
     }
 
-    public bool DeleteAlarmTimer(AlarmTimerRunningInfo runningInfo)
+    public bool DeleteAlarmTimer(AlarmTimerEntity entity)
     {
-        _timers.Remove(runningInfo);
+        var result = _alarmTimerRepository.DeleteItem(entity.Id);
 
-        return _alarmTimerRepository.DeleteItem(runningInfo._entity.Id);
+        _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), AlarmTimerTriggerGroupId);
+
+        return result;
+    }
+
+    public void UpdateAlarmTimer(AlarmTimerEntity entity)
+    {
+        _alarmTimerRepository.UpdateItem(entity);
+        _messenger.Send(new AlarmTimerValueChangedMessage(entity));
+       
+        if (entity.IsEnabled && entity.EnabledDayOfWeeks.Any())
+        {
+            _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), TimeHelpers.CulcNextTime(DateTime.Now, entity.TimeOfDay.ToTimeSpan(), entity.EnabledDayOfWeeks), AlarmTimerTriggerGroupId);
+        }
+        else
+        {
+            _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString());
+        }        
+    }
+
+
+
+    public List<AlarmTimerEntity> GetAlarmTimers()
+    {
+        return _alarmTimerRepository.ReadAllItems();
+    }
+
+    void IRecipient<ActiveTimerCollectionRequestMessage>.Receive(ActiveTimerCollectionRequestMessage message)
+    {
+        foreach (var timer in GetAlarmTimers())
+        {
+            message.Reply(timer);
+        }
     }
 }

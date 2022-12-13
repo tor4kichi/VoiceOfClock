@@ -10,7 +10,7 @@
   xmlns:viewModels="using:VoiceOfClock.ViewModels" 
   xmlns:globalization="using:System.Globalization"
   xmlns:myControls="using:VoiceOfClock.Views.Controls" 
-  xmlns:models="using:VoiceOfClock.Models.Domain" 
+  xmlns:models="using:VoiceOfClock.Core.Domain" 
   xmlns:myConv="using:VoiceOfClock.Views.Converters"
   xmlns:i="using:Microsoft.Xaml.Interactivity"
   xmlns:core="using:Microsoft.Xaml.Interactions.Core"

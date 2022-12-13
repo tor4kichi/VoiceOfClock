@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 
 namespace VoiceOfClock.UseCases
 {

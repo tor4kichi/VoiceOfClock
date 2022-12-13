@@ -59,7 +59,7 @@
                   <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
                 </SymbolIcon.RenderTransform>
               </SymbolIcon>
-              <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind PeriodicTimerRunningInfo.NextTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0"                         
+              <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind NextTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0"                         
                          Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                          >
                 
@@ -218,7 +218,7 @@
                 <TextBlock x:Name="TextBlock_ImmidiateElapsedTime" 
                            Opacity="0.7"
                            >
-                  <Run Text="{i18n:Localize Key=Elapsed}" /> <Run Text="{x:Bind viewModels:PeriodicTimerPageViewModel.ConvertElapsedTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.ElapsedTime), Mode=OneWay}" />
+                  <Run Text="{i18n:Localize Key=Elapsed}" /> <Run Text="{x:Bind viewModels:PeriodicTimerPageViewModel.ConvertElapsedTime(_vm.InstantPeriodicTimer.ElapsedTime), Mode=OneWay}" />
                 </TextBlock>
                 
                 <StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right">
@@ -231,7 +231,7 @@
                   <TextBlock x:Name="TextBlock_ImmidiateNextTime" 
                            Opacity="0.7"
                            >
-                    <Run Text="{x:Bind viewModels:PeriodicTimerPageViewModel.ConvertDateTime(_vm.InstantPeriodicTimer.PeriodicTimerRunningInfo.NextTime), Mode=OneWay}" />
+                    <Run Text="{x:Bind viewModels:PeriodicTimerPageViewModel.ConvertDateTime(_vm.InstantPeriodicTimer.NextTime), Mode=OneWay}" />
                   </TextBlock>
                 </StackPanel>
               </Grid>

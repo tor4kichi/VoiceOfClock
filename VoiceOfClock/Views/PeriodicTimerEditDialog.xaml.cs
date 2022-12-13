@@ -1,6 +1,4 @@
-﻿using ABI.Windows.AI.MachineLearning;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using DependencyPropertyGenerator;
+﻿using DependencyPropertyGenerator;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -8,37 +6,21 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.VisualBasic;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace VoiceOfClock.Views;
-
-public sealed class PeriodicTimerEditDialogService : IPeriodicTimerDialogService
-{
-    public Task<PeriodicTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeSpan startTime, TimeSpan endTime, TimeSpan intervalTime, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek)
-    {
-        var dialog = new PeriodicTimerEditDialog();
-        App.Current.InitializeDialog(dialog);
-        dialog.Title = dialogTitle;
-        return dialog.ShowAsync(timerTitle, startTime, endTime, intervalTime, enabledDayOfWeeks, firstDayOfWeek);
-    }
-}
 
 [DependencyProperty<bool>("IsRepeat")]
 [DependencyProperty<EnabledDayOfWeekViewModel[]>("EnabledDayOfWeeks")]

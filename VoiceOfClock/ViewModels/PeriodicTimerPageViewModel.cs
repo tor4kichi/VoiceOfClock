@@ -2,99 +2,148 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using I18NPortable;
+using Microsoft.UI.Dispatching;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Domain;
-using VoiceOfClock.Services;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Contracts.UseCases;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
 
-public interface IPeriodicTimerDialogService
-{
-    Task<PeriodicTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeSpan startTime, TimeSpan endTime, TimeSpan intervalTime, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek);
-}
-
-public sealed class PeriodicTimerDialogResult
-{
-    public bool IsConfirmed { get; init; }
-    public string Title { get; init; } = String.Empty;
-    public TimeSpan StartTime { get; init; }
-    public TimeSpan EndTime { get; init; }
-    public TimeSpan IntervalTime { get; init; }        
-    public DayOfWeek[] EnabledDayOfWeeks { get; init; } = Array.Empty<DayOfWeek>();
-}
-
 // ページを開いていなくても時刻読み上げは動作し続けることを前提に
 // ページの表示状態を管理する
-public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
+public sealed partial class PeriodicTimerPageViewModel 
+    : ObservableRecipient
+    , IRecipient<UpdatePeriodicTimerMessage>
+    , IRecipient<ProgressPeriodPeriodicTimerMessage>
 {
+    private readonly DispatcherQueueTimer _dispatcherQueueTimer;
     private readonly IPeriodicTimerDialogService _dialogService;
     private readonly PeriodicTimerLifetimeManager _timerLifetimeManager;
-    private readonly StoreLisenceService _storeLisenceService;
-
-    [ObservableProperty]
-    private ReadOnlyReactiveCollection<PeriodicTimerViewModel>? _timers;
-
-    [ObservableProperty]
-    private PeriodicTimerViewModel? _instantPeriodicTimer;
-
+    private readonly IStoreLisenceService _storeLisenceService;
     public TimerSettings TimerSettings { get; }
-
+    private readonly ObservableCollection<PeriodicTimerViewModel> _timers;
+    public ReadOnlyObservableCollection<PeriodicTimerViewModel> Timers { get; }
+    public PeriodicTimerViewModel InstantPeriodicTimer { get; }
 
     [ObservableProperty]
     private IReadOnlyReactiveProperty<bool>? _someTimerIsActive;
 
+    private const double PeriodicTimerUpdateFrequencyOnSeconds = 1.0d / 5; 
 
     public PeriodicTimerPageViewModel(
         IMessenger messenger
         , IPeriodicTimerDialogService dialogService
         , PeriodicTimerLifetimeManager timerLifetimeManager
         , TimerSettings timerSettings
-        , StoreLisenceService storeLisenceService
+        , IStoreLisenceService storeLisenceService
         )
         : base(messenger)
     {
+        _dispatcherQueueTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _dispatcherQueueTimer.Interval = TimeSpan.FromSeconds(PeriodicTimerUpdateFrequencyOnSeconds);
+        _dispatcherQueueTimer.IsRepeating = true;        
+
         _dialogService = dialogService;
         _timerLifetimeManager = timerLifetimeManager;
         TimerSettings = timerSettings;
         _storeLisenceService = storeLisenceService;
+
+        _timers = new ObservableCollection<PeriodicTimerViewModel>(_timerLifetimeManager.GetTimers().OrderBy(x => x.Order).Select(ToTimerViewModel));
+        Timers = new(_timers);
+        InstantPeriodicTimer = ToTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer);
+    }    
+
+    private PeriodicTimerViewModel ToTimerViewModel(PeriodicTimerEntity entity)
+    {
+        return new PeriodicTimerViewModel(entity, _timerLifetimeManager, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
     }
 
     protected override void OnActivated()
     {
         base.OnActivated();
-        
-        Timers = _timerLifetimeManager.Timers.ToReadOnlyReactiveCollection(x => new PeriodicTimerViewModel(x, DeleteTimerCommand, TimerSettings.FirstDayOfWeek));
-        InstantPeriodicTimer = new PeriodicTimerViewModel(_timerLifetimeManager.InstantPeriodicTimer, DeleteTimerCommand, TimerSettings.FirstDayOfWeek);
+
+        _dispatcherQueueTimer.Tick += OnTimerTick;
+        _dispatcherQueueTimer.Start();
+
         SomeTimerIsActive = 
             new[] 
             {
-                InstantPeriodicTimer.PeriodicTimerRunningInfo.ObserveProperty(x => x.IsEnabled).ToUnit(),
+                InstantPeriodicTimer.ObserveProperty(x => x.IsEnabled).ToUnit(),
                 Timers.ObserveElementProperty(x => x.IsEnabled).ToUnit(),
             }
-            .Merge().Select(x => InstantPeriodicTimer.PeriodicTimerRunningInfo.IsEnabled || Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
+            .Merge().Select(x => InstantPeriodicTimer.Entity.IsEnabled || Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
     }
 
     protected override void OnDeactivated()
     {
-        foreach (var timer in Timers ?? Enumerable.Empty<PeriodicTimerViewModel>())
-        {
-            (timer as IDisposable)?.Dispose();
-        }
-        Timers = null;
-        (InstantPeriodicTimer as IDisposable)?.Dispose();
-        InstantPeriodicTimer = null;
-        SomeTimerIsActive!.Dispose();
-        SomeTimerIsActive = null;
         base.OnDeactivated();
+
+        _dispatcherQueueTimer.Stop();
+        _dispatcherQueueTimer.Tick -= OnTimerTick;
+
+        SomeTimerIsActive!.Dispose();
+        SomeTimerIsActive = null;        
+    }
+
+
+    private void OnTimerTick(DispatcherQueueTimer sender, object args)
+    {
+        if (InstantPeriodicTimer.IsEnabled)
+        {
+            InstantPeriodicTimer.UpdateElapsedTime();
+        }
+
+        foreach (var timerVM in _timers)
+        {
+            if (timerVM.IsEnabled && timerVM.IsInsidePeriod)
+            {
+                timerVM.UpdateElapsedTime();
+            }
+        }
+    }
+
+    void IRecipient<UpdatePeriodicTimerMessage>.Receive(UpdatePeriodicTimerMessage message)
+    {
+        var destEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
+            ?? (destEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;        
+        if (timerVM == null) { return; }
+        if (timerVM.Entity != destEntity) 
+        {
+            var sourceEntity = timerVM.Entity;
+            sourceEntity.Title = destEntity.Title;
+            sourceEntity.IntervalTime = destEntity.IntervalTime;
+            sourceEntity.StartTime = destEntity.StartTime;
+            sourceEntity.EndTime = destEntity.EndTime;
+            sourceEntity.Order = destEntity.Order;
+            sourceEntity.EnabledDayOfWeeks = destEntity.EnabledDayOfWeeks;
+            sourceEntity.IsEnabled = destEntity.IsEnabled;
+
+            timerVM.RefrectValues();
+        }
+
+        timerVM.CulcNextTime();
+    }
+
+    void IRecipient<ProgressPeriodPeriodicTimerMessage>.Receive(ProgressPeriodPeriodicTimerMessage message)
+    {
+        var destEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
+            ?? (destEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+        
+        timerVM?.CulcNextTime();
     }
 
     [RelayCommand]
@@ -103,7 +152,7 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
         if (PurchaseItemsConstants.IsTrialLimitationEnabled)
         {
             await _storeLisenceService.EnsureInitializeAsync();
-            if (_storeLisenceService.IsTrial.Value && _timerLifetimeManager.Timers.Count >= PurchaseItemsConstants.Trial_TimersLimitationCount)
+            if (_storeLisenceService.IsTrial.Value && _timerLifetimeManager.GetTimerCount() >= PurchaseItemsConstants.Trial_TimersLimitationCount)
             {
                 var (isSuccess, error) = await _storeLisenceService.RequestPurchaiceLisenceAsync("PurchaseDialog_TitleOnInteractFromUser".Translate());
                 if (!isSuccess)
@@ -116,13 +165,15 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
         var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerAddDialog_Title".Translate(), "", TimeSpan.Zero, TimeSpan.FromHours(1), TimeSpan.FromMinutes(5), Enum.GetValues<DayOfWeek>(), TimerSettings.FirstDayOfWeek);
         if (result?.IsConfirmed is true)
         {
-            _timerLifetimeManager.CreatePeriodicTimer(
+            var newEntity = _timerLifetimeManager.CreatePeriodicTimer(
                 result.Title
                 , result.StartTime
                 , result.EndTime
                 , result.IntervalTime
                 , result.EnabledDayOfWeeks
                 );
+
+            _timers.Add(ToTimerViewModel(newEntity));
         }
     }
 
@@ -131,7 +182,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
     {
         if (timerVM.IsRemovable is false) { return; }
 
-        _timerLifetimeManager.DeletePeriodicTimer(timerVM.PeriodicTimerRunningInfo);
+        _timerLifetimeManager.DeletePeriodicTimer(timerVM.Entity);
+        _timers.Remove(timerVM);
     }
 
     [RelayCommand]
@@ -140,21 +192,18 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
         var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerEditDialog_Title".Translate(), timerVM.Title, timerVM.StartTime, timerVM.EndTime, timerVM.IntervalTime, timerVM.EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek), TimerSettings.FirstDayOfWeek);
         if (result?.IsConfirmed is true)
         {
-            var timerInfo = timerVM.PeriodicTimerRunningInfo;
-            using (timerInfo.DeferUpdate())
-            {
-                timerVM.IsEnabled = timerInfo.IsEnabled = true;
-                timerVM.StartTime = timerInfo.StartTime = result.StartTime;
-                timerVM.EndTime  = timerInfo.EndTime = result.EndTime;
-                timerVM.IntervalTime = timerInfo.IntervalTime = result.IntervalTime;
-                timerVM.Title  = timerInfo.Title = result.Title;
-                foreach (var enabledDayOfWeekVM in timerVM.EnabledDayOfWeeks)
-                {
-                    enabledDayOfWeekVM.IsEnabled = result.EnabledDayOfWeeks.Contains(enabledDayOfWeekVM.DayOfWeek);
-                }
+            var entity = timerVM.Entity;            
+            entity.IsEnabled = true;
+            entity.StartTime = result.StartTime;
+            entity.EndTime = result.EndTime;
+            entity.IntervalTime = result.IntervalTime;
+            entity.Title = result.Title;                
+            entity.EnabledDayOfWeeks = result.EnabledDayOfWeeks;
 
-                timerInfo.EnabledDayOfWeeks = result.EnabledDayOfWeeks;
-            }
+            timerVM.RefrectValues();
+            timerVM.CulcNextTime();
+
+            _timerLifetimeManager.UpdatePeriodicTimer(entity);
         }
     }
 
@@ -184,7 +233,8 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
     {
         if (InstantPeriodicTimer is null) { return; }
 
-        _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);            
+        _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);
+        InstantPeriodicTimer.CulcNextTime();
         InstantPeriodicTimer.IsEnabled = true;            
     }
 
@@ -228,4 +278,5 @@ public sealed partial class PeriodicTimerPageViewModel : ObservableRecipient
             return "ElapsedTime_Seconds".Translate(timeSpan.Seconds);
         }            
     }
+
 }

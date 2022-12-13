@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
-using VoiceOfClock.Models.Infrastructure;
+using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Models.Domain;
+namespace VoiceOfClock.Core.Domain;
 
 public sealed class AlarmTimerRepository : LiteDBRepositoryBase<AlarmTimerEntity>
 {
@@ -15,7 +16,7 @@ public sealed class AlarmTimerRepository : LiteDBRepositoryBase<AlarmTimerEntity
     }
 }
 
-public sealed class AlarmTimerEntity
+public sealed class AlarmTimerEntity : ITimer
 {
     [BsonId(autoId: true)]
     public Guid Id { get; init; }

@@ -1,9 +1,9 @@
 ﻿using DryIoc;
 using Microsoft.Toolkit.Uwp.Notifications;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 using Windows.Foundation.Collections;
 
-namespace VoiceOfClock.Contract.UseCases;
+namespace VoiceOfClock.Contracts.UseCases;
 
 public interface IToastActivationAware
 {

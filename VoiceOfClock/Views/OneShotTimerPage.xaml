@@ -69,7 +69,7 @@
               </Border>
 
               <ProgressRing Width="220" Height="220" IsIndeterminate="False"
-                            Minimum="0" Maximum="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(RunningInfo.Time), Mode=OneWay}" 
+                            Minimum="0" Maximum="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(Time), Mode=OneWay}" 
                             Value="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(RemainingTime), Mode=OneWay}"                                                                  
                             IsActive="{x:Bind IsTimerActive, Mode=OneWay}"                              
                                  >
@@ -107,7 +107,7 @@
               
 
               <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 84 0 0"
-                    Visibility="{x:Bind RunningInfo.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Visibility="{x:Bind IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                     Background="{ThemeResource SystemBaseMediumLowColor}"
                     CornerRadius="10"
                     Padding="8 4"
@@ -127,10 +127,10 @@
               <Button Command="{x:Bind ToggleTimerStartAndStopCommand}" Style="{ThemeResource AccentButtonStyle}">
                 <SymbolIcon Symbol="Play">
                   <i:Interaction.Behaviors>
-                    <core:DataTriggerBehavior Binding="{x:Bind RunningInfo.IsRunning, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+                    <core:DataTriggerBehavior Binding="{x:Bind IsRunning, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
                       <core:ChangePropertyAction PropertyName="Symbol" Value="Pause" />
                     </core:DataTriggerBehavior>
-                    <core:DataTriggerBehavior Binding="{x:Bind RunningInfo.IsRunning, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+                    <core:DataTriggerBehavior Binding="{x:Bind IsRunning, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
                       <core:ChangePropertyAction PropertyName="Symbol" Value="Play" />
                     </core:DataTriggerBehavior>
                   </i:Interaction.Behaviors>

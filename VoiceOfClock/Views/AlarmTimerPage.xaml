@@ -48,14 +48,14 @@
 
             <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7" Height="24">
               <SymbolIcon x:Name="SymbolIcon_NextTimeIcon" Symbol="Clock" RenderTransformOrigin="0.25, 0.5" Width="20" HorizontalAlignment="Left"
-                          Visibility="{x:Bind IsEnabled.Value, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                          Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                           >
                 <SymbolIcon.RenderTransform>
                   <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
                 </SymbolIcon.RenderTransform>
               </SymbolIcon>
-              <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind RunningInfo.TargetTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0"                         
-                         Visibility="{x:Bind IsEnabled.Value, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+              <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind TargetTime, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="20 0 0 0"                         
+                         Visibility="{x:Bind IsEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                          >
 
               </TextBlock>
@@ -93,7 +93,7 @@
 
           </StackPanel>
 
-          <ToggleSwitch x:Name="ToggleSwitch_IsEnabled" HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled.Value, Mode=TwoWay}"
+          <ToggleSwitch x:Name="ToggleSwitch_IsEnabled" HorizontalAlignment="Right" VerticalAlignment="Top" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
                         Style="{StaticResource SettingsToggleSwitch}"                              
                         Visibility="{x:Bind IsEditting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
                         >

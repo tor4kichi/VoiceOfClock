@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.UseCases;
+namespace VoiceOfClock.ViewModels;
 
 public static class TimeTranslationHelper
 {

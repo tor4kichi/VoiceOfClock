@@ -21,9 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using VoiceOfClock.Contract.Services;
-using VoiceOfClock.Contract.UseCases;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Contracts.UseCases;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -48,9 +48,9 @@ public sealed partial class MainWindow : SystemBackdropWindow
         this.InitializeComponent();        
         (this.Content as FrameworkElement)!.RequestedTheme = Ioc.Default.GetRequiredService<ApplicationSettings>().Theme switch 
         {
-            Models.Domain.ApplicationTheme.Default => ElementTheme.Default,
-            Models.Domain.ApplicationTheme.Dark => ElementTheme.Dark,
-            Models.Domain.ApplicationTheme.Light => ElementTheme.Light,
+            Core.Domain.ApplicationTheme.Default => ElementTheme.Default,
+            Core.Domain.ApplicationTheme.Dark => ElementTheme.Dark,
+            Core.Domain.ApplicationTheme.Light => ElementTheme.Light,
         };
         TextBlock_AppTitle.Text = SystemInformation.Instance.ApplicationName;
 

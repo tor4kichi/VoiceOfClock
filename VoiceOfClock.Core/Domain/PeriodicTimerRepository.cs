@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Infrastructure;
+using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Models.Domain;
+namespace VoiceOfClock.Core.Domain;
 
 public sealed class PeriodicTimerRepository : LiteDBRepositoryBase<PeriodicTimerEntity>
 {
@@ -15,7 +16,7 @@ public sealed class PeriodicTimerRepository : LiteDBRepositoryBase<PeriodicTimer
     }
 }
 
-public sealed class PeriodicTimerEntity
+public sealed class PeriodicTimerEntity : ITimer
 {
     [BsonId(autoId: true)]
     public Guid Id { get; set; }
@@ -33,4 +34,8 @@ public sealed class PeriodicTimerEntity
     public DayOfWeek[] EnabledDayOfWeeks { get; set; } = Enum.GetValues<DayOfWeek>();
     
     public int Order { get; set; }
+
+    public SoundSourceType SoundSourceType { get; set; } = SoundSourceType.DateTimeToSpeech;
+
+    public string SoundContent { get; set; } = string.Empty;
 }

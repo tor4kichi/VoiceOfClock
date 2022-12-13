@@ -3,92 +3,97 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Reactive.Bindings.Extensions;
 using System;
+using System.Threading;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
+using System.Threading.Tasks;
 
 namespace VoiceOfClock.ViewModels;
 
-public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposable
+[ObservableObject]
+public sealed partial class OneShotTimerViewModel : IDisposable
 {
-    public OneShotTimerViewModel(OneShotTimerRunningInfo runningInfo, IMessenger messenger, Action<OneShotTimerViewModel> onDeleteAction)
-    {
-        RunningInfo = runningInfo;
-        _messenger = messenger;
-        _onDeleteAction = onDeleteAction;
-        _time = RunningInfo.Time;
-        _title = RunningInfo.Title;
-        _remainingTime = RunningInfo.RemainingTime;
-        _isTimerActive = RunningInfo.Time != RunningInfo.RemainingTime;
-
-        RunningInfo.ObserveProperty(x => x.RemainingTime)
-            .Subscribe(x => RemainingTime = x)
-            .AddTo(_disposables);
-
-        if (RunningInfo.IsRunning)
-        {
-            EndTime = TimeOnly.FromDateTime(RunningInfo.StartTime + Time);
-        }
-
-        RunningInfo.OnTimesUp += RunningInfo_OnTimesUp;
-    }
-
-    private void RunningInfo_OnTimesUp(object? sender, OneShotTimerRunningInfo e)
-    {
-#if DEBUG
-        _sw.Stop();
-        Debug.WriteLine($"Time: {Time:T} / Real: {_sw.Elapsed:T}");
-#endif
-        // TODO: 画面上の通知動作を実行                
-
-    }
+    public OneShotTimerEntity Entity { get; }
 
     private readonly CompositeDisposable _disposables = new();
+    private readonly OneShotTimerLifetimeManager _oneShotTimerLifetimeManager;
     private readonly IMessenger _messenger;
     private readonly Action<OneShotTimerViewModel> _onDeleteAction;
+
+    public OneShotTimerViewModel(OneShotTimerEntity entity, OneShotTimerLifetimeManager oneShotTimerLifetimeManager, IMessenger messenger, Action<OneShotTimerViewModel> onDeleteAction)
+    {
+        Entity = entity;
+        _oneShotTimerLifetimeManager = oneShotTimerLifetimeManager;
+        _messenger = messenger;
+        _onDeleteAction = onDeleteAction;
+        _time = Entity.Time;
+        _title = Entity.Title;        
+        (_isTimerActive, _endTime, _remainingTime) = oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
+        _isRunning = false;
+    }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
     private TimeSpan _time;
 
-    partial void OnTimeChanged(TimeSpan value)
-    {
-        RunningInfo.Time = value;
-        RemainingTime = value;
-    }
-
-
     [ObservableProperty]
     private string _title;
-
-
-    partial void OnTitleChanged(string value)
-    {
-        RunningInfo.Title = value;
-    }
 
     [ObservableProperty]   
     private TimeSpan _remainingTime;
 
     [ObservableProperty]
-    private TimeOnly? _endTime;
+    private DateTime? _endTime;
 
     [ObservableProperty]
     private bool _isEditting;
+
+    [ObservableProperty]
+    private bool _isRunning;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
     private bool _isTimerActive;
 
 
+    public void RefrectValues()
+    {
+        Title = Entity.Title;
+        Time = Entity.Time;
+        RemainingTime = Entity.Time;
+    }
+
+    public void UpdateRemainingTime()
+    {
+        if (IsRunning is false) { return; }
+
+        if (EndTime.HasValue)
+        {
+            var remainingTime = (EndTime.Value - DateTime.Now);
+            if (remainingTime > TimeSpan.Zero)
+            {
+                RemainingTime = remainingTime;
+            }
+            else
+            {
+                RemainingTime = TimeSpan.Zero;
+                EndTime = null;
+                IsRunning = false;
+            }
+        }
+        else
+        {
+            IsRunning = false;
+        }
+    }
+
     partial void OnRemainingTimeChanged(TimeSpan value)
     {
         IsTimerActive = value != Time;
     }
-
-    public OneShotTimerRunningInfo RunningInfo { get; }
 
     public static string ConvertTime(TimeSpan time)
     {
@@ -96,6 +101,11 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
     }
 
     public static string ConvertTime(TimeOnly? time)
+    {
+        return time?.ToString("T") ?? string.Empty;
+    }
+
+    public static string ConvertTime(DateTime? time)
     {
         return time?.ToString("T") ?? string.Empty;
     }
@@ -114,35 +124,34 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
     private readonly Stopwatch _sw = new ();
 #endif
     [RelayCommand]
-    void ToggleTimerStartAndStop()
+    async Task ToggleTimerStartAndStop()
     {
-        if (RunningInfo.IsRunning)
+        if (IsRunning)
         {
+            IsRunning = false;
+            await _oneShotTimerLifetimeManager.PauseTimer(Entity);            
 #if DEBUG
             _sw.Stop();
-#endif
-
-            RunningInfo.StopTimer();
+#endif            
         }
         else
         {
 #if DEBUG
             _sw.Start();
 #endif
-            RunningInfo.StartTimer();
+            await _oneShotTimerLifetimeManager.StartTimer(Entity, RemainingTime);
+            (IsTimerActive, EndTime, RemainingTime) = _oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
 
-            RemainingTime = RunningInfo.RemainingTime;
-            EndTime = TimeOnly.FromDateTime(RunningInfo.StartTime + Time);
+            IsRunning = true;
         }
     }   
 
 
     [RelayCommand(CanExecute = nameof(CanExecuteRewindTimer))]
-    void RewindTimer()
+    async Task RewindTimer()
     {
-        RunningInfo.RewindTimer();
-        RemainingTime = Time;
-        EndTime = TimeOnly.FromDateTime(RunningInfo.StartTime + Time);
+        await _oneShotTimerLifetimeManager.RewindTimer(Entity, IsRunning);
+        (IsTimerActive, EndTime, RemainingTime) = _oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
 #if DEBUG
         _sw.Reset();
 #endif
@@ -180,6 +189,7 @@ public sealed partial class OneShotTimerViewModel : ObservableObject, IDisposabl
     public void Dispose()
     {
         _disposables.Dispose();
-        RunningInfo.OnTimesUp -= RunningInfo_OnTimesUp;
     }
+
+    
 }

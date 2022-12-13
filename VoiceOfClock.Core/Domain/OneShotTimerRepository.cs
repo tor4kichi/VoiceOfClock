@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Infrastructure;
+using VoiceOfClock.Core.Contracts.Domain;
+using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Models.Domain;
+namespace VoiceOfClock.Core.Domain;
 
 public sealed class OneShotTimerRepository : LiteDBRepositoryBase<OneShotTimerEntity>
 {
@@ -31,18 +32,20 @@ public sealed class OneShotTimerRunningEntity
     public TimeSpan Time { get; set; }
 }
 
-public sealed class OneShotTimerEntity
+public sealed class OneShotTimerEntity : ITimer
 {
     [BsonId(autoId: true)]
     public Guid Id { get; init; }
 
     public TimeSpan Time { get; set; }
 
-    public string Title { get; set; } = string.Empty; 
+    public string Title { get; set; } = string.Empty;
 
-    public SoundSourceType SoundType { get; set; }
+    [BsonField("SoundType")]
+    public SoundSourceType SoundSourceType { get; set; }
 
-    public string SoundParameter { get; set; } = string.Empty;
+    [BsonField("SoundParameter")]
+    public string SoundContent { get; set; } = string.Empty;
     
     public int Order { get; set; }
 }

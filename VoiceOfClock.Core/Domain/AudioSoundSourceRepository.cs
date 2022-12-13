@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Models.Infrastructure;
+using VoiceOfClock.Core.Infrastructure;
 
 namespace VoiceOfClock.Core.Domain;
 

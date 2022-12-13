@@ -13,9 +13,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media;
-using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Contracts.Services;
 using VoiceOfClock.Core.Domain;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.Services.SoundPlayer;
 using VoiceOfClock.UseCases;
 using Windows.Devices.Radios;
@@ -178,7 +178,7 @@ static class SoundPlayerHelper
 
         void _mediaPlayler_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
         {
-            tcs.SetException(args.ExtendedErrorCode);
+            tcs.TrySetException(args.ExtendedErrorCode);
         }
 
         mediaPlayer.MediaEnded += _mediaPlayler_MediaEnded;

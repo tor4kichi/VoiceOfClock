@@ -1,35 +1,48 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
+using Microsoft.UI.Dispatching;
 using Microsoft.VisualBasic;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Linq;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
 
-public sealed partial class AlarmTimerViewModel : ObservableObject
+[ObservableObject]
+public sealed partial class AlarmTimerViewModel
 {
-    public AlarmTimerViewModel(AlarmTimerRunningInfo runningInfo, DayOfWeek firstDayOfWeek, Action<AlarmTimerViewModel> onDeleteAction)
+    public AlarmTimerEntity Entity { get; }
+    private readonly AlarmTimerLifetimeManager _alarmTimerLifetimeManager;
+    private readonly Action<AlarmTimerViewModel> _onDeleteAction;    
+
+    public AlarmTimerViewModel(AlarmTimerEntity entity, DayOfWeek firstDayOfWeek, AlarmTimerLifetimeManager alarmTimerLifetimeManager, Action<AlarmTimerViewModel> onDeleteAction)
     {
-        RunningInfo = runningInfo;
+        Entity = entity;
+        _alarmTimerLifetimeManager = alarmTimerLifetimeManager;
         _onDeleteAction = onDeleteAction;
-        _title = RunningInfo.Title;
-        _timeOfDay = RunningInfo.TimeOfDay;
-        _soundSourceType = RunningInfo.SoundSourceType;
-        _soundContent = RunningInfo.SoundContent;
-        _snooze = RunningInfo.Snooze;
+        _title = Entity.Title;
+        _timeOfDay = Entity.TimeOfDay;
+        _soundSourceType = Entity.SoundSourceType;
+        _soundContent = Entity.SoundContent;
+        _snooze = Entity.Snooze;
+        _isEnabled = entity.IsEnabled;
 
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
-            .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = runningInfo.EnabledDayOfWeeks.Contains(x) }).ToArray();
+            .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
-        IsEnabled = RunningInfo.ToReactivePropertyAsSynchronized(x => x.IsEnabled);
+        CulcTargetTime();
     }
 
-    public AlarmTimerRunningInfo RunningInfo { get; }
+    public Guid EntityId => Entity.Id;
+
+    private void Save()
+    {
+        _alarmTimerLifetimeManager.UpdateAlarmTimer(Entity);
+    }
 
 
     [ObservableProperty]
@@ -38,7 +51,15 @@ public sealed partial class AlarmTimerViewModel : ObservableObject
     [ObservableProperty]
     private string _title;
 
-    public IReactiveProperty<bool> IsEnabled { get; }
+
+    [ObservableProperty]
+    private bool _isEnabled;
+
+    partial void OnIsEnabledChanged(bool value)
+    {
+        Entity.IsEnabled = value;
+        Save();        
+    }
 
     [ObservableProperty]
     private TimeOnly _timeOfDay;
@@ -53,22 +74,44 @@ public sealed partial class AlarmTimerViewModel : ObservableObject
 
     [ObservableProperty]
     private string _soundContent;
-    private readonly Action<AlarmTimerViewModel> _onDeleteAction;
+
+    [ObservableProperty]
+    private DateTime _targetTime;
+
+    private void CulcTargetTime()
+    {
+        TargetTime = TimeHelpers.CulcNextTime(DateTime.Now, Entity.TimeOfDay.ToTimeSpan(), Entity.EnabledDayOfWeeks);
+    }
 
     public void RefrectValues()
     {
-        Title = RunningInfo.Title;
-        //IsEnabled.Value = RunningInfo.IsEnabled;
-        TimeOfDay = RunningInfo.TimeOfDay;
-        SoundSourceType = RunningInfo.SoundSourceType;
-        SoundContent = RunningInfo.SoundContent;
-        Snooze = RunningInfo.Snooze;
+        Title = Entity.Title;
+        IsEnabled = Entity.IsEnabled;
+        TimeOfDay = Entity.TimeOfDay;
+        SoundSourceType = Entity.SoundSourceType;
+        SoundContent = Entity.SoundContent;
+        Snooze = Entity.Snooze;
         foreach (var dayOfWeekVM in EnabledDayOfWeeks)
         {
-            dayOfWeekVM.IsEnabled = RunningInfo.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
+            dayOfWeekVM.IsEnabled = Entity.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
         }
+
+        CulcTargetTime();
     }
 
+
+    public void RefrectBackValues()
+    {
+        Entity.Title = Title;
+        Entity.IsEnabled = IsEnabled;
+        Entity.TimeOfDay = TimeOfDay;
+        Entity.SoundSourceType = SoundSourceType;
+        Entity.SoundContent = SoundContent;
+        Entity.Snooze = Snooze;
+        Entity.EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray();
+
+        Save();
+    }
 
     public string LocalizeTime(TimeOnly timeSpan)
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Contract.UseCases;
+namespace VoiceOfClock.Contracts.UseCases;
 
 internal interface IApplicationLifeCycleAware
 {

@@ -8,44 +8,49 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.UseCases;
 
 namespace VoiceOfClock.ViewModels;
 
 public partial class PeriodicTimerViewModel : ObservableObject
 {
-    public PeriodicTimerRunningInfo PeriodicTimerRunningInfo { get; }
+    public PeriodicTimerEntity Entity { get; }
+    private readonly PeriodicTimerLifetimeManager _periodicTimerLifetimeManager;
+    public ICommand DeleteCommand { get; }
 
-    public PeriodicTimerViewModel(PeriodicTimerRunningInfo timerInfo, ICommand deleteCommand, DayOfWeek firstDayOfWeek)
+    public PeriodicTimerViewModel(PeriodicTimerEntity entity, PeriodicTimerLifetimeManager periodicTimerLifetimeManager, ICommand deleteCommand, DayOfWeek firstDayOfWeek)
     {
-        PeriodicTimerRunningInfo = timerInfo;
+        Entity = entity;
+        _periodicTimerLifetimeManager = periodicTimerLifetimeManager;
         DeleteCommand = deleteCommand;
 
-        _isEnabled = PeriodicTimerRunningInfo.IsEnabled;
-        _intervalTime = PeriodicTimerRunningInfo.IntervalTime;
-        _startTime = PeriodicTimerRunningInfo.StartTime;
-        _endTime = PeriodicTimerRunningInfo.EndTime;
-        _title = PeriodicTimerRunningInfo.Title;
+        _isEnabled = Entity.IsEnabled;
+        _intervalTime = Entity.IntervalTime;
+        _startTime = Entity.StartTime;
+        _endTime = Entity.EndTime;
+        _title = Entity.Title;
         
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
-            .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = timerInfo.EnabledDayOfWeeks.Contains(x) }).ToArray();
+            .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
+
+        CulcNextTime();
     }
 
-    public void RefrectValue()
+    public void RefrectValues()
     {
-        IsEnabled = PeriodicTimerRunningInfo.IsEnabled;
-        IntervalTime = PeriodicTimerRunningInfo.IntervalTime;
-        StartTime = PeriodicTimerRunningInfo.StartTime;
-        EndTime = PeriodicTimerRunningInfo.EndTime;
-        Title = PeriodicTimerRunningInfo.Title;
+        IsEnabled = Entity.IsEnabled;
+        IntervalTime = Entity.IntervalTime;
+        StartTime = Entity.StartTime;
+        EndTime = Entity.EndTime;
+        Title = Entity.Title;        
         foreach (var dayOfWeekVM in EnabledDayOfWeeks)
         {
-            dayOfWeekVM.IsEnabled = PeriodicTimerRunningInfo.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
+            dayOfWeekVM.IsEnabled = Entity.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
         }
     }
 
-    public bool IsRemovable => PeriodicTimerRunningInfo.IsInstantTimer is false;
+    public bool IsRemovable => !_periodicTimerLifetimeManager.IsInstantPeriodicTimer(Entity);
 
     [ObservableProperty]
     private bool _isEditting;
@@ -56,7 +61,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
     partial void OnIsEnabledChanged(bool value)
     {        
         if (!IsRemovable) { return; }
-        PeriodicTimerRunningInfo.IsEnabled = value;
+        Entity.IsEnabled = value;
     }
 
 
@@ -72,10 +77,47 @@ public partial class PeriodicTimerViewModel : ObservableObject
     [ObservableProperty]
     private string _title;
 
-    public ICommand DeleteCommand { get; }
-
 
     public EnabledDayOfWeekViewModel[] EnabledDayOfWeeks { get; }
+
+    [ObservableProperty]
+    private bool _isInsidePeriod;
+
+
+    [ObservableProperty]
+    private DateTime _nextTime;
+
+    [ObservableProperty]
+    private DateTime _startDateTime;
+
+    [ObservableProperty]
+    private TimeSpan _elapsedTime;
+
+    public void CulcNextTime()
+    {        
+        if (IsInsidePeriod = PeriodicTimerLifetimeManager.TimerIsInsidePeriod(Entity))
+        {
+            (StartDateTime, ElapsedTime, NextTime) = PeriodicTimerLifetimeManager.InsidePeriodCulcNextTime(Entity);
+        }
+        else
+        {
+            NextTime = PeriodicTimerLifetimeManager.OutsideCulcNextTime(Entity);
+            ElapsedTime = TimeSpan.Zero;
+        }
+    }
+
+    public void UpdateElapsedTime()
+    {        
+        if (IsInsidePeriod = PeriodicTimerLifetimeManager.TimerIsInsidePeriod(Entity))
+        {
+            ElapsedTime = (DateTime.Now - StartDateTime).TrimMilliSeconds();
+        }
+        else
+        {
+            ElapsedTime = TimeSpan.Zero;
+        }
+    }
+
 
     public string LocalizeTime(TimeSpan timeSpan)
     {

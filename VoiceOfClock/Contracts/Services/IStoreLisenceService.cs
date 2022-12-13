@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Contract.Services;
+namespace VoiceOfClock.Contracts.Services;
 
 public interface IStoreLisenceService
 {

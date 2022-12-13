@@ -19,8 +19,8 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using VoiceOfClock.Contract.Services;
-using VoiceOfClock.Models.Domain;
+using VoiceOfClock.Contracts.Services;
+using VoiceOfClock.Core.Domain;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -29,16 +29,6 @@ using Windows.Foundation.Collections;
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace VoiceOfClock.Views;
-
-public sealed class AlarmTimerEditDialogService : IAlarmTimerDialogService
-{
-    public Task<AlarmTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent)
-    {
-        var dialog = new AlarmTimerEditDialog();
-        App.Current.InitializeDialog(dialog);        
-        return dialog.ShowAsync(dialogTitle, timerTitle, dayOfTime, snooze, enabledDayOfWeeks, firstDayOfWeek, soundSourceType, soundContent);
-    }
-}
 
 [DependencyProperty<bool>("IsRepeat")]
 [DependencyProperty<EnabledDayOfWeekViewModel[]>("EnabledDayOfWeeks")]

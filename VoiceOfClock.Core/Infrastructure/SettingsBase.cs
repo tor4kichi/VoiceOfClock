@@ -7,10 +7,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Contract.Services;
-using VoiceOfClock.Models.Infrastructure;
+using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Models.Infrastructure
+namespace VoiceOfClock.Core.Infrastructure
 {
     /*
     public class JsonObjectSerializer : Microsoft.Toolkit.Helpers.IObjectSerializer
@@ -20,7 +20,7 @@ namespace VoiceOfClock.Models.Infrastructure
         public T Deserialize<T>(string value) => string.IsNullOrEmpty(value) || value == "null" ? default(T) : System.Text.Json.JsonSerializer.Deserialize<T>(value);
     }
     */
-    
+
 
     /// <remarks>
     /// 注意：BinaryJsonObjectSerializer は Nullale[T] をシリアライズできない

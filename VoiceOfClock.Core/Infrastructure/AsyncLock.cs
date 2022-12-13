@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Models.Infrastructure
+namespace VoiceOfClock.Core.Infrastructure
 {
     public sealed class AsyncLock
     {

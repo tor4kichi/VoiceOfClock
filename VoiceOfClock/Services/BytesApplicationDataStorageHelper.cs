@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Contract.Services;
+using VoiceOfClock.Core.Contracts.Services;
 using Windows.Storage;
 using Windows.System;
 
