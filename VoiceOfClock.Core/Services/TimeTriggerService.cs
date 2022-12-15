@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
+using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
 
 namespace VoiceOfClock.Core.Services;
 
@@ -13,7 +15,7 @@ namespace VoiceOfClock.Core.Services;
 public sealed class TimeTriggerEntity
 {
     [BsonId]
-    public string Id { get; set; }
+    public Guid Id { get; set; } = Guid.Empty;
 
     public DateTime TriggerTime { get; set; }
 
@@ -36,7 +38,10 @@ public sealed class TimeTriggerRepository : Core.Infrastructure.LiteDBRepository
 }
 
 
-public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
+public sealed class TimeTriggerService 
+    : ITimeTriggerService
+    , IDisposable
+    , IApplicationLifeCycleAware
 {
     private readonly ISingleTimeTrigger _timeTrigger;
     private readonly TimeTriggerRepository _timeTriggerRepository;
@@ -51,7 +56,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
     {
         _timeTrigger = timeTrigger;
         _timeTriggerRepository = timeTriggerRepository;
-        _timeTrigger.TimeArrived += OnTimeArrived;
+        _timeTrigger.TimeArrived += OnTimeArrived;        
     }
 
     public void Dispose()
@@ -59,7 +64,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         _timeTrigger.TimeArrived -= OnTimeArrived;
     }
 
-    private void OnTimeArrived(object? sender, TimeTriggerRecievedEventArgs e)
+    private void OnTimeArrived(object? sender, ISingleTimeTrigger.TimeTriggerRecievedEventArgs e)
     {
         var entity = _timeTriggerRepository.FindById(e.argument);
         if (entity == null)
@@ -82,7 +87,24 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         }        
     }
 
-    public ValueTask SetTimeTrigger(string id, DateTime triggerTime, string? groud_id = null)
+
+    void IApplicationLifeCycleAware.Initialize()
+    {
+        UpdateNextTrigger();
+    }
+
+    void IApplicationLifeCycleAware.Suspending()
+    {
+        
+    }
+
+    void IApplicationLifeCycleAware.Resuming()
+    {
+        
+    }
+
+
+    public ValueTask SetTimeTrigger(Guid id, DateTime triggerTime, string? groud_id = null)
     {
         if (_timeTriggerRepository.Exists(x => x.Id == id))
         {
@@ -96,7 +118,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         return new ValueTask();
     }
 
-    public ValueTask SetTimeTriggerGroup(string? groud_id, IEnumerable<(string id, DateTime triggerTime)> triggers)
+    public ValueTask SetTimeTriggerGroup(string? groud_id, IEnumerable<(Guid id, DateTime triggerTime)> triggers)
     {
         foreach (var trigger in triggers)
         {
@@ -133,7 +155,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         UpdateNextTrigger();
     }
 
-    public void ClearTimeTrigger(string id)
+    public void ClearTimeTriggerGroup(Guid id)
     {
         if (_timeTriggerRepository.Exists(x => x.Id == id))
         {
@@ -143,7 +165,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         UpdateNextTrigger();
     }
 
-    public ValueTask DeleteTimeTrigger(string id, string? groud_id = null)
+    public ValueTask DeleteTimeTrigger(Guid id, string? groud_id = null)
     {
         if (groud_id == null)
         {
@@ -159,7 +181,7 @@ public sealed class TimeTriggerService : IDisposable, ITimeTriggerService
         return new();
     }
 
-    public ValueTask<DateTime?> GetTimeTrigger(string id)
+    public ValueTask<DateTime?> GetTimeTrigger(Guid id)
     {
         var timer = _timeTriggerRepository.FindById(id);
         if (timer == null) { return new (default(DateTime)); }

@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Services;
+using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
 
 namespace VoiceOfClock.Core.Models.Timers;
 
@@ -22,7 +24,7 @@ public sealed class PeriodicTimerLifetimeManager
     private readonly ITimeTriggerService _timeTriggerService;
     private readonly PeriodicTimerRepository _periodicTimerRepository;
 
-    private const string TimeTriggerGroupId = nameof(PeriodicTimerLifetimeManager);
+    public const string TimeTriggerGroupId = "Periodic";
 
     public PeriodicTimerLifetimeManager(
         IMessenger messenger,
@@ -41,10 +43,9 @@ public sealed class PeriodicTimerLifetimeManager
 
     private void OnTimeTriggered(object? sender, TimeTriggeredEventArgs e)
     {
-        if (e.GroupId != TimeTriggerGroupId) { return; }
-        if (Guid.TryParse(e.Id, out Guid timerId) is false) { return; }
+        if (e.GroupId != TimeTriggerGroupId) { return; }        
 
-        var timer = timerId == InstantPeriodicTimerId ? InstantPeriodicTimer : _periodicTimerRepository.FindById(timerId);        
+        var timer = e.Id == InstantPeriodicTimerId ? InstantPeriodicTimer : _periodicTimerRepository.FindById(e.Id);        
         Guard.IsNotNull(timer);
         if (TimerIsInsidePeriod(timer) is false)
         {
@@ -65,18 +66,14 @@ public sealed class PeriodicTimerLifetimeManager
             _ = SendCurrentTimeVoiceAsync(e.TriggerTime);
             Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
 
-            _timeTriggerService.SetTimeTrigger(e.Id.ToString(), e.TriggerTime + timer.IntervalTime, TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(e.Id, e.TriggerTime + timer.IntervalTime, TimeTriggerGroupId);
             _messenger.Send(new PeriodicTimerProgressPeriodMessage(timer));
         }
     }
 
     void IApplicationLifeCycleAware.Initialize()
     {
-        _messenger.RegisterAll(this);
-
-        
-
-        _timeTriggerService.SetTimeTriggerGroup(TimeTriggerGroupId, GetTimers().Select(x => (x.Id.ToString(), GetNextTime(x))));
+        _messenger.RegisterAll(this);        
     }
 
     void IApplicationLifeCycleAware.Resuming() { }
@@ -147,7 +144,7 @@ public sealed class PeriodicTimerLifetimeManager
 
         if (entity.IsEnabled)
         {
-            _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), GetNextTime(entity), TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(entity.Id, GetNextTime(entity), TimeTriggerGroupId);
         }
 
         return entity;
@@ -158,7 +155,7 @@ public sealed class PeriodicTimerLifetimeManager
         if (IsInstantPeriodicTimer(entity)) { return false; }
 
         var deleted1 = _periodicTimerRepository.DeleteItem(entity.Id);
-        _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), TimeTriggerGroupId);
+        _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
         return deleted1;
     }
 
@@ -167,7 +164,7 @@ public sealed class PeriodicTimerLifetimeManager
         if (IsInstantPeriodicTimer(entity)) { return; }
 
         _periodicTimerRepository.UpdateItem(entity);
-        _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), GetNextTime(entity), TimeTriggerGroupId);
+        _timeTriggerService.SetTimeTrigger(entity.Id, GetNextTime(entity), TimeTriggerGroupId);
     }
 
 
@@ -187,7 +184,7 @@ public sealed class PeriodicTimerLifetimeManager
 
     public async ValueTask<bool> GetNowInstantPeriodicTimerEnabled()
     {
-        return await _timeTriggerService.GetTimeTrigger(InstantPeriodicTimerId.ToString()) != null;
+        return await _timeTriggerService.GetTimeTrigger(InstantPeriodicTimerId) != null;
     }
 
     public void StartInstantPeriodicTimer(TimeSpan intervalTime)
@@ -198,7 +195,7 @@ public sealed class PeriodicTimerLifetimeManager
         InstantPeriodicTimer.EndTime = (now - TimeSpan.FromSeconds(1)).TimeOfDay;
         TimeSpan timeOfDay = now.TimeOfDay;        
         _timeTriggerService.SetTimeTrigger(
-            InstantPeriodicTimerId.ToString(),
+            InstantPeriodicTimerId,
             now.Date + timeOfDay.TrimMilliSeconds(), 
             TimeTriggerGroupId
             );
@@ -207,7 +204,7 @@ public sealed class PeriodicTimerLifetimeManager
 
     public void StopInstantPeriodicTimer()
     {
-        _timeTriggerService.DeleteTimeTrigger(InstantPeriodicTimerId.ToString(), TimeTriggerGroupId);
+        _timeTriggerService.DeleteTimeTrigger(InstantPeriodicTimerId, TimeTriggerGroupId);
     }
 
 

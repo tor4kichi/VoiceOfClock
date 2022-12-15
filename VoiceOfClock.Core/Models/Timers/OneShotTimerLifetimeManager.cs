@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Services;
 using VoiceOfClock.Core.Contracts.Models;
+using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
 
 namespace VoiceOfClock.Core.Models.Timers;
 
@@ -24,7 +25,7 @@ public sealed class OneShotTimerLifetimeManager
     private readonly OneShotTimerRunningRepository _oneShotTimerRunningRepository;
     private readonly IMessenger _messenger;
 
-    private const string TimeTriggerGroupId = nameof(OneShotTimerLifetimeManager);
+    private const string TimeTriggerGroupId = "OneShot";
 
     public OneShotTimerLifetimeManager(
         IMessenger messenger,
@@ -72,9 +73,8 @@ public sealed class OneShotTimerLifetimeManager
     private void OnTimeTriggered(object? sender, TimeTriggeredEventArgs e)
     {
         if (e.GroupId != TimeTriggerGroupId) { return; }
-        if (!Guid.TryParse(e.Id, out Guid timerId)) { return; }
-
-        var entity = _oneShotTimerRepository.FindById(timerId);
+        
+        var entity = _oneShotTimerRepository.FindById(e.Id);
         Guard.IsNotNull(entity);
         _toastNotificationService.ShowOneShotTimerToastNotification(entity);
         PlayTimerSound(entity);
@@ -127,7 +127,7 @@ public sealed class OneShotTimerLifetimeManager
         _oneShotTimerRepository.DeleteItem(entity.Id);
         _oneShotTimerRunningRepository.DeleteItem(entity.Id);
 
-        await _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), TimeTriggerGroupId);
+        await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
     }
 
     public void UpdateTimer(OneShotTimerEntity entity)
@@ -171,7 +171,7 @@ public sealed class OneShotTimerLifetimeManager
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
         }
 
-        await _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), DateTime.Now + timerDuration, TimeTriggerGroupId);
+        await _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + timerDuration, TimeTriggerGroupId);
     }
 
     public async ValueTask PauseTimer(OneShotTimerEntity entity)
@@ -181,8 +181,8 @@ public sealed class OneShotTimerLifetimeManager
             cts.Cancel();
         }
         
-        DateTime? triggerTime = await _timeTriggerService.GetTimeTrigger(entity.Id.ToString());
-        await _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), TimeTriggerGroupId);
+        DateTime? triggerTime = await _timeTriggerService.GetTimeTrigger(entity.Id);
+        await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
 
         if (triggerTime.HasValue)
         {
@@ -211,12 +211,12 @@ public sealed class OneShotTimerLifetimeManager
             runningEntity.Time = entity.Time;
             runningEntity.IsRunning = true;
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
-            await _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), DateTime.Now + entity.Time, TimeTriggerGroupId);
+            await _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + entity.Time, TimeTriggerGroupId);
         }
         else
         {
             _oneShotTimerRunningRepository.DeleteItem(entity.Id);
-            await _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), TimeTriggerGroupId);
+            await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
         }
 
     }
@@ -239,7 +239,7 @@ public sealed class OneShotTimerLifetimeManager
 
     public ValueTask<DateTime?> GetTargetTime(OneShotTimerEntity entity)
     {
-        return _timeTriggerService.GetTimeTrigger(entity.Id.ToString());
+        return _timeTriggerService.GetTimeTrigger(entity.Id);
     }
 
     public bool TimerIsRunning(OneShotTimerEntity entity)

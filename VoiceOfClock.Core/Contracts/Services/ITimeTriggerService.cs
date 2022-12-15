@@ -1,25 +1,26 @@
-﻿using VoiceOfClock.Core.Services;
+﻿using System.Numerics;
+using VoiceOfClock.Core.Services;
 
 namespace VoiceOfClock.Core.Contracts.Services;
 
-public interface ITimeTriggerService
+public interface ITimeTriggerServiceBase<IdType> where IdType : notnull, IComparable<IdType>, IEquatable<IdType>
 {
-    void ClearTimeTrigger(string id);
-    ValueTask SetTimeTrigger(string id, DateTime triggerTime, string? groud_id = null);
-    ValueTask SetTimeTriggerGroup(string? groud_id, IEnumerable<(string id, DateTime triggerTime)> triggers);
-    ValueTask DeleteTimeTrigger(string id, string? groud_id = null);
-    ValueTask<DateTime?> GetTimeTrigger(string id);
+    void ClearTimeTriggerGroup(string groupId);
+    ValueTask SetTimeTrigger(IdType id, DateTime triggerTime, string? groudId = null);
+    ValueTask SetTimeTriggerGroup(string groudId, IEnumerable<(IdType id, DateTime triggerTime)> triggers);
+    ValueTask DeleteTimeTrigger(IdType id, string? groudId = null);
+    ValueTask<DateTime?> GetTimeTrigger(IdType id);
     event EventHandler<TimeTriggeredEventArgs>? TimeTriggered;
 
+    public sealed class TimeTriggeredEventArgs
+    {
+        public IdType Id { get; init; } = default(IdType);
 
+        public DateTime TriggerTime { get; init; }
+
+        public string? GroupId { get; init; }
+    }
 }
 
+public interface ITimeTriggerService : ITimeTriggerServiceBase<Guid> { }
 
-public sealed class TimeTriggeredEventArgs
-{
-    public string Id { get; init; }
-
-    public DateTime TriggerTime { get; init; }
-
-    public string? GroupId { get; init; }
-}

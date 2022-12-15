@@ -15,15 +15,15 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
         _dispatcherQueueTimer.IsRepeating = false;
         _dispatcherQueueTimer.Tick += (s, e) =>
         {
-            OnTimeArrived(_lastTriggerTime!.Value, _lastArgument!);
+            OnTimeArrived(_lastTriggerTime!.Value, _lastArgument!.Value);
         };
     }
     
-    public event EventHandler<TimeTriggerRecievedEventArgs>? TimeArrived;
+    public event EventHandler<ISingleTimeTrigger.TimeTriggerRecievedEventArgs>? TimeArrived;
 
     DateTime? _lastTriggerTime;
-    string? _lastArgument;
-    void ISingleTimeTrigger.SetTimeTrigger(DateTime triggerTime, string argument)
+    Guid? _lastArgument;
+    void ISingleTimeTriggerBase<Guid>.SetTimeTrigger(DateTime triggerTime, Guid argument)
     {
         _dispatcherQueueTimer.Stop();
 
@@ -46,13 +46,13 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
         }
     }
 
-    private void OnTimeArrived(DateTime dateTime, string argument)
+    private void OnTimeArrived(DateTime dateTime, Guid argument)
     {
         Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] OnTimeArrived: {dateTime}, {argument}");
         TimeArrived?.Invoke(this, new(dateTime, argument));
     }
 
-    void ISingleTimeTrigger.Clear()
+    void ISingleTimeTriggerBase<Guid>.Clear()
     {
         Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] Clear: ");
         _dispatcherQueueTimer.Stop();

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
+using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
 
 namespace VoiceOfClock.Core.Models.Timers;
 
@@ -26,7 +27,7 @@ public sealed partial class AlarmTimerLifetimeManager
     private readonly IToastNotificationService _toastNotificationService;
     private readonly AlarmTimerRepository _alarmTimerRepository;
 
-    private const string TimeTriggerGroupId = nameof(AlarmTimerLifetimeManager);
+    public const string TimeTriggerGroupId = "Alarm";
     
     public AlarmTimerLifetimeManager(    
         IMessenger messenger
@@ -75,7 +76,7 @@ public sealed partial class AlarmTimerLifetimeManager
         {
             TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id]);
             var nextAlarmTime = DateTime.Now + snooze;
-            _timeTriggerService.SetTimeTrigger(timerId, nextAlarmTime, TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(entityId, nextAlarmTime, TimeTriggerGroupId);
 
             if (_playCancelMap.Remove(entityId, out var cts))
             {
@@ -89,9 +90,8 @@ public sealed partial class AlarmTimerLifetimeManager
     private void OnTimeTriggered(object? sender, TimeTriggeredEventArgs e)
     {
         if (e.GroupId != TimeTriggerGroupId) { return; }
-
-        Guid entityId = Guid.Parse(e.Id);
-        AlarmTimerEntity? timer = _alarmTimerRepository.FindById(entityId);        
+        
+        AlarmTimerEntity? timer = _alarmTimerRepository.FindById(e.Id);        
         if (timer == null) { return; }
 
         _toastNotificationService.ShowAlarmToastNotification(timer, e.TriggerTime);
@@ -103,14 +103,6 @@ public sealed partial class AlarmTimerLifetimeManager
     void IApplicationLifeCycleAware.Initialize()
     {
         _messenger.RegisterAll(this);
-
-        _timeTriggerService.ClearTimeTrigger(TimeTriggerGroupId);
-        DateTime now = DateTime.Now;
-        _timeTriggerService.SetTimeTriggerGroup(TimeTriggerGroupId,
-            _alarmTimerRepository.ReadAllItems()
-            .Where(x => x.IsEnabled && x.EnabledDayOfWeeks.Any())
-            .Select(x => (x.Id.ToString(), TimeHelpers.CulcNextTime(now, x.TimeOfDay.ToTimeSpan(), x.EnabledDayOfWeeks)))
-            );
     }
 
     void IApplicationLifeCycleAware.Resuming() { }
@@ -162,7 +154,7 @@ public sealed partial class AlarmTimerLifetimeManager
         if (timer.IsEnabled && timer.EnabledDayOfWeeks.Any())
         {
             var nextAlarmTime = TimeHelpers.CulcNextTime(DateTime.Now, timer.TimeOfDay.ToTimeSpan(), timer.EnabledDayOfWeeks);
-            _timeTriggerService.SetTimeTrigger(timer.Id.ToString(), nextAlarmTime, TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(timer.Id, nextAlarmTime, TimeTriggerGroupId);
         }
 
         if (_playCancelMap.Remove(timer.Id, out var cts))
@@ -199,7 +191,7 @@ public sealed partial class AlarmTimerLifetimeManager
 
         if (newEntity.IsEnabled && newEntity.EnabledDayOfWeeks.Any())
         {
-            _timeTriggerService.SetTimeTrigger(newEntity.Id.ToString(), TimeHelpers.CulcNextTime(DateTime.Now, newEntity.TimeOfDay.ToTimeSpan(), newEntity.EnabledDayOfWeeks), TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(newEntity.Id, TimeHelpers.CulcNextTime(DateTime.Now, newEntity.TimeOfDay.ToTimeSpan(), newEntity.EnabledDayOfWeeks), TimeTriggerGroupId);
         }
 
         return newEntity;
@@ -209,7 +201,7 @@ public sealed partial class AlarmTimerLifetimeManager
     {
         var result = _alarmTimerRepository.DeleteItem(entity.Id);
 
-        _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString(), TimeTriggerGroupId);
+        _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
 
         return result;
     }
@@ -221,11 +213,11 @@ public sealed partial class AlarmTimerLifetimeManager
        
         if (entity.IsEnabled && entity.EnabledDayOfWeeks.Any())
         {
-            _timeTriggerService.SetTimeTrigger(entity.Id.ToString(), TimeHelpers.CulcNextTime(DateTime.Now, entity.TimeOfDay.ToTimeSpan(), entity.EnabledDayOfWeeks), TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(entity.Id, TimeHelpers.CulcNextTime(DateTime.Now, entity.TimeOfDay.ToTimeSpan(), entity.EnabledDayOfWeeks), TimeTriggerGroupId);
         }
         else
         {
-            _timeTriggerService.DeleteTimeTrigger(entity.Id.ToString());
+            _timeTriggerService.DeleteTimeTrigger(entity.Id);
         }        
     }
 

@@ -26,6 +26,8 @@ using System.Threading.Tasks;
 using VoiceOfClock.Contracts.Services;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Infrastructure;
+using VoiceOfClock.Core.Migrate;
 using VoiceOfClock.Core.Models;
 using VoiceOfClock.Core.Models.Timers;
 using VoiceOfClock.Core.Services;
@@ -103,7 +105,7 @@ public partial class App : Application
 
         // Core.Services
         container.RegisterInstance<IStorageHelper>(new BytesApplicationDataStorageHelper(ApplicationData.Current, new BinaryJsonObjectSerializer()));
-        container.Register<ITimeTriggerService, TimeTriggerService>(reuse: new SingletonReuse());
+        container.Register<TimeTriggerService>(reuse: new SingletonReuse());
         container.Register<ToastNotificationService>(reuse: new SingletonReuse());
 
         // UseCases
@@ -122,6 +124,9 @@ public partial class App : Application
         container.RegisterMapping<IApplicationLifeCycleAware, PeriodicTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, OneShotTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IApplicationLifeCycleAware, AlarmTimerLifetimeManager>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+        container.RegisterMapping<IApplicationLifeCycleAware, TimeTriggerService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
+
+        container.RegisterMapping<ITimeTriggerService, TimeTriggerService>();
 
         container.RegisterMapping<IToastNotificationService, ToastNotificationService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
         container.RegisterMapping<IToastActivationAware, ToastNotificationService>(ifAlreadyRegistered: IfAlreadyRegistered.AppendNotKeyed);
@@ -167,6 +172,13 @@ public partial class App : Application
         {
             I18N.Current.Locale = language.Locale;
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(language.Locale);
+        }
+
+        // バージョン間マイグレーションを実行
+        {
+            Version prevVersion = new Version(SystemInformation.Instance.PreviousVersionInstalled.ToFormattedString());
+            Version currentVersion = new Version(SystemInformation.Instance.ApplicationVersion.ToFormattedString());
+            Container.Resolve<MigrationService>().Migrate(currentVersion, prevVersion);
         }
 
         // ライフサイクル対応のインスタンスに対して初期化を実行
