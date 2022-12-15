@@ -78,7 +78,7 @@ public sealed partial class AlarmTimerViewModel
     [ObservableProperty]
     private DateTime _targetTime;
 
-    private void CulcTargetTime()
+    public void CulcTargetTime()
     {
         TargetTime = TimeHelpers.CulcNextTime(DateTime.Now, Entity.TimeOfDay.ToTimeSpan(), Entity.EnabledDayOfWeeks);
     }

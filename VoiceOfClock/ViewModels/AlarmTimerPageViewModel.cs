@@ -76,11 +76,26 @@ public sealed partial class AlarmTimerPageViewModel
 
     void IRecipient<AlarmTimerUpdatedMessage>.Receive(AlarmTimerUpdatedMessage message)
     {
+        var sourceEntity = message.Value;
         var timerVM = Timers.FirstOrDefault(x => x.EntityId == message.Value.Id);
         if (timerVM == null) { return; }
-        if (timerVM.Entity == message.Value) { return; }
-
-        timerVM.RefrectValues();
+        var destEntity = timerVM.Entity;
+        if (destEntity != sourceEntity)
+        {
+            destEntity.Title = sourceEntity.Title;
+            destEntity.IsEnabled = sourceEntity.IsEnabled;
+            destEntity.SoundContent = sourceEntity.SoundContent;
+            destEntity.SoundSourceType = sourceEntity.SoundSourceType;
+            destEntity.TimeOfDay = sourceEntity.TimeOfDay;
+            destEntity.EnabledDayOfWeeks = sourceEntity.EnabledDayOfWeeks;
+            destEntity.Order = sourceEntity.Order;
+            destEntity.Snooze = sourceEntity.Snooze;
+            timerVM.RefrectValues();
+        }
+        else
+        {
+            timerVM.CulcTargetTime();
+        }
     }
 
     [RelayCommand]

@@ -109,21 +109,21 @@ public sealed partial class PeriodicTimerPageViewModel
 
     void IRecipient<PeriodicTimerUpdatedMessage>.Receive(PeriodicTimerUpdatedMessage message)
     {
-        var destEntity = message.Value;
-        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
-            ?? (destEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            ?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
             ;        
         if (timerVM == null) { return; }
-        if (timerVM.Entity != destEntity) 
+        if (timerVM.Entity != sourceEntity) 
         {
-            var sourceEntity = timerVM.Entity;
-            sourceEntity.Title = destEntity.Title;
-            sourceEntity.IntervalTime = destEntity.IntervalTime;
-            sourceEntity.StartTime = destEntity.StartTime;
-            sourceEntity.EndTime = destEntity.EndTime;
-            sourceEntity.Order = destEntity.Order;
-            sourceEntity.EnabledDayOfWeeks = destEntity.EnabledDayOfWeeks;
-            sourceEntity.IsEnabled = destEntity.IsEnabled;
+            var destEntity = timerVM.Entity;
+            destEntity.Title = sourceEntity.Title;
+            destEntity.IntervalTime = sourceEntity.IntervalTime;
+            destEntity.StartTime = sourceEntity.StartTime;
+            destEntity.EndTime = sourceEntity.EndTime;
+            destEntity.Order = sourceEntity.Order;
+            destEntity.EnabledDayOfWeeks = sourceEntity.EnabledDayOfWeeks;
+            destEntity.IsEnabled = sourceEntity.IsEnabled;
 
             timerVM.RefrectValues();
         }
