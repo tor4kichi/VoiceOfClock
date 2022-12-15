@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Infrastructure;
 
-namespace VoiceOfClock.Core.Models;
+namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class PeriodicTimerRepository : LiteDBRepositoryBase<PeriodicTimerEntity>
 {

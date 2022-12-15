@@ -1,13 +1,10 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using I18NPortable;
+﻿using I18NPortable;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VoiceOfClock.Core.Models;
 
 namespace VoiceOfClock.Services.SoundPlayer
 {

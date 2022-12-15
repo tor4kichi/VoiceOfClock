@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Diagnostics;
-using I18NPortable;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using VoiceOfClock.Core.Models;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
-using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 
 namespace VoiceOfClock.Services.SoundPlayer;
 
