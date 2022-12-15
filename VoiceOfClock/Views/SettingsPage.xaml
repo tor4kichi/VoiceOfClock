@@ -239,8 +239,8 @@
                   <Run Text="{x:Bind _vm.AppName}" /> <Run Text="{x:Bind _vm.AppVersion}" />
               </TextBlock>
             </StackPanel>
-            
-            <HyperlinkButton Content="{i18n:Localize Key=SendReview}" Margin="0" Padding="0" NavigateUri="ms-windows-store://review/?ProductId=9P44GTTGB3Q6" />
+
+            <HyperlinkButton Content="{i18n:Localize Key=SendReview}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-windows-store://review/?ProductId=9P44GTTGB3Q6" />
 
             <HyperlinkButton Content="{i18n:Localize Key=Privacy-Policy}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/voiceofclock/privacy-policy" />
 
@@ -249,6 +249,10 @@
             <Button Content="{i18n:Localize Key=SendFeedback}" IsEnabled="False" Visibility="Collapsed">
               
             </Button>
+
+            <HyperlinkButton Content="{i18n:Localize Key=OpenWindowsClockSettings}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-settings:dateandtime" />
+            <HyperlinkButton Content="{i18n:Localize Key=OpenWindowsSoundSettings}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-settings:sound" />
+
           </StackPanel>
           
         </Grid>

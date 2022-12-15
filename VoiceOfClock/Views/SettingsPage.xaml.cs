@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -44,6 +46,23 @@ public sealed partial class SettingsPage : Page
     {
         _vm.IsActive = false;
         base.OnNavigatingFrom(e);
+    }
+
+    [RelayCommand]
+    Task OpenUri(string uri)
+    {
+        return Windows.System.Launcher.LaunchUriAsync(new Uri(uri)).AsTask();
+    }
+
+    // ms-settings uri scheme : https://learn.microsoft.com/en-us/windows/uwp/launch-resume/launch-settings-app
+    private void OpenTimeSettings(object sender, RoutedEventArgs e)
+    {
+        _ = Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:dateandtime"));
+    }
+
+    private void OpenSoundSettings(object sender, RoutedEventArgs e)
+    {
+        _ = Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:sound"));
     }
 }
 
