@@ -19,7 +19,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Speech.Synthesis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +27,6 @@ using VoiceOfClock.Core.Contracts.Services;
 using VoiceOfClock.Core.Models;
 using VoiceOfClock.Core.Models.Timers;
 using Windows.ApplicationModel;
-using Windows.Media.SpeechSynthesis;
 using ApplicationTheme = VoiceOfClock.Core.Models.ApplicationTheme;
 
 namespace VoiceOfClock.ViewModels;
@@ -130,20 +128,17 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         yield return new SettingHeader("Speech".Translate());
         {
             if (_allVoices == null)
-            {
-                var voices = new System.Speech.Synthesis.SpeechSynthesizer().GetInstalledVoices().Where(x => x.Enabled).Select(x => new LegacyVoiceInformation(x.VoiceInfo));
-                var winVoices = Windows.Media.SpeechSynthesis.SpeechSynthesizer.AllVoices.Select(x => new WindowsVoiceInformation(x));
-
+            {               
                 // TODO: CurrentCultureのボイスを先頭に表示するようにしたい
-                _allVoices = Enumerable.Concat<IVoiceInformation>(voices, winVoices).Select(x => new ComboBoxSettingContentItem(x, x.ToString(), x.Id)).ToArray();
+                _allVoices = _soundContentPlayerService.GetVoices().Select(x => new ComboBoxSettingContentItem(x, x.ToString(), x.Id)).ToArray();
             }
 
             if (string.IsNullOrEmpty(_timerSettings.SpeechActorId))
             {
-                _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation)!.Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
+                _timerSettings.SpeechActorId = _allVoices.FirstOrDefault(x => (x.Source as IVoice)!.Language == CultureInfo.CurrentCulture.Name, _allVoices.First()).Id;
             }
 
-            ComboBoxSettingContentItem selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoiceInformation)!.Id == _timerSettings.SpeechActorId) ?? _allVoices.First();
+            ComboBoxSettingContentItem selectedVoice = _allVoices.FirstOrDefault(x => (x.Source as IVoice)!.Id == _timerSettings.SpeechActorId) ?? _allVoices.First();
             yield return CreateComboBoxContent(_allVoices, selectedVoice, (s, voice) => _timerSettings.SpeechActorId = voice.Id, label: "SpeechActor".Translate());
         }
 
@@ -162,13 +157,13 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         }
 
         //items.Add(CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"));
-        yield return CreateButtonContent("SpeechSettingsTest".Translate(), async () => await _soundContentPlayerService.PlayTimeOfDayAsync(DateTime.Now, _activeTimeCts?.Token ?? default));
+        yield return CreateButtonContent("SpeechSettingsTest".Translate(), async () => await _soundContentPlayerService.PlayTimeOfDayAsync(DateTime.Now, cancellationToken: _activeTimeCts?.Token ?? default));
 
 
 
         List<ISettingContent> ampmPositionByLanguageItems = new ();
         var ampmPositionItems = Enum.GetValues<AMPMPosition>().Select(x => new ComboBoxSettingContentItem(x, x.Translate(), x.ToString())).ToArray();
-        foreach (var language in _allVoices.Select(x => (x.Source as IVoiceInformation)!.Language).Distinct())
+        foreach (var language in _allVoices.Select(x => (x.Source as IVoice)!.Language).Distinct())
         {
             CultureInfo cultureInfo = CultureInfo.GetCultureInfo(language);
             var pos = _timerSettings.GetAmpmPosition(language);
@@ -264,9 +259,9 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
 
 public class VoiceInfoValueConverter : IValueConverter
 {
-    private readonly IVoiceInformation[] _sourceItems;
+    private readonly IVoice[] _sourceItems;
 
-    public VoiceInfoValueConverter(IVoiceInformation[] sourceItems)
+    public VoiceInfoValueConverter(IVoice[] sourceItems)
     {
         _sourceItems = sourceItems;
     }
@@ -284,7 +279,7 @@ public class VoiceInfoValueConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        if (value is IVoiceInformation vi)
+        if (value is IVoice vi)
         {
             return vi.Id;
         }
@@ -292,62 +287,6 @@ public class VoiceInfoValueConverter : IValueConverter
         {
             throw new NotSupportedException();
         }
-    }
-}
-
-public interface IVoiceInformation
-{ 
-    string Id { get; }
-    string Name { get; }
-    string Language { get; }
-    string Gender { get; }
-
-    string ToString();
-}
-
-public class WindowsVoiceInformation : IVoiceInformation
-{
-    private readonly VoiceInformation _voiceInfomation;
-
-    public WindowsVoiceInformation(VoiceInformation voiceInfomation)
-    {
-        _voiceInfomation = voiceInfomation;
-    }
-
-    public string Id => _voiceInfomation.Id;
-
-    public string Name => _voiceInfomation.DisplayName;
-
-    public string Language => _voiceInfomation.Language;
-
-    public string Gender => _voiceInfomation.Gender.ToString();
-
-    public override string ToString()
-    {
-        return $"{Name} ({Language})";
-    }
-}
-
-public class LegacyVoiceInformation : IVoiceInformation
-{
-    private readonly VoiceInfo _voiceInfo;
-
-    public LegacyVoiceInformation(VoiceInfo voiceInfo)
-    {
-        _voiceInfo = voiceInfo;
-    }
-
-    public string Id => _voiceInfo.Id;
-
-    public string Name => _voiceInfo.Name;
-
-    public string Language => _voiceInfo.Culture.Name;
-
-    public string Gender => _voiceInfo.Gender.ToString();
-
-    public override string ToString()
-    {
-        return $"{Name} ({Language})";
     }
 }
 

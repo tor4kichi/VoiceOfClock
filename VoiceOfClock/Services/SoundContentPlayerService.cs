@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
-using Microsoft.VisualBasic.Devices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +25,8 @@ public sealed class SoundContentPlayerService : ISoundContentPlayerService
     private readonly SystemSoundPlayer _systemSoundPlayer;
     private readonly VoicePlayer _voicePlayer;
     private readonly DispatcherQueue _dispatcherQueue;
+    private ISoundPlayer[] _players { get; }
+    private readonly Dictionary<SoundSourceType, List<ISoundPlayer>> _playerMap;
 
     public SoundContentPlayerService(
         MediaPlayer mediaPlayer,
@@ -53,14 +54,21 @@ public sealed class SoundContentPlayerService : ISoundContentPlayerService
             .ToDictionary(x => x.Key, x => x.Items);
     }
 
-    private ISoundPlayer[] _players { get; }
-
     public IEnumerable<SoundSourceToken> GetAllSoundContents()
     {
         return _players.SelectMany(x => x.GetSoundSources());
     }
 
-    private readonly Dictionary<SoundSourceType, List<ISoundPlayer>> _playerMap;
+    
+    public IEnumerable<IVoice> GetVoices()
+    {
+        return _voicePlayer.GetVoices();
+    }
+
+    public IVoice? GetVoice(string id)
+    {
+        return _voicePlayer.GetVoice(id);
+    }
 
     IDisposable? _prevMediaSource;
     private void OnMediaPlaylerSourceChanged(MediaPlayer sender, object args)
@@ -117,17 +125,17 @@ public sealed class SoundContentPlayerService : ISoundContentPlayerService
         });
     }
     
-    public Task PlayTimeOfDayAsync(DateTime time, CancellationToken cancellationToken = default)
+    public Task PlayTimeOfDayAsync(DateTime time, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
         return _voicePlayer.PlayTimeOfDayAsync(_mediaPlayer, time, cancellationToken);
     }
 
-    public Task PlayTextAsync(string text, CancellationToken cancellationToken = default)
+    public Task PlayTextAsync(string text, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
         return _voicePlayer.PlayTextAsync(_mediaPlayer, text, cancellationToken);
     }
 
-    public Task PlayTextWithSsmlAsync(string ssml, CancellationToken cancellationToken = default)
+    public Task PlayTextWithSsmlAsync(string ssml, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
         return _voicePlayer.PlayTextWithSsmlAsync(_mediaPlayer, ssml, cancellationToken);
     }

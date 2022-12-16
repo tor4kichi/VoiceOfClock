@@ -57,6 +57,25 @@ public sealed class VoicePlayer : ISoundPlayer
         yield return new SoundSourceToken(SoundSourceType.Tts.Translate(), SoundSourceType.Tts, string.Empty);
     }
 
+    public IEnumerable<IVoice> GetVoices()
+    {
+        return _supportedVoicePlayers.SelectMany(x => x.GetVoices());
+    }
+
+    public IVoice? GetVoice(string? id)
+    {
+        if (id == null) { return null; }
+
+        foreach (var player in _supportedVoicePlayers)
+        {
+            var voice = player.GetVoices().FirstOrDefault(x => x.Id == id);
+            if (voice is not null) { return voice; }
+        }
+
+        return null;
+    }
+
+
     SoundSourceType[] ISoundPlayer.SupportedSourceTypes { get; } = new[] 
     {
         SoundSourceType.Tts,
@@ -91,21 +110,11 @@ public sealed class VoicePlayer : ISoundPlayer
         }
     }
 
-    public Task<bool> PlayTimeOfDayAsync(MediaPlayer mediaPlayer, DateTime time, CancellationToken ct)
+    public Task<bool> PlayTimeOfDayAsync(MediaPlayer mediaPlayer, DateTime time, CancellationToken ct, IVoice? voice = null)
     {
-        string? voiceId = _timerSettings.SpeechActorId;
-        IVoicePlayer? currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
-        if (currentVoicePlayer is null)
-        {
-            _timerSettings.SpeechActorId = string.Empty;
-            currentVoicePlayer = FallbackVoicePlayer;
-            voiceId = FallbackVoicePlayer.GetAllVoiceId().First();
-        }
-
-
-        string voiceLanguage = currentVoicePlayer.SetVoice(voiceId);
+        var (voicePlayer, selectedVoice) = GetEnsureVoiceAndPlayer(voice);
+        string voiceLanguage = selectedVoice.Language;
         CultureInfo cutureInfo = CultureInfo.GetCultureInfo(voiceLanguage);
-
         _translationProcesser.SetLocale(voiceLanguage);
 
         if (_timerSettings.UseSsml)
@@ -137,15 +146,15 @@ public sealed class VoicePlayer : ISoundPlayer
             }
 
             // SSML使用時はレートとピッチの指定をSSML内（SsmlHelpers.ToSsml1_0Formatなど）で指定しているのでPlay側では指定をスキップしている
-            if (currentVoicePlayer is SystemVoicePlayer)
+            if (voicePlayer is SystemVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_0Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                return currentVoicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, speechData, speechVolume: _timerSettings.SpeechVolume, ct: ct);
+                return voicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, selectedVoice, speechData, speechVolume: _timerSettings.SpeechVolume, ct: ct);
             }
-            else if (currentVoicePlayer is WindowsVoicePlayer)
+            else if (voicePlayer is WindowsVoicePlayer)
             {
                 string speechData = SsmlHelpers.ToSsml1_1Format(_translationProcesser.Translate("TimeOfDayToSpeechText", ToSsmlTimeFormat_HM(time, _timerSettings.IsTimeSpeechWith24h, cutureInfo.DateTimeFormat, _timerSettings.GetAmpmPosition(cutureInfo))), _timerSettings.SpeechRate, _timerSettings.SpeechPitch, voiceLanguage);
-                return currentVoicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, speechData, speechVolume: _timerSettings.SpeechVolume, ct: ct);
+                return voicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, selectedVoice, speechData, speechVolume: _timerSettings.SpeechVolume, ct: ct);
             }
             else
             {
@@ -155,52 +164,57 @@ public sealed class VoicePlayer : ISoundPlayer
         else
         {
             string speechData = _translationProcesser.Translate("TimeOfDayToSpeechText", _translationProcesser.TranslateTimeOfDay(time, _timerSettings.IsTimeSpeechWith24h));
-            return currentVoicePlayer.PlayVoiceWithTextAsync(mediaPlayer, speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, ct);
+            return voicePlayer.PlayVoiceWithTextAsync(mediaPlayer, selectedVoice, speechData, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, ct);
         }
     }
 
+    (IVoicePlayer voicePlayer, IVoice voice) GetEnsureVoiceAndPlayer(IVoice? voice)
+    {
+        if (voice == null)
+        {
+            voice = GetVoice(_timerSettings.SpeechActorId);
+        }
+        if (voice == null)
+        {
+            _timerSettings.SpeechActorId = "";
+            voice = FallbackVoicePlayer.GetFallbackVoice();
+        }
 
-    public Task<bool> PlayTextAsync(MediaPlayer mediaPlayer, string text, CancellationToken cancellationToken)
+        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voice));
+        if (currentVoicePlayer is null)
+        {            
+            currentVoicePlayer = FallbackVoicePlayer;
+            voice = FallbackVoicePlayer.GetFallbackVoice();
+        }
+
+        return (currentVoicePlayer, voice);
+    }
+
+
+    public Task<bool> PlayTextAsync(MediaPlayer mediaPlayer, string text, CancellationToken cancellationToken, IVoice? voice = null)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             return Task.FromResult(false);
         }
 
-        string? voiceId = _timerSettings.SpeechActorId;
-        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
-        if (currentVoicePlayer is null)
-        {
-            _timerSettings.SpeechActorId = "";
-            currentVoicePlayer = FallbackVoicePlayer;
-            voiceId = null;
-        }
-        
-        return currentVoicePlayer.PlayVoiceWithTextAsync(mediaPlayer, text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, cancellationToken);
+        var (voicePlayer, selectedVoice) = GetEnsureVoiceAndPlayer(voice);
+
+        return voicePlayer.PlayVoiceWithTextAsync(mediaPlayer, selectedVoice, text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, cancellationToken);
     }
 
-    public Task<bool> PlayTextWithSsmlAsync(MediaPlayer mediaPlayer, string text, CancellationToken cancellationToken)
+    public Task<bool> PlayTextWithSsmlAsync(MediaPlayer mediaPlayer, string text, CancellationToken cancellationToken, IVoice? voice = null)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             return Task.FromResult(false);
         }
 
-        string? voiceId = _timerSettings.SpeechActorId;
-        var currentVoicePlayer = _supportedVoicePlayers.FirstOrDefault(x => x.CanPlayVoice(voiceId));
-        if (currentVoicePlayer is null)
-        {
-            _timerSettings.SpeechActorId = "";
-            currentVoicePlayer = FallbackVoicePlayer;
-            voiceId = null;
-        }
+        var (voicePlayer, selectedVoice) = GetEnsureVoiceAndPlayer(voice);
+        CultureInfo cutureInfo = CultureInfo.GetCultureInfo(selectedVoice.Language);
+        _translationProcesser.SetLocale(selectedVoice.Language);
 
-        string voiceLanguage = currentVoicePlayer.SetVoice(voiceId);
-        CultureInfo cutureInfo = CultureInfo.GetCultureInfo(voiceLanguage);
-
-        _translationProcesser.SetLocale(voiceLanguage);
-
-        return currentVoicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, cancellationToken);
+        return voicePlayer.PlayVoiceWithSsmlAsync(mediaPlayer, selectedVoice, text, _timerSettings.SpeechRate, _timerSettings.SpeechPitch, _timerSettings.SpeechVolume, cancellationToken);
     }
 
 
@@ -208,49 +222,43 @@ public sealed class VoicePlayer : ISoundPlayer
 
 public interface IVoicePlayer
 {
-    IReadOnlyCollection<string> GetAllVoiceId();
-    bool CanPlayVoice(string? voiceId);
-    string SetVoice(string? voiceId);
-    Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
-    Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
+    IEnumerable<IVoice> GetVoices();
+    bool CanPlayVoice(IVoice voice);    
+    IVoice GetFallbackVoice();
+    Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
+    Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default);
 }
 
 public class SystemVoicePlayer : IVoicePlayer
 {
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly SystemSpeechSynthesizer _speechSynthesiser;
-    private readonly Dictionary<string, InstalledVoice> _installedVoices;
+    private readonly Dictionary<string, LegacyVoiceInformation> _installedVoices;
 
     public SystemVoicePlayer()
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         _speechSynthesiser = new SystemSpeechSynthesizer();
-
-        _installedVoices = _speechSynthesiser.GetInstalledVoices().Where(x => x.Enabled).ToDictionary(x => x.VoiceInfo.Id);
+        
+        _installedVoices = _speechSynthesiser.GetInstalledVoices().Where(x => x.Enabled).Select(x => new LegacyVoiceInformation(x.VoiceInfo)).ToDictionary(x => x.Id);
     }
 
-    public bool CanPlayVoice(string? voiceId)
+    public bool CanPlayVoice(IVoice voice)
     {
-        return _installedVoices.ContainsKey(voiceId ?? string.Empty);
+        return _installedVoices.ContainsKey(voice.Id);
     }
 
-    public IReadOnlyCollection<string> GetAllVoiceId()
+    public IEnumerable<IVoice> GetVoices()
     {
-        return _installedVoices.Keys;
+        return _installedVoices.Values;
     }
 
-    public string SetVoice(string? voiceId)
+    public IVoice GetFallbackVoice()
     {
-        if(_installedVoices.TryGetValue(voiceId ?? string.Empty, out var voice) is false)
-        {
-            voice = _installedVoices.First().Value;
-        }
-
-        _speechSynthesiser.SelectVoice(voice.VoiceInfo.Name);
-        return voice.VoiceInfo.Culture.Name;
+        return _installedVoices.Values.FirstOrDefault() ?? throw new InvalidOperationException();
     }
 
-    public async Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
+    public async Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -259,6 +267,7 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
 
+            _speechSynthesiser.SelectVoice(voice.Name);
             SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
             var p = _speechSynthesiser.SpeakAsync(content);
 
@@ -278,7 +287,7 @@ public class SystemVoicePlayer : IVoicePlayer
 
 
 
-    public async Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
+    public async Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         return await _dispatcherQueue.EnqueueAsync(async () =>
         {
@@ -286,9 +295,9 @@ public class SystemVoicePlayer : IVoicePlayer
                 h => _speechSynthesiser.SpeakCompleted += h,
                 h => _speechSynthesiser.SpeakCompleted -= h
                 ).Take(1);
-            
-            SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
 
+            _speechSynthesiser.SelectVoice(voice.Name);
+            SetupSpeechSynsesiser(speechRate, speechPitch, speechVolume);
             var p = _speechSynthesiser.SpeakSsmlAsync(content);
 
             if (ct != default)
@@ -329,7 +338,28 @@ public class SystemVoicePlayer : IVoicePlayer
     }
 }
 
+public class LegacyVoiceInformation : IVoice
+{
+    private readonly VoiceInfo _voiceInfo;
 
+    public LegacyVoiceInformation(VoiceInfo voiceInfo)
+    {
+        _voiceInfo = voiceInfo;
+    }
+
+    public string Id => _voiceInfo.Id;
+
+    public string Name => _voiceInfo.Name;
+
+    public string Language => _voiceInfo.Culture.Name;
+
+    public string Gender => _voiceInfo.Gender.ToString();
+
+    public override string ToString()
+    {
+        return $"{Name} ({Language})";
+    }
+}
 
 public sealed class WindowsVoicePlayer : IVoicePlayer
 {
@@ -339,41 +369,33 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     {
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-        _allVoices = WindowsSpeechSynthesizer.AllVoices.ToDictionary(x => x.Id);
-        _currentVoiceInfo = WindowsSpeechSynthesizer.AllVoices.FirstOrDefault(x => x.Language == CultureInfo.CurrentCulture.Name) ?? WindowsSpeechSynthesizer.DefaultVoice;
+        _allVoices = WindowsSpeechSynthesizer.AllVoices.Select(x => new WindowsVoice(x)).ToDictionary(x => x.Id);
     }
 
-    private readonly Dictionary<string, VoiceInformation> _allVoices;
-    VoiceInformation _currentVoiceInfo;
+    private readonly Dictionary<string, WindowsVoice> _allVoices;
 
     private readonly Dictionary<MediaSource, TaskCompletionSource> _waitingHandles = new();
-    public bool CanPlayVoice(string? voiceId)
+    public bool CanPlayVoice(IVoice voice)
     {
-        return _allVoices.ContainsKey(voiceId ?? string.Empty);
+        return _allVoices.ContainsKey(voice.Id);
     }
 
-    public IReadOnlyCollection<string> GetAllVoiceId()
+    public IEnumerable<IVoice> GetVoices()
     {
-        return _allVoices.Keys;
+        return _allVoices.Values;
     }
 
-    public string SetVoice(string? voiceId)
+    public IVoice GetFallbackVoice()
     {
-        if (_allVoices.TryGetValue(voiceId ?? string.Empty, out var voice) is false)
-        {
-            voice = _allVoices.First().Value;
-        }
-
-        _currentVoiceInfo = voice;
-        return _currentVoiceInfo.Language;
+        return _allVoices.Values.FirstOrDefault() ?? throw new InvalidOperationException();
     }
 
-    public async Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
+    public async Task<bool> PlayVoiceWithSsmlAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         var stream = await Task.Run(async () =>
         {
             using WindowsSpeechSynthesizer synthesizer = new ();
-            synthesizer.Voice = _currentVoiceInfo;
+            synthesizer.Voice = ((WindowsVoice)voice).VoiceInfomation;
             synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
             synthesizer.Options.AppendedSilence = SpeechAppendedSilence.Min;
             synthesizer.Options.PunctuationSilence = SpeechPunctuationSilence.Min;
@@ -388,13 +410,13 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
     }
 
 
-    public async Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
+    public async Task<bool> PlayVoiceWithTextAsync(MediaPlayer mediaPlayer, IVoice voice, string content, double speechRate = 1, double speechPitch = 1, double speechVolume = 1, CancellationToken ct = default)
     {
         var stream = await Task.Run(async () =>
         {
             // https://learn.microsoft.com/ja-jp/uwp/api/windows.media.speechsynthesis.speechsynthesizeroptions?view=winrt-22621#properties
             using WindowsSpeechSynthesizer synthesizer = new ();
-            synthesizer.Voice = _currentVoiceInfo;
+            synthesizer.Voice = ((WindowsVoice)voice).VoiceInfomation;
             synthesizer.Options.AudioVolume = Math.Clamp(speechVolume, 0, 1);
             synthesizer.Options.SpeakingRate = Math.Clamp(speechRate, 0.5, 6.0);
             synthesizer.Options.AudioPitch = Math.Clamp(speechPitch, 0.0, 2.0);
@@ -410,3 +432,27 @@ public sealed class WindowsVoicePlayer : IVoicePlayer
         });
     }
 }
+
+public class WindowsVoice : IVoice
+{
+    public VoiceInformation VoiceInfomation { get; }
+
+    public WindowsVoice(VoiceInformation voiceInfomation)
+    {
+        VoiceInfomation = voiceInfomation;
+    }
+
+    public string Id => VoiceInfomation.Id;
+
+    public string Name => VoiceInfomation.DisplayName;
+
+    public string Language => VoiceInfomation.Language;
+
+    public string Gender => VoiceInfomation.Gender.ToString();
+
+    public override string ToString()
+    {
+        return $"{Name} ({Language})";
+    }
+}
+
