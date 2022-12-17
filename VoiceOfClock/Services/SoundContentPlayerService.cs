@@ -92,6 +92,11 @@ public sealed class SoundContentPlayerService : ISoundContentPlayerService
     void ResetMediaPlayerParameter()
     {
         _mediaPlayer.Volume = 1.0;
+
+        // https://learn.microsoft.com/en-us/uwp/api/windows.media.systemmediatransportcontrols?view=winrt-22621#remarks
+        _mediaPlayer.SystemMediaTransportControls.IsEnabled = false;
+        _mediaPlayer.CommandManager.IsEnabled = false;
+
     }
 
     public Task PlaySoundContentAsync(in SoundSourceToken token, CancellationToken cancellationToken = default)
@@ -127,26 +132,31 @@ public sealed class SoundContentPlayerService : ISoundContentPlayerService
     
     public Task PlayTimeOfDayAsync(DateTime time, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
+        ResetMediaPlayerParameter();
         return _voicePlayer.PlayTimeOfDayAsync(_mediaPlayer, time, cancellationToken);
     }
 
     public Task PlayTextAsync(string text, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
+        ResetMediaPlayerParameter();
         return _voicePlayer.PlayTextAsync(_mediaPlayer, text, cancellationToken);
     }
 
     public Task PlayTextWithSsmlAsync(string ssml, IVoice? voice = null, CancellationToken cancellationToken = default)
     {
+        ResetMediaPlayerParameter();
         return _voicePlayer.PlayTextWithSsmlAsync(_mediaPlayer, ssml, cancellationToken);
     }
 
     public Task PlayAudioFileAsync(string filePath, double volume = 1.0, AudioSpan? audioSpan = null, CancellationToken cancellationToken = default)
     {
+        ResetMediaPlayerParameter();
         return _audioSoundSourcePlayer.PlayAsync(_mediaPlayer, filePath, volume, audioSpan, cancellationToken);
     }
 
     public Task PlaySystemSoundAsync(WindowsNotificationSoundType soundType, CancellationToken cancellationToken = default)
     {
+        ResetMediaPlayerParameter();
         return _systemSoundPlayer.PlayAsync(_mediaPlayer, soundType, cancellationToken);
     }
 }

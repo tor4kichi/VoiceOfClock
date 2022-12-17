@@ -80,7 +80,9 @@ public sealed partial class AudioSoundSourceEditDialog : ContentDialog
             AutoPlay = false,
             Volume = SoundVolume,
         };
-        
+
+        _mediaPlayer.CommandManager.IsEnabled = false;
+
         _mediaPlayer.BufferingStarted += _mediaPlayer_BufferingStarted;
         _mediaPlayer.BufferingEnded += _mediaPlayer_BufferingEnded;
         _mediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
