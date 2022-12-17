@@ -47,27 +47,29 @@ public sealed class PeriodicTimerLifetimeManager
 
         var timer = e.Id == InstantPeriodicTimerId ? InstantPeriodicTimer : _periodicTimerRepository.FindById(e.Id);        
         Guard.IsNotNull(timer);
-        if (TimerIsInsidePeriod(timer) is false)
+
+        if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
         {
             _ = SendCurrentTimeVoiceAsync(e.TriggerTime);
-            Debug.WriteLine($"ピリオドダイマー： {timer.Title} が完了");
+            Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
+        }
 
+        if (TimerIsInsidePeriod(timer) is false)
+        {
             // 繰り返しが無い場合は無効に切り替える
             if (timer.EnabledDayOfWeeks.Any() is false)
             {
                 timer.IsEnabled = false;
                 _periodicTimerRepository.UpdateItem(timer);
-                _messenger.Send(new PeriodicTimerUpdatedMessage(timer));
             }
+
+            _messenger.Send(new PeriodicTimerUpdatedMessage(timer, e.TriggerTime));
         }
         else
         {
             // 次に通知すべき時間を割り出す
-            _ = SendCurrentTimeVoiceAsync(e.TriggerTime);
-            Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
-
             _timeTriggerService.SetTimeTrigger(e.Id, e.TriggerTime + timer.IntervalTime, TimeTriggerGroupId);
-            _messenger.Send(new PeriodicTimerProgressPeriodMessage(timer));
+            _messenger.Send(new PeriodicTimerProgressPeriodMessage(timer, e.TriggerTime));
         }
     }
 
@@ -164,7 +166,14 @@ public sealed class PeriodicTimerLifetimeManager
         if (IsInstantPeriodicTimer(entity)) { return; }
 
         _periodicTimerRepository.UpdateItem(entity);
-        _timeTriggerService.SetTimeTrigger(entity.Id, GetNextTime(entity), TimeTriggerGroupId);
+        if (entity.IsEnabled)
+        {
+            _timeTriggerService.SetTimeTrigger(entity.Id, GetNextTime(entity), TimeTriggerGroupId);
+        }
+        else
+        {
+            _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
+        }
     }
 
 
@@ -190,20 +199,22 @@ public sealed class PeriodicTimerLifetimeManager
     public void StartInstantPeriodicTimer(TimeSpan intervalTime)
     {
         var now = DateTime.Now;
+        DateTime targetTime = now.Date + now.TimeOfDay.TrimMilliSeconds();
+        InstantPeriodicTimer.IsEnabled = true;
         InstantPeriodicTimer.IntervalTime = intervalTime;
-        InstantPeriodicTimer.StartTime = now.TimeOfDay;
-        InstantPeriodicTimer.EndTime = (now - TimeSpan.FromSeconds(1)).TimeOfDay;
-        TimeSpan timeOfDay = now.TimeOfDay;        
+        InstantPeriodicTimer.StartTime = targetTime.TimeOfDay;
+        InstantPeriodicTimer.EndTime = (targetTime - TimeSpan.FromSeconds(1)).TimeOfDay;             
         _timeTriggerService.SetTimeTrigger(
             InstantPeriodicTimerId,
-            now.Date + timeOfDay.TrimMilliSeconds(), 
+            targetTime,
             TimeTriggerGroupId
             );
-        _messenger.Send(new PeriodicTimerUpdatedMessage(InstantPeriodicTimer));
+        _messenger.Send(new PeriodicTimerUpdatedMessage(InstantPeriodicTimer, targetTime));
     }
 
     public void StopInstantPeriodicTimer()
     {
+        InstantPeriodicTimer.IsEnabled = false;
         _timeTriggerService.DeleteTimeTrigger(InstantPeriodicTimerId, TimeTriggerGroupId);
     }
 
@@ -246,16 +257,20 @@ public sealed class PeriodicTimerLifetimeManager
 
     public static (DateTime startDateTime, TimeSpan elapsedTime, DateTime nextTime) InsidePeriodCulcNextTime(PeriodicTimerEntity entity, DateTime targetTime)
     {
-        DateTime now = targetTime;
-        var startDateTime = now.Date + entity.StartTime;
-        if (entity.StartTime > now.TimeOfDay)
+        if (entity.StartTime == targetTime.TimeOfDay)
+        {
+            return (targetTime, TimeSpan.Zero, targetTime + entity.IntervalTime);
+        }
+
+        var startDateTime = targetTime.Date + entity.StartTime;        
+        if (entity.StartTime > targetTime.TimeOfDay)
         {
             startDateTime -= TimeSpan.FromDays(1);
         }
 
-        var elapsedTime = (now - startDateTime).TrimMilliSeconds();
+        var elapsedTime = (targetTime - startDateTime).TrimMilliSeconds();
         int count = (int)Math.Ceiling(elapsedTime / entity.IntervalTime);
-        var nextTime = now.Date + entity.StartTime + entity.IntervalTime * count;
+        var nextTime = targetTime.Date + entity.StartTime + entity.IntervalTime * count;
 
         return (startDateTime, elapsedTime, nextTime);
     }

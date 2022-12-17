@@ -76,15 +76,12 @@ public sealed class TimeTriggerService
 
         UpdateNextTrigger();
 
-        if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
+        TimeTriggered?.Invoke(this, new TimeTriggeredEventArgs()
         {
-            TimeTriggered?.Invoke(this, new TimeTriggeredEventArgs()
-            {
-                Id = entity.Id,
-                TriggerTime = entity.TriggerTime,
-                GroupId = entity.GroupId,
-            });
-        }        
+            Id = entity.Id,
+            TriggerTime = entity.TriggerTime,
+            GroupId = entity.GroupId,
+        });
     }
 
 

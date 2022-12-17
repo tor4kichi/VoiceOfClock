@@ -62,6 +62,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
     {        
         if (!IsRemovable) { return; }
         Entity.IsEnabled = value;
+        _periodicTimerLifetimeManager.UpdatePeriodicTimer(Entity);
     }
 
 
@@ -93,18 +94,18 @@ public partial class PeriodicTimerViewModel : ObservableObject
     [ObservableProperty]
     private TimeSpan _elapsedTime;
 
-    public void CulcNextTime()
+    public void CulcNextTime(DateTime? now = null)
     {        
         if (IsInsidePeriod = PeriodicTimerLifetimeManager.TimerIsInsidePeriod(Entity))
         {
-            (StartDateTime, ElapsedTime, NextTime) = PeriodicTimerLifetimeManager.InsidePeriodCulcNextTime(Entity);
+            (StartDateTime, ElapsedTime, NextTime) = PeriodicTimerLifetimeManager.InsidePeriodCulcNextTime(Entity, now ?? DateTime.Now);
         }
         else
         {
             NextTime = PeriodicTimerLifetimeManager.OutsideCulcNextTime(Entity);
             ElapsedTime = TimeSpan.Zero;
         }
-    }
+    }    
 
     public void UpdateElapsedTime()
     {        

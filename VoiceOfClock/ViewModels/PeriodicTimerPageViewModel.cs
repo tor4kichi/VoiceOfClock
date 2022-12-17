@@ -77,7 +77,7 @@ public sealed partial class PeriodicTimerPageViewModel
                 InstantPeriodicTimer.ObserveProperty(x => x.IsEnabled).ToUnit(),
                 Timers.ObserveElementProperty(x => x.IsEnabled).ToUnit(),
             }
-            .Merge().Select(x => InstantPeriodicTimer.Entity.IsEnabled || Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
+            .Merge().Select(x => InstantPeriodicTimer.Entity.IsEnabled || Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();        
     }
 
     protected override void OnDeactivated()
@@ -114,31 +114,30 @@ public sealed partial class PeriodicTimerPageViewModel
             ?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
             ;        
         if (timerVM == null) { return; }
-        if (timerVM.Entity != sourceEntity) 
-        {
-            var destEntity = timerVM.Entity;
-            destEntity.Title = sourceEntity.Title;
-            destEntity.IntervalTime = sourceEntity.IntervalTime;
-            destEntity.StartTime = sourceEntity.StartTime;
-            destEntity.EndTime = sourceEntity.EndTime;
-            destEntity.Order = sourceEntity.Order;
-            destEntity.EnabledDayOfWeeks = sourceEntity.EnabledDayOfWeeks;
-            destEntity.IsEnabled = sourceEntity.IsEnabled;
 
-            timerVM.RefrectValues();
-        }
+        var destEntity = timerVM.Entity;
+        destEntity.Title = sourceEntity.Title;
+        destEntity.IntervalTime = sourceEntity.IntervalTime;
+        destEntity.StartTime = sourceEntity.StartTime;
+        destEntity.EndTime = sourceEntity.EndTime;
+        destEntity.Order = sourceEntity.Order;
+        destEntity.EnabledDayOfWeeks = sourceEntity.EnabledDayOfWeeks;
+        destEntity.IsEnabled = sourceEntity.IsEnabled;
 
-        timerVM.CulcNextTime();
+        timerVM.RefrectValues();
+        timerVM.CulcNextTime();        
     }
 
     void IRecipient<PeriodicTimerProgressPeriodMessage>.Receive(PeriodicTimerProgressPeriodMessage message)
     {
-        var destEntity = message.Value;
-        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == destEntity.Id)
-            ?? (destEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            ?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
             ;
-        
-        timerVM?.CulcNextTime();
+
+        if (timerVM == null) { return; }
+
+        timerVM.NextTime = message.TriggerTime + sourceEntity.IntervalTime;
     }
 
     [RelayCommand]
@@ -228,8 +227,7 @@ public sealed partial class PeriodicTimerPageViewModel
         if (InstantPeriodicTimer is null) { return; }
 
         _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);
-        InstantPeriodicTimer.CulcNextTime();
-        InstantPeriodicTimer.IsEnabled = true;            
+        InstantPeriodicTimer.IsEnabled = true;
     }
 
     bool CanExecuteStartImmidiateTimer(TimeSpan intervalTime)

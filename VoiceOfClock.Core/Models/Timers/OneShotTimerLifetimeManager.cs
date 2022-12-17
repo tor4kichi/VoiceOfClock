@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Services;
 using VoiceOfClock.Core.Contracts.Models;
 using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
+using System.Diagnostics;
+using System.Timers;
 
 namespace VoiceOfClock.Core.Models.Timers;
 
@@ -76,8 +78,17 @@ public sealed class OneShotTimerLifetimeManager
         
         var entity = _oneShotTimerRepository.FindById(e.Id);
         Guard.IsNotNull(entity);
-        _toastNotificationService.ShowOneShotTimerToastNotification(entity);
-        PlayTimerSound(entity);
+        if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
+        {            
+            _toastNotificationService.ShowOneShotTimerToastNotification(entity);
+            PlayTimerSound(entity);
+        }
+        else
+        {
+            // TODO: アプリ終了後に時間経過を検知した場合の挙動
+            // 鳴動している状態の表現が必要 #
+            _ = RewindTimer(entity, true);
+        }
     }
 
     void IApplicationLifeCycleAware.Initialize()
