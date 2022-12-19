@@ -86,12 +86,40 @@
       </ListViewBase.ItemTemplate>
     </tkControls:AdaptiveGridView>
 
-    <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24">
-      <StackPanel Orientation="Horizontal">
-        <Button Command="{x:Bind _vm.AddNewAudioSoundSourceCommand}">
-          <SymbolIcon Symbol="Add" />
-        </Button>
-      </StackPanel>
-    </Grid>
+    <StackPanel VerticalAlignment="Bottom" >
+      <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" Margin="24"
+          Background="{ThemeResource MicaBackgroundBrush}" Padding="4"
+          BorderBrush="{ThemeResource MicaBorderBrush}"
+          BorderThickness="1"
+          CornerRadius="6"
+          Translation="0, 0, 8"             
+          >
+        <Grid.Shadow>
+          <ThemeShadow  />
+        </Grid.Shadow>
+        <Grid.Resources>
+          <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="4" />
+          </Style>
+          <Style TargetType="SymbolIcon" x:Name="ActionButtonIconStyle">
+            <Setter Property="RenderTransformOrigin" Value="0.5, 0.5" />
+            <Setter Property="RenderTransform">
+              <Setter.Value>
+                <ScaleTransform ScaleX="0.80" ScaleY="0.8" />
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </Grid.Resources>
+        <StackPanel Orientation="Horizontal" Spacing="2">
+          <Button x:Name="Button_AddTimer" Command="{x:Bind _vm.AddNewAudioSoundSourceCommand}">
+            <SymbolIcon Symbol="Add" Style="{StaticResource ActionButtonIconStyle}"  />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </StackPanel>
   </Grid>
 </Page>
