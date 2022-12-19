@@ -125,7 +125,7 @@ public sealed partial class PeriodicTimerPageViewModel
         destEntity.IsEnabled = sourceEntity.IsEnabled;
 
         timerVM.RefrectValues();
-        timerVM.CulcNextTime();        
+        timerVM.CulcNextTime(message.TriggerTime);        
     }
 
     void IRecipient<PeriodicTimerProgressPeriodMessage>.Receive(PeriodicTimerProgressPeriodMessage message)
