@@ -211,7 +211,7 @@ public sealed partial class AlarmTimerLifetimeManager
         _alarmTimerRepository.UpdateItem(entity);
         _messenger.Send(new AlarmTimerUpdatedMessage(entity));
        
-        if (entity.IsEnabled && entity.EnabledDayOfWeeks.Any())
+        if (entity.IsEnabled)
         {
             _timeTriggerService.SetTimeTrigger(entity.Id, TimeHelpers.CulcNextTime(DateTime.Now, entity.TimeOfDay.ToTimeSpan(), entity.EnabledDayOfWeeks), TimeTriggerGroupId);
         }
