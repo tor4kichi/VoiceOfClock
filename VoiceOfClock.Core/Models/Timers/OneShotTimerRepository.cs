@@ -28,9 +28,7 @@ public sealed class OneShotTimerRunningEntity
 {
     [BsonId(autoId: false)]
     public Guid Id { get; init; }
-
     public TimeSpan Time { get; set; }
-
     public bool IsRunning { get; set; }
 }
 

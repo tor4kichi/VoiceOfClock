@@ -191,9 +191,9 @@ public sealed class PeriodicTimerLifetimeManager
 
     public bool IsInstantPeriodicTimer(PeriodicTimerEntity entity) => entity.Id == InstantPeriodicTimerId;
 
-    public async ValueTask<bool> GetNowInstantPeriodicTimerEnabled()
+    public bool GetNowInstantPeriodicTimerEnabled()
     {
-        return await _timeTriggerService.GetTimeTrigger(InstantPeriodicTimerId) != null;
+        return _timeTriggerService.GetTimeTrigger(InstantPeriodicTimerId) != null;
     }
 
     public void StartInstantPeriodicTimer(TimeSpan intervalTime)

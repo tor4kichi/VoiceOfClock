@@ -29,8 +29,8 @@ public sealed partial class OneShotTimerViewModel : IDisposable
         DeleteCommand = deleteCommand;
         _time = Entity.Time;
         _title = Entity.Title;        
-        (_isTimerActive, _endTime, _remainingTime) = oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
-        _isRunning = false;
+        (_isRunning, _endTime, _remainingTime) = oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
+        _isTimerActive = _isRunning;
     }
 
     [ObservableProperty]
@@ -122,12 +122,12 @@ public sealed partial class OneShotTimerViewModel : IDisposable
     private readonly Stopwatch _sw = new ();
 #endif
     [RelayCommand]
-    async Task ToggleTimerStartAndStop()
+    void ToggleTimerStartAndStop()
     {
         if (IsRunning)
         {
             IsRunning = false;
-            await _oneShotTimerLifetimeManager.PauseTimer(Entity);            
+            _oneShotTimerLifetimeManager.PauseTimer(Entity);            
 #if DEBUG
             _sw.Stop();
 #endif            
@@ -137,7 +137,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 #if DEBUG
             _sw.Start();
 #endif
-            await _oneShotTimerLifetimeManager.StartTimer(Entity, RemainingTime);
+            _oneShotTimerLifetimeManager.StartTimer(Entity, RemainingTime);
             (IsTimerActive, EndTime, RemainingTime) = _oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
 
             IsRunning = true;
@@ -146,9 +146,9 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 
 
     [RelayCommand(CanExecute = nameof(CanExecuteRewindTimer))]
-    async Task RewindTimer()
+    void RewindTimer()
     {
-        await _oneShotTimerLifetimeManager.RewindTimer(Entity, IsRunning);
+        _oneShotTimerLifetimeManager.RewindTimer(Entity, IsRunning);
         (IsTimerActive, EndTime, RemainingTime) = _oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
 #if DEBUG
         _sw.Reset();
