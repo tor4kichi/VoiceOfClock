@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Infrastructure;
@@ -11,8 +12,44 @@ namespace VoiceOfClock.Core.Models.Timers;
 
 public sealed class OneShotTimerRepository : LiteDBRepositoryBase<OneShotTimerEntity>
 {
+    private readonly ILiteStorage<string> _fileStorage;
+
     public OneShotTimerRepository(ILiteDatabase liteDatabase) : base(liteDatabase)
     {
+        _fileStorage = liteDatabase.FileStorage;
+    }
+    
+    public OneShotTimerEntity? GetInstantTimer()
+    {
+        if (_fileStorage.Exists("InstantOneShotTimer") is false)
+        {
+            return null;
+        }
+
+        try
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                _fileStorage.Download("InstantOneShotTimer", stream);
+                stream.Position = 0;
+
+                return System.Text.Json.JsonSerializer.Deserialize<OneShotTimerEntity>(stream);
+            }
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public void SaveInstantTimer(OneShotTimerEntity entity)
+    {
+        using (var stream = new MemoryStream())
+        {            
+            System.Text.Json.JsonSerializer.Serialize(stream , entity);
+            stream.Position = 0;
+            _fileStorage.Upload("InstantOneShotTimer", "InstantOneShotTimer.json", stream);
+        }
     }
 }
 

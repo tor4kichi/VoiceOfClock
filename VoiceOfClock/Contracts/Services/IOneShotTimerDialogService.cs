@@ -1,12 +1,20 @@
 ﻿using System;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Models;
+using VoiceOfClock.Views.Controls;
 
 namespace VoiceOfClock.Contracts.Services;
 
 public interface IOneShotTimerDialogService
 {
-    Task<OneShotTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle,TimeSpan time, SoundSourceType soundSourceType, string soundParameter);
+    Task<OneShotTimerDialogResult> ShowEditTimerAsync(
+        string dialogTitle, 
+        string timerTitle,
+        TimeSpan time,        
+        SoundSourceType soundSourceType, 
+        string soundParameter,
+        TimeSelectBoxDisplayMode timeSelectBoxDisplayMode = TimeSelectBoxDisplayMode.Hours_Minutes_Seconds
+        );
 }
 
 public sealed class OneShotTimerDialogResult
