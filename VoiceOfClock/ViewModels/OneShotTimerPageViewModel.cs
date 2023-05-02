@@ -155,9 +155,9 @@ public sealed partial class OneShotTimerPageViewModel
     }
 
     [RelayCommand]
-    async Task DeleteTimer(OneShotTimerViewModel timerVM)
+    void DeleteTimer(OneShotTimerViewModel timerVM)
     {
-        await _oneShotTimerLifetimeManager.DeleteTimer(timerVM.Entity);
+        _oneShotTimerLifetimeManager.DeleteTimer(timerVM.Entity);
         _timers.Remove(timerVM);
     }
     

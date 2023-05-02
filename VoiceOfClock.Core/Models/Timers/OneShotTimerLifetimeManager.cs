@@ -87,7 +87,7 @@ public sealed class OneShotTimerLifetimeManager
         {
             // TODO: アプリ終了後に時間経過を検知した場合の挙動
             // 鳴動している状態の表現が必要 #
-            _ = RewindTimer(entity, true);
+            RewindTimer(entity, true);
         }
     }
 
@@ -133,12 +133,12 @@ public sealed class OneShotTimerLifetimeManager
         return entity;
     }
 
-    public async ValueTask DeleteTimer(OneShotTimerEntity entity)
+    public void DeleteTimer(OneShotTimerEntity entity)
     {
         _oneShotTimerRepository.DeleteItem(entity.Id);
         _oneShotTimerRunningRepository.DeleteItem(entity.Id);
 
-        await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
+        _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
     }
 
     public void UpdateTimer(OneShotTimerEntity entity)
@@ -167,7 +167,7 @@ public sealed class OneShotTimerLifetimeManager
         return _oneShotTimerRepository.ReadAllItems();
     }
 
-    public async ValueTask StartTimer(OneShotTimerEntity entity, TimeSpan? lastRemainingTime = null)
+    public void StartTimer(OneShotTimerEntity entity, TimeSpan? lastRemainingTime = null)
     {
         var runningEntity = _oneShotTimerRunningRepository.FindById(entity.Id);
         TimeSpan timerDuration = lastRemainingTime ?? entity.Time;
@@ -182,18 +182,18 @@ public sealed class OneShotTimerLifetimeManager
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
         }
 
-        await _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + timerDuration, TimeTriggerGroupId);
+        _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + timerDuration, TimeTriggerGroupId);
     }
 
-    public async ValueTask PauseTimer(OneShotTimerEntity entity)
+    public void PauseTimer(OneShotTimerEntity entity)
     {
         if (_playCancelMap.Remove(entity.Id, out var cts))
         {
             cts.Cancel();
         }
         
-        DateTime? triggerTime = await _timeTriggerService.GetTimeTrigger(entity.Id);
-        await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
+        DateTime? triggerTime = _timeTriggerService.GetTimeTrigger(entity.Id);
+        _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
 
         if (triggerTime.HasValue)
         {
@@ -212,7 +212,7 @@ public sealed class OneShotTimerLifetimeManager
         }       
     }
     
-    public async ValueTask RewindTimer(OneShotTimerEntity entity, bool isRunning)
+    public void RewindTimer(OneShotTimerEntity entity, bool isRunning)
     {       
         if (isRunning)
         {
@@ -222,33 +222,33 @@ public sealed class OneShotTimerLifetimeManager
             runningEntity.Time = entity.Time;
             runningEntity.IsRunning = true;
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);
-            await _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + entity.Time, TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(entity.Id, DateTime.Now + entity.Time, TimeTriggerGroupId);
         }
         else
         {
             _oneShotTimerRunningRepository.DeleteItem(entity.Id);
-            await _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
+            _timeTriggerService.DeleteTimeTrigger(entity.Id, TimeTriggerGroupId);
         }
 
     }
 
 
 
-    public (bool IsRunning, DateTime TargetTime, TimeSpan RemainingTime) GetTimerRunningInfo(OneShotTimerEntity entity)
+    public (bool IsRunning, DateTime? TargetTime, TimeSpan RemainingTime) GetTimerRunningInfo(OneShotTimerEntity entity)
     {
-        var runningInfo = _oneShotTimerRunningRepository.FindById(entity.Id);
-        if (runningInfo == null) { return (false, default, entity.Time); }
-        
-        return _GetTimerRunningInfoInternal(runningInfo);
+        //var runningInfo = _oneShotTimerRunningRepository.FindById(entity.Id);
+        //if (runningInfo == null) { return (false, default, entity.Time); }
+        if (_timeTriggerService.GetTimeTrigger(entity.Id) is { } running)
+        {
+            return (true, running, running - DateTime.Now);
+        }
+        else
+        {
+            return (false, default, entity.Time);
+        }        
     }    
 
-    private (bool IsRunning, DateTime TargetTime, TimeSpan RemainingTime) _GetTimerRunningInfoInternal(OneShotTimerRunningEntity runningInfo)
-    {
-        DateTime now = DateTime.Now;
-        return (true, now + runningInfo.Time, runningInfo.Time);
-    }
-
-    public ValueTask<DateTime?> GetTargetTime(OneShotTimerEntity entity)
+    public DateTime? GetTargetTime(OneShotTimerEntity entity)
     {
         return _timeTriggerService.GetTimeTrigger(entity.Id);
     }

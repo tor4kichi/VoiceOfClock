@@ -101,7 +101,7 @@ public sealed class TimeTriggerService
     }
 
 
-    public ValueTask SetTimeTrigger(Guid id, DateTime triggerTime, string? groud_id = null)
+    public void SetTimeTrigger(Guid id, DateTime triggerTime, string? groud_id = null)
     {
         if (_timeTriggerRepository.Exists(x => x.Id == id))
         {
@@ -111,11 +111,9 @@ public sealed class TimeTriggerService
         _timeTriggerRepository.CreateItem(new TimeTriggerEntity { Id = id, TriggerTime = triggerTime, GroupId = groud_id });
 
         UpdateNextTrigger();
-
-        return new ValueTask();
     }
 
-    public ValueTask SetTimeTriggerGroup(string? groud_id, IEnumerable<(Guid id, DateTime triggerTime)> triggers)
+    public void SetTimeTriggerGroup(string? groud_id, IEnumerable<(Guid id, DateTime triggerTime)> triggers)
     {
         foreach (var trigger in triggers)
         {
@@ -128,8 +126,6 @@ public sealed class TimeTriggerService
         }
 
         UpdateNextTrigger();
-
-        return new ValueTask();
     }
 
     private void UpdateNextTrigger()
@@ -162,7 +158,7 @@ public sealed class TimeTriggerService
         UpdateNextTrigger();
     }
 
-    public ValueTask DeleteTimeTrigger(Guid id, string? groud_id = null)
+    public void DeleteTimeTrigger(Guid id, string? groud_id = null)
     {
         if (groud_id == null)
         {
@@ -174,15 +170,13 @@ public sealed class TimeTriggerService
         }
 
         UpdateNextTrigger();
-
-        return new();
     }
 
-    public ValueTask<DateTime?> GetTimeTrigger(Guid id)
+    public DateTime? GetTimeTrigger(Guid id)
     {
         var timer = _timeTriggerRepository.FindById(id);
-        if (timer == null) { return new (default(DateTime)); }
+        if (timer == null) { return default(DateTime?); }
 
-        return new(timer.TriggerTime);
+        return timer.TriggerTime;
     }
 }
