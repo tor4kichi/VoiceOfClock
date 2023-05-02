@@ -8,7 +8,7 @@ namespace VoiceOfClock
 {
     public static class PurchaseItemsConstants
     {
-        public const bool IsTrialLimitationEnabled = true;
+        public const bool IsTrialLimitationEnabled = false;
         public const int Trial_TimersLimitationCount = 3;
         public const int Product_TimersLimitationCount = int.MaxValue;
     }
