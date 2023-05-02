@@ -161,5 +161,32 @@ public sealed partial class AlarmTimerViewModel
         {
             return "IntervalTime_PerSeconds".Translate(timeSpan.Seconds);
         }
-    }    
+    }
+
+
+
+    [ObservableProperty]
+    private bool _nowPlayingNotifyAudio;
+
+    [RelayCommand]
+    public void DismissNotification()
+    {
+        _alarmTimerLifetimeManager.TimerChecked(Entity);        
+    }
+
+    [RelayCommand]
+    public void SnoozeNotification()
+    {        
+        TargetTime = _alarmTimerLifetimeManager.SetSnooze(Entity);
+    }
+
+    internal void OnNotifyAudioStarting()
+    {
+        NowPlayingNotifyAudio = true;
+    }
+
+    internal void OnNotifyAudioEnded()
+    {
+        NowPlayingNotifyAudio = false;
+    }
 }

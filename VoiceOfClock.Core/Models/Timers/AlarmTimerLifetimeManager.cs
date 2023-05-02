@@ -66,7 +66,9 @@ public sealed partial class AlarmTimerLifetimeManager
         {
             return;
         }
-        else if (args.ContainsKey(TimersToastNotificationConstants.ArgumentKey_SnoozeStop))
+
+        CancelTimerPlayingAudio(timer, NotifyAudioEndedReason.CancelledByUser);
+        if (args.ContainsKey(TimersToastNotificationConstants.ArgumentKey_SnoozeStop))
         {
             TimerChecked(timer);
             e.IsHandled = true;
@@ -75,13 +77,7 @@ public sealed partial class AlarmTimerLifetimeManager
         else if (args.ContainsKey(TimersToastNotificationConstants.ArgumentKey_SnoozeAgain))
         {
             TimeSpan snooze = TimeSpan.Parse((string)props[TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id]);
-            var nextAlarmTime = DateTime.Now + snooze;
-            _timeTriggerService.SetTimeTrigger(entityId, nextAlarmTime, TimeTriggerGroupId);
-
-            if (_playCancelMap.Remove(entityId, out var cts))
-            {
-                cts.Cancel();
-            }
+            _timeTriggerService.SetTimeTrigger(timer.Id, DateTime.Now + snooze, TimeTriggerGroupId);
             e.IsHandled = true;
             return;
         }
@@ -121,32 +117,37 @@ public sealed partial class AlarmTimerLifetimeManager
         }
     }
 
-    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
-
-    private async void PlayTimerSound(AlarmTimerEntity entity)
+    private void CancelTimerPlayingAudio(AlarmTimerEntity entity, NotifyAudioEndedReason endedReason)
     {
         if (_playCancelMap.Remove(entity.Id, out var oldCts))
         {
             oldCts.Cancel();
             oldCts.Dispose();
-        }
 
+            _messenger.Send(new NotifyAudioEndedMessage(entity, endedReason));
+        }
+    }
+
+    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
+
+    private async void PlayTimerSound(AlarmTimerEntity entity)
+    {
+        CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledFromNextNotify);
         CancellationTokenSource cts = new CancellationTokenSource();
         _playCancelMap.Add(entity.Id, cts);
         CancellationToken ct = cts.Token;
         try
         {
+            _messenger.Send(new NotifyAudioStartingMessage(entity));
             await _soundContentPlayerService.PlaySoundContentAsync(entity.SoundSourceType, entity.SoundContent, cancellationToken: ct);
         }
         catch (OperationCanceledException) { }
-        finally
+        catch
         {
-            _playCancelMap.Remove(entity.Id);
-            cts.Dispose();
+            CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.Unknown);
         }
     }
 
-    
 
 
     public void TimerChecked(AlarmTimerEntity timer)
@@ -157,11 +158,19 @@ public sealed partial class AlarmTimerLifetimeManager
             _timeTriggerService.SetTimeTrigger(timer.Id, nextAlarmTime, TimeTriggerGroupId);
         }
 
-        if (_playCancelMap.Remove(timer.Id, out var cts))
-        {
-            cts.Cancel();
-        }
+        CancelTimerPlayingAudio(timer, NotifyAudioEndedReason.CancelledByUser);
+        _toastNotificationService.HideNotify(timer);
     }
+
+    public DateTime SetSnooze(AlarmTimerEntity timer)
+    {
+        CancelTimerPlayingAudio(timer, NotifyAudioEndedReason.CancelledByUser);
+        _toastNotificationService.HideNotify(timer);
+        var nextAlarmTime = DateTime.Now + timer.Snooze ?? throw new InvalidOperationException();
+        _timeTriggerService.SetTimeTrigger(timer.Id, nextAlarmTime, TimeTriggerGroupId);
+        return nextAlarmTime;
+    }    
+
 
     public List<AlarmTimerEntity> GetAlarmTimers()
     {

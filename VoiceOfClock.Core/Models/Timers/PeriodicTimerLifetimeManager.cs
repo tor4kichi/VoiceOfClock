@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Diagnostics;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
 using VoiceOfClock.Core.Services;
@@ -25,6 +27,8 @@ public sealed class PeriodicTimerLifetimeManager
     private readonly PeriodicTimerRepository _periodicTimerRepository;
 
     public const string TimeTriggerGroupId = "Periodic";
+
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _timerAudioCancelMap = new ();
 
     public PeriodicTimerLifetimeManager(
         IMessenger messenger,
@@ -48,9 +52,10 @@ public sealed class PeriodicTimerLifetimeManager
         var timer = e.Id == InstantPeriodicTimerId ? InstantPeriodicTimer : _periodicTimerRepository.FindById(e.Id);        
         Guard.IsNotNull(timer);
 
+        CancelTimerPlayingVoice(timer, NotifyAudioEndedReason.CancelledFromNextNotify);
         if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
-        {
-            _ = SendCurrentTimeVoiceAsync(e.TriggerTime);
+        {            
+            _ = SendCurrentTimeVoiceAsync(timer, e.TriggerTime);
             Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
         }
 
@@ -73,6 +78,45 @@ public sealed class PeriodicTimerLifetimeManager
         }
     }
 
+
+    public void StopNotifyAudio(PeriodicTimerEntity entity)
+    {
+        CancelTimerPlayingVoice(entity, NotifyAudioEndedReason.CancelledByUser);
+    }
+
+    private void CancelTimerPlayingVoice(PeriodicTimerEntity entity, NotifyAudioEndedReason endedReason)
+    {
+        if (_timerAudioCancelMap.Remove(entity.Id, out var cts))
+        {
+            cts.Cancel();
+            cts.Dispose();
+
+            _messenger.Send(new NotifyAudioEndedMessage(entity, endedReason));
+        }
+    }
+
+    private async Task SendCurrentTimeVoiceAsync(PeriodicTimerEntity entity, DateTime time)
+    {
+        var cts = new CancellationTokenSource();
+        _timerAudioCancelMap.TryAdd(entity.Id, cts);
+        try
+        {
+            _messenger.Send(new NotifyAudioStartingMessage(entity));
+            await _soundContentPlayerService.PlayTimeOfDayAsync(time, cancellationToken: cts.Token);
+            CancelTimerPlayingVoice(entity, NotifyAudioEndedReason.Completed);
+        }
+        catch (OperationCanceledException)
+        {
+            // do nothing.
+        }
+        catch
+        {
+            CancelTimerPlayingVoice(entity, NotifyAudioEndedReason.Unknown);
+            throw;
+        }
+    }
+
+
     void IApplicationLifeCycleAware.Initialize()
     {
         _messenger.RegisterAll(this);        
@@ -88,11 +132,6 @@ public sealed class PeriodicTimerLifetimeManager
         {
             message.Reply(timer);
         }
-    }
-
-    private Task SendCurrentTimeVoiceAsync(DateTime time)
-    {
-        return _soundContentPlayerService.PlayTimeOfDayAsync(time);
     }
 
     private IEnumerable<PeriodicTimerEntity> GetInsideTimers()

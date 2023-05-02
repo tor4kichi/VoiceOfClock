@@ -129,4 +129,24 @@ public partial class PeriodicTimerViewModel : ObservableObject
     {
         return "IntervalTime_PerVariableTime".Translate(TimeTranslationHelper.TranslateTimeSpan(timeSpan));
     }
+
+
+    [ObservableProperty]
+    private bool _nowPlayingNotifyAudio;
+
+    [RelayCommand]
+    void StopPlayingSound()
+    {
+        _periodicTimerLifetimeManager.StopNotifyAudio(Entity);
+    }
+
+    internal void OnNotifyAudioStarting()
+    {
+        NowPlayingNotifyAudio = true;
+    }
+
+    internal void OnNotifyAudioEnded()
+    {
+        NowPlayingNotifyAudio = false;
+    }
 }

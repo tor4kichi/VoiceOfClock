@@ -60,12 +60,8 @@ public sealed class OneShotTimerLifetimeManager
         if (args.TryGetValue(TimersToastNotificationConstants.ArgumentKey_TimerId, out string? timerId))
         {
             Guid entityId = Guid.Parse(timerId);
-            if (_playCancelMap.Remove(entityId, out var cts))
-            {
-                cts.Cancel();
-            }
-
             var entity = _oneShotTimerRepository.FindById(entityId);
+            CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledByUser);
             _messenger.Send(new OneShotTimerCheckedMessage(entity));
 
             e.IsHandled = true;
@@ -79,7 +75,7 @@ public sealed class OneShotTimerLifetimeManager
         var entity = _oneShotTimerRepository.FindById(e.Id);
         Guard.IsNotNull(entity);
         if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
-        {            
+        {
             _toastNotificationService.ShowOneShotTimerToastNotification(entity);
             PlayTimerSound(entity);
         }
@@ -88,6 +84,45 @@ public sealed class OneShotTimerLifetimeManager
             // TODO: アプリ終了後に時間経過を検知した場合の挙動
             // 鳴動している状態の表現が必要 #
             RewindTimer(entity, true);
+        }
+    }
+
+    public void StopNotifyAudio(OneShotTimerEntity entity)
+    {
+        CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledByUser);
+        _toastNotificationService.HideNotify(entity);
+    }
+
+    private void CancelTimerPlayingAudio(OneShotTimerEntity entity, NotifyAudioEndedReason endedReason)
+    {
+        if (_playCancelMap.Remove(entity.Id, out var oldCts))
+        {
+            oldCts.Cancel();
+            oldCts.Dispose();
+
+            _messenger.Send(new NotifyAudioEndedMessage(entity, endedReason));
+        }
+    }
+
+    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
+
+    private async void PlayTimerSound(OneShotTimerEntity entity)
+    {
+        CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledFromNextNotify);
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _playCancelMap.Add(entity.Id, cts);
+        CancellationToken ct = cts.Token;
+        
+        try
+        {
+            _messenger.Send(new NotifyAudioStartingMessage(entity));
+            await _soundContentPlayerService.PlaySoundContentAsync(entity.SoundSourceType, entity.SoundContent, cancellationToken: ct);
+            CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.Completed);
+        }
+        catch (OperationCanceledException) { }
+        catch
+        {
+            CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.Unknown);
         }
     }
 
@@ -263,29 +298,4 @@ public sealed class OneShotTimerLifetimeManager
         return _oneShotTimerRepository.Count();
     }
 
-    private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
-
-    private async void PlayTimerSound(OneShotTimerEntity entity)
-    {
-        if (_playCancelMap.Remove(entity.Id, out var oldCts))
-        {
-            oldCts.Cancel();
-            oldCts.Dispose();
-        }
-        CancellationTokenSource cts = new CancellationTokenSource();
-        _playCancelMap.Add(entity.Id, cts);
-        CancellationToken ct = cts.Token;
-
-        try
-        {
-            await _soundContentPlayerService.PlaySoundContentAsync(entity.SoundSourceType, entity.SoundContent, cancellationToken: ct);
-
-        }
-        catch (OperationCanceledException) { }
-        finally
-        {
-            _playCancelMap.Remove(entity.Id);
-            cts.Dispose();
-        }
-    }    
 }

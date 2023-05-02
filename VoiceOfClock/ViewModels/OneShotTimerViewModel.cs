@@ -121,7 +121,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 #if DEBUG
     private readonly Stopwatch _sw = new ();
 #endif
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanToggleTimerStartAndStop))]
     void ToggleTimerStartAndStop()
     {
         if (IsRunning)
@@ -142,7 +142,12 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 
             IsRunning = true;
         }
-    }   
+    }
+
+    bool CanToggleTimerStartAndStop()
+    {
+        return !NowPlayingNotifyAudio;
+    }
 
 
     [RelayCommand(CanExecute = nameof(CanExecuteRewindTimer))]
@@ -157,7 +162,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 
     bool CanExecuteRewindTimer()
     {
-        return IsTimerActive;
+        return IsTimerActive && !NowPlayingNotifyAudio;
     }
 
     //[RelayCommand]
@@ -183,5 +188,28 @@ public sealed partial class OneShotTimerViewModel : IDisposable
         _disposables.Dispose();
     }
 
-    
+
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleTimerStartAndStopCommand))]
+    private bool _nowPlayingNotifyAudio;
+
+    [RelayCommand]
+    public void DismissNotification()
+    {
+        _oneShotTimerLifetimeManager.StopNotifyAudio(Entity);
+        RewindTimer();
+    }
+
+    internal void OnNotifyAudioStarting()
+    {
+        NowPlayingNotifyAudio = true;
+    }
+
+    internal void OnNotifyAudioEnded()
+    {
+        NowPlayingNotifyAudio = false;
+    }
+
 }

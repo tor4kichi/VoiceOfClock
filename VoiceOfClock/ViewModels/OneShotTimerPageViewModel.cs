@@ -24,6 +24,8 @@ namespace VoiceOfClock.ViewModels;
 public sealed partial class OneShotTimerPageViewModel 
     : ObservableRecipient
     , IRecipient<OneShotTimerCheckedMessage>
+    , IRecipient<NotifyAudioStartingMessage>
+    , IRecipient<NotifyAudioEndedMessage>
 {
     private readonly OneShotTimerLifetimeManager _oneShotTimerLifetimeManager;
     private readonly IOneShotTimerDialogService _oneShotTimerDialogService;
@@ -107,6 +109,30 @@ public sealed partial class OneShotTimerPageViewModel
     }
 
 
+    void IRecipient<NotifyAudioStartingMessage>.Receive(NotifyAudioStartingMessage message)
+    {
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            //?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioStarting();
+    }
+
+    void IRecipient<NotifyAudioEndedMessage>.Receive(NotifyAudioEndedMessage message)
+    {
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            //?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioEnded();
+    }
+
     [RelayCommand]
     async Task AddTimer()
     {
@@ -138,6 +164,14 @@ public sealed partial class OneShotTimerPageViewModel
     async Task EditTimer(OneShotTimerViewModel timerVM)
     {
         if (timerVM.IsRunning) { return; }
+        if (timerVM.NowPlayingNotifyAudio) 
+        {
+            if (timerVM.DismissNotificationCommand.CanExecute(null))
+            {
+                timerVM.DismissNotificationCommand.Execute(null);
+            }
+            return; 
+        }
 
         var result = await _oneShotTimerDialogService.ShowEditTimerAsync("OneShotTimerEditDialog_Title".Translate(), timerVM.Title, timerVM.Time, timerVM.Entity.SoundSourceType, timerVM.Entity.SoundContent);
         if (result.IsConfirmed)

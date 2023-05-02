@@ -23,7 +23,8 @@
       <Grid x:Name="Grid_Container" CornerRadius="6"             
             Padding="12 8" 
             Translation="0, 0, 16"                
-            Background="{ThemeResource MicaBackgroundBrush}"               
+            Background="{ThemeResource MicaBackgroundBrush}"        
+            BorderThickness="1"
             >
         <Grid.Shadow>
           <ThemeShadow />
@@ -35,6 +36,15 @@
           </core:DataTriggerBehavior>
           <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
             <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Content}" PropertyName="Opacity" Value="1.0" />
+          </core:DataTriggerBehavior>
+
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{ThemeResource AccentAAFillColorDefaultBrush}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Visible" />
+          </core:DataTriggerBehavior>
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{x:Null}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Collapsed" />
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
 
@@ -149,6 +159,10 @@
                   Background="Transparent" BorderThickness="0" Width="40" Height="40" Padding="4">
             <SymbolIcon Symbol="Delete" />
           </Button>
+        </Grid>
+
+        <Grid x:Name="Grid_NowPlayingNotifyAudio" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Collapsed">
+          
         </Grid>
 
       </Grid>
