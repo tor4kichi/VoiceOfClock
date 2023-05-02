@@ -20,6 +20,7 @@
             Background="{ThemeResource MicaBackgroundBrush}"
             Padding="12" 
             Translation="0, 0, 16"                  
+            BorderThickness="1"
             >
         <Grid.Shadow>
           <ThemeShadow />
@@ -35,6 +36,17 @@
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_Time}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="1.0" />
+          </core:DataTriggerBehavior>
+
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{ThemeResource AccentAAFillColorDefaultBrush}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Visible" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=ToggleSwitch_IsEnabled}" PropertyName="IsEnabled" Value="False" />
+          </core:DataTriggerBehavior>
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{x:Null}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Collapsed" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=ToggleSwitch_IsEnabled}" PropertyName="IsEnabled" Value="True" />
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
 
@@ -109,6 +121,21 @@
           </Button>
         </Grid>
 
+        <Grid x:Name="Grid_NowPlayingNotifyAudio" Visibility="Collapsed"
+              VerticalAlignment="Bottom"
+              HorizontalAlignment="Right"
+              Margin="0 0 0 72"
+              >
+          <Button Command="{x:Bind SnoozeNotificationCommand}"
+                  Height="48"
+                  Width="64"                  
+                  Style="{ThemeResource AccentButtonStyle}"
+                  Background="{ThemeResource AccentFillColorTertiaryBrush}"
+                  >
+            <SymbolIcon Symbol="RepeatOne" />
+          </Button>
+        </Grid>
+        
       </Grid>
     </DataTemplate>
   </Page.Resources>

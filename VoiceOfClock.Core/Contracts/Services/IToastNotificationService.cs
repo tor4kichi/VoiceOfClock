@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 using System;
+using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Models.Timers;
 
 namespace VoiceOfClock.Core.Contracts.Services;
@@ -15,6 +16,8 @@ public interface IToastNotificationService
             && action == targetAction
             ;
     }
+
+    void HideNotify(ITimer timer);
 }
 
 public sealed class ToastNotificationActivatedEventArgs
