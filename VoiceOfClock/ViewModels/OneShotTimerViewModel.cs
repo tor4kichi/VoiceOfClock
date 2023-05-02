@@ -31,6 +31,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
         _title = Entity.Title;        
         (_isRunning, _endTime, _remainingTime) = oneShotTimerLifetimeManager.GetTimerRunningInfo(Entity);
         _isTimerActive = _isRunning;
+        _nowPlayingNotifyAudio = _oneShotTimerLifetimeManager.GetNowPlayingAudio(Entity);
     }
 
     [ObservableProperty]

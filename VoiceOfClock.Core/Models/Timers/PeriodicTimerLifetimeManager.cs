@@ -28,7 +28,7 @@ public sealed class PeriodicTimerLifetimeManager
 
     public const string TimeTriggerGroupId = "Periodic";
 
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _timerAudioCancelMap = new ();
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _playCancelMap = new ();
 
     public PeriodicTimerLifetimeManager(
         IMessenger messenger,
@@ -86,7 +86,7 @@ public sealed class PeriodicTimerLifetimeManager
 
     private void CancelTimerPlayingVoice(PeriodicTimerEntity entity, NotifyAudioEndedReason endedReason)
     {
-        if (_timerAudioCancelMap.Remove(entity.Id, out var cts))
+        if (_playCancelMap.Remove(entity.Id, out var cts))
         {
             cts.Cancel();
             cts.Dispose();
@@ -98,7 +98,7 @@ public sealed class PeriodicTimerLifetimeManager
     private async Task SendCurrentTimeVoiceAsync(PeriodicTimerEntity entity, DateTime time)
     {
         var cts = new CancellationTokenSource();
-        _timerAudioCancelMap.TryAdd(entity.Id, cts);
+        _playCancelMap.TryAdd(entity.Id, cts);
         try
         {
             _messenger.Send(new NotifyAudioStartingMessage(entity));
@@ -116,6 +116,11 @@ public sealed class PeriodicTimerLifetimeManager
         }
     }
 
+
+    public bool GetNowPlayingAudio(PeriodicTimerEntity entity)
+    {
+        return _playCancelMap.ContainsKey(entity.Id);
+    }
 
     void IApplicationLifeCycleAware.Initialize()
     {

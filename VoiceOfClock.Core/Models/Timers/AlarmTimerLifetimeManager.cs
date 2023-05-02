@@ -148,6 +148,10 @@ public sealed partial class AlarmTimerLifetimeManager
         }
     }
 
+    public bool GetNowPlayingAudio(AlarmTimerEntity entity)
+    {
+        return _playCancelMap.ContainsKey(entity.Id);
+    }
 
 
     public void TimerChecked(AlarmTimerEntity timer)
@@ -170,8 +174,7 @@ public sealed partial class AlarmTimerLifetimeManager
         _timeTriggerService.SetTimeTrigger(timer.Id, nextAlarmTime, TimeTriggerGroupId);
         return nextAlarmTime;
     }    
-
-
+   
     public List<AlarmTimerEntity> GetAlarmTimers()
     {
         return _alarmTimerRepository.ReadAllItems();

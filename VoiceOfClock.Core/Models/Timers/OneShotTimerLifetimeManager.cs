@@ -126,6 +126,11 @@ public sealed class OneShotTimerLifetimeManager
         }
     }
 
+    public bool GetNowPlayingAudio(OneShotTimerEntity entity)
+    {
+        return _playCancelMap.ContainsKey(entity.Id);
+    }
+
     void IApplicationLifeCycleAware.Initialize()
     {
         _messenger.RegisterAll(this);

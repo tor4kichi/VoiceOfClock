@@ -35,6 +35,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
         CulcNextTime();
+        _nowPlayingNotifyAudio = _periodicTimerLifetimeManager.GetNowPlayingAudio(Entity);
     }
 
     public void RefrectValues()

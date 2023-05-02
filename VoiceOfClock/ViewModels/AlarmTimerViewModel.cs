@@ -35,6 +35,7 @@ public sealed partial class AlarmTimerViewModel
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
         CulcTargetTime();
+        _nowPlayingNotifyAudio = _alarmTimerLifetimeManager.GetNowPlayingAudio(Entity);
     }
 
     public Guid EntityId => Entity.Id;
@@ -96,7 +97,7 @@ public sealed partial class AlarmTimerViewModel
             dayOfWeekVM.IsEnabled = Entity.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
         }
 
-        CulcTargetTime();
+        CulcTargetTime();        
     }
 
 
