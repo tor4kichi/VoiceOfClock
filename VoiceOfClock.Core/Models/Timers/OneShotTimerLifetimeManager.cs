@@ -44,7 +44,22 @@ public sealed class OneShotTimerLifetimeManager
         _toastNotificationService = toastNotificationService;
         _oneShotTimerRepository = oneShotTimerRepository;
         _oneShotTimerRunningRepository = oneShotTimerRunningRepository;        
-        _timeTriggerService.TimeTriggered += OnTimeTriggered;        
+        _timeTriggerService.TimeTriggered += OnTimeTriggered;
+
+        InstantOneShotTimer = _oneShotTimerRepository.GetInstantTimer() ?? new OneShotTimerEntity()
+        {
+            Id = Guid.NewGuid(),
+            SoundSourceType = SoundSourceType.System,
+            SoundContent = WindowsNotificationSoundType.Default.ToString(),
+            Time = TimeSpan.FromMinutes(3),                        
+        };
+    }
+
+    public OneShotTimerEntity InstantOneShotTimer { get; } 
+
+    public void SaveInstantOneShotTimer()
+    {
+        _oneShotTimerRepository.SaveInstantTimer(InstantOneShotTimer);
     }
 
     void IRecipient<ToastNotificationActivatedMessage>.Receive(ToastNotificationActivatedMessage message)
@@ -60,7 +75,8 @@ public sealed class OneShotTimerLifetimeManager
         if (args.TryGetValue(TimersToastNotificationConstants.ArgumentKey_TimerId, out string? timerId))
         {
             Guid entityId = Guid.Parse(timerId);
-            var entity = _oneShotTimerRepository.FindById(entityId);
+            var entity = entityId == InstantOneShotTimer.Id ? InstantOneShotTimer : _oneShotTimerRepository.FindById(entityId);
+            Guard.IsNotNull(entity);
             CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledByUser);
             _messenger.Send(new OneShotTimerCheckedMessage(entity));
 
@@ -72,7 +88,7 @@ public sealed class OneShotTimerLifetimeManager
     {
         if (e.GroupId != TimeTriggerGroupId) { return; }
         
-        var entity = _oneShotTimerRepository.FindById(e.Id);
+        var entity = e.Id == InstantOneShotTimer.Id ? InstantOneShotTimer : _oneShotTimerRepository.FindById(e.Id);
         Guard.IsNotNull(entity);
         if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
         {
@@ -105,7 +121,7 @@ public sealed class OneShotTimerLifetimeManager
     }
 
     private readonly Dictionary<Guid, CancellationTokenSource> _playCancelMap = new();
-
+    
     private async void PlayTimerSound(OneShotTimerEntity entity)
     {
         CancelTimerPlayingAudio(entity, NotifyAudioEndedReason.CancelledFromNextNotify);
@@ -143,6 +159,11 @@ public sealed class OneShotTimerLifetimeManager
     
     void IRecipient<ActiveTimerCollectionRequestMessage>.Receive(ActiveTimerCollectionRequestMessage message)
     {
+        if (TimerIsRunning(InstantOneShotTimer))
+        {
+            message.Reply(InstantOneShotTimer);
+        }
+
         foreach (var timer in GetOneShotTimers())
         {            
             if (TimerIsRunning(timer))
@@ -175,6 +196,8 @@ public sealed class OneShotTimerLifetimeManager
 
     public void DeleteTimer(OneShotTimerEntity entity)
     {
+        if (entity.Id == InstantOneShotTimer.Id) { throw new InvalidOperationException(); }
+
         _oneShotTimerRepository.DeleteItem(entity.Id);
         _oneShotTimerRunningRepository.DeleteItem(entity.Id);
 
@@ -183,19 +206,27 @@ public sealed class OneShotTimerLifetimeManager
 
     public void UpdateTimer(OneShotTimerEntity entity)
     {
-        _oneShotTimerRepository.UpdateItem(entity);
-        if (_oneShotTimerRunningRepository.FindById(entity.Id) is not null and var runningEntity)
+        if (entity.Id == InstantOneShotTimer.Id)
+        {
+            SaveInstantOneShotTimer();
+        }
+        else
+        {
+            _oneShotTimerRepository.UpdateItem(entity);
+        }
+
+        if (_oneShotTimerRunningRepository.FindById(entity.Id) is { }  runningEntity)
         {
             if (runningEntity.Time != entity.Time)
             {
                 _oneShotTimerRunningRepository.DeleteItem(entity.Id);
             }
-        }        
+        }
     }
-    
+
     public void UpdateRunningTimer(OneShotTimerEntity entity, TimeSpan remainingTime)
     {
-        if (_oneShotTimerRunningRepository.FindById(entity.Id) is not null and var runningEntity)
+        if (_oneShotTimerRunningRepository.FindById(entity.Id) is { } runningEntity)
         {
             runningEntity.Time = remainingTime;
             _oneShotTimerRunningRepository.UpdateItem(runningEntity);

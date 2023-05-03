@@ -22,6 +22,8 @@ public sealed class TimerSettings : SettingsBase
 
         _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
         _firstDayOfWeek = Read(CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek, nameof(FirstDayOfWeek));
+
+        _instantOneShotTimerInterval = Read(TimeSpan.FromMinutes(3), nameof(InstantOneShotTimerInterval));
     }
 
     #region Timer Generic Settings
@@ -170,6 +172,16 @@ public sealed class TimerSettings : SettingsBase
         set => SetProperty(ref _firstDayOfWeek, value);
     }
 
+    #endregion
+
+    #region OneShot Timer Settings
+
+    private TimeSpan _instantOneShotTimerInterval;
+    public TimeSpan InstantOneShotTimerInterval
+    {
+        get => _instantOneShotTimerInterval;
+        set => SetProperty(ref _instantOneShotTimerInterval, value);
+    }
     #endregion
 }
 

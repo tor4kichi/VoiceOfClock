@@ -36,6 +36,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RewindTimerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleTimerStartAndStopCommand))]
     private TimeSpan _time;
 
     [ObservableProperty]
@@ -147,7 +148,7 @@ public sealed partial class OneShotTimerViewModel : IDisposable
 
     bool CanToggleTimerStartAndStop()
     {
-        return !NowPlayingNotifyAudio;
+        return !NowPlayingNotifyAudio && TimeSpan.Zero < Time;
     }
 
 

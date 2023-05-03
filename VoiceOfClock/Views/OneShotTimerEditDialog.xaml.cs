@@ -21,6 +21,7 @@ using VoiceOfClock.Core.Models;
 using VoiceOfClock.ViewModels;
 using VoiceOfClock.Contracts.Services;
 using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Views.Controls;
 
 namespace VoiceOfClock.Views;
 
@@ -88,13 +89,20 @@ public sealed partial class OneShotTimerEditDialog : ContentDialog
     }
 
 
-    internal async Task<OneShotTimerDialogResult> ShowAsync(string dialogTitle, string timerTitle, TimeSpan time, SoundSourceType soundSourceType, string soundParameter)
+    internal async Task<OneShotTimerDialogResult> ShowAsync(
+        string dialogTitle, 
+        string timerTitle, 
+        TimeSpan time, 
+        SoundSourceType soundSourceType, 
+        string soundParameter,
+        TimeSelectBoxDisplayMode timeSelectBoxDisplayMode
+        )
     {
         Title = dialogTitle;
         TimerTitle = timerTitle;
         Duration = time;
+        TimeSelectBox_Time.DisplayMode = timeSelectBoxDisplayMode;
         SetSoundSource(soundSourceType, soundParameter);
-
         if (await base.ShowAsync() is ContentDialogResult.Primary)
         {
             var (resultSoundSourceType, resultParameter) = GetSoundParameter();
