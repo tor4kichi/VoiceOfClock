@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Data;
+﻿using I18NPortable;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ public sealed class TimeSpanToSecondsConverter : IValueConverter
             }
             else if (targetType == typeof(string))
             {
-                return time.TotalSeconds.ToString("F1");
+                return "Time_Seconds".Translate(time.TotalSeconds.ToString("F1"));
             }
         }
 

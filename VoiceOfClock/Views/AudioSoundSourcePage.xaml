@@ -7,25 +7,100 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
   xmlns:io="using:System.IO"
   xmlns:viewModels="using:VoiceOfClock.ViewModels"
-  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"
+  xmlns:tkControls="using:CommunityToolkit.WinUI.UI.Controls"    
   xmlns:uiExt="using:CommunityToolkit.WinUI.UI"
-  xmlns:i18n="using:I18NPortable.Xaml.Extensions" 
+  
+  xmlns:i18nExt="using:I18NPortable.Xaml.Extensions" 
   xmlns:myConv="using:VoiceOfClock.Views.Converters"
+  xmlns:myControls="using:VoiceOfClock.Views.Controls"
   mc:Ignorable="d"
     >
 
   <Page.Resources>
+    <local:NullOrContentDataTemplateSelector x:Key="NullOrSoundSourceVMTemplateSelector">
+      <local:NullOrContentDataTemplateSelector.Null>
+        <DataTemplate>
+          <Grid>
+            <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_DialogTitle_New}" VerticalAlignment="Bottom" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <SymbolIcon Symbol="Audio" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+          </Grid>
+        </DataTemplate>
+      </local:NullOrContentDataTemplateSelector.Null>
 
-  </Page.Resources>
-  <Grid>
-    <tkControls:AdaptiveGridView ItemsSource="{x:Bind _vm.Items}"
-              IsItemClickEnabled="True"
-              uiExt:ListViewExtensions.Command="{x:Bind _vm.EditAudioSoundSourceCommand}"
-                                 DesiredWidth="320"
-                                 SelectionMode="None"
-                                 ItemHeight="140"
-              >
-      <tkControls:AdaptiveGridView.ItemContainerStyle>
+      <local:NullOrContentDataTemplateSelector.Content>
+        <DataTemplate x:DataType="viewModels:AudioSoundSourceViewModel">
+          <Grid ToolTipService.ToolTip="{x:Bind FilePath, Mode=OneWay}">
+
+            <!-- Top, audio infomation and actions -->
+            <tkControls:DockPanel Grid.Column="0" Margin="8 8 8 0">
+
+              <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" tkControls:DockPanel.Dock="Top"
+                         TextWrapping="Wrap"
+                         MaxLines="3"
+                         Margin="0 0 0 8"
+                         >
+                  <Run Text="{x:Bind Title, Mode=OneWay}" />
+              </TextBlock>
+
+              <StackPanel Orientation="Horizontal" Spacing="16" tkControls:DockPanel.Dock="Bottom"
+                          Margin="0 0 16 16"
+                          HorizontalAlignment="Right"
+                          >
+                <Button Tapped="Button_PlayWithAudioSpan_Tapped">
+                  <myControls:ContentWithIcon>
+                    <myControls:ContentWithIcon.Icon>
+                      <SymbolIcon Symbol="Play" Margin="0 0 8 0" />
+                    </myControls:ContentWithIcon.Icon>
+
+                    <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_TestPlayAudio}" VerticalAlignment="Center" />
+                  </myControls:ContentWithIcon>
+                </Button>
+
+                <Button Tapped="Button_Edit_Tapped">
+                  <myControls:ContentWithIcon>
+                    <myControls:ContentWithIcon.Icon>
+                      <SymbolIcon Symbol="Edit" Margin="0 0 8 0" />
+                    </myControls:ContentWithIcon.Icon>
+
+                    <TextBlock Text="{i18nExt:Localize Key=Edit}" VerticalAlignment="Center" />
+                  </myControls:ContentWithIcon>
+                </Button>
+              </StackPanel>
+
+
+
+              <TextBlock Opacity="0.7" VerticalAlignment="Stretch"
+                           >
+                  <Run Text="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange}" /> 
+                  <Run Text="{x:Bind AudioSpanBegin, Mode=OneWay, Converter={StaticResource DurationToTextConverter}}" />
+                  <Run Text="-" />
+                  <Run Text="{x:Bind AudioSpanEnd, Mode=OneWay, Converter={StaticResource DurationToTextConverter}}" />
+                  (<Run Text="{x:Bind RangedDuration, Mode=OneWay, Converter={StaticResource TimeSpanToSecondsConverter}}" />)
+              </TextBlock>
+
+            </tkControls:DockPanel>
+
+          </Grid>
+        </DataTemplate>
+      </local:NullOrContentDataTemplateSelector.Content>
+    </local:NullOrContentDataTemplateSelector>
+
+    <local:NullOrContentStyleSelector x:Key="NullOrSoundSourceVMStyleSelector">
+      <local:NullOrContentStyleSelector.Null>
+        <Style TargetType="GridViewItem" BasedOn="{StaticResource GridViewItemMicaStyle}">
+          <Setter Property="Background" Value="{ThemeResource AccentAcrylicBackgroundFillColorDefaultBrush}" />
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          <Setter Property="VerticalContentAlignment" Value="Stretch" />
+          <Setter Property="MaxWidth" Value="420" />
+          <Setter Property="MinWidth" Value="120" />
+          <Setter Property="Margin" Value="12" />
+          <Setter Property="Padding" Value="16" />
+          <Setter Property="CornerRadius" Value="6" />
+          <Setter Property="BorderThickness" Value="0.5" />
+          <Setter Property="BorderBrush" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}" />
+        </Style>
+      </local:NullOrContentStyleSelector.Null>
+      <local:NullOrContentStyleSelector.Content>
         <Style TargetType="GridViewItem" BasedOn="{StaticResource GridViewItemMicaStyle}">
           <Setter Property="HorizontalContentAlignment" Value="Stretch" />
           <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -39,54 +114,214 @@
           <Setter Property="ContextFlyout" >
             <Setter.Value>
               <MenuFlyout Opening="MenuFlyout_Opening">
-                <MenuFlyoutItem x:Name="MenuFlyoutItem_DeleteItem" Icon="Delete" Text="{i18n:Localize Key=Delete}" Command="{x:Bind _vm.DeleteAudioSoundSourceCommand}" CommandParameter="{Binding}" />
+                <MenuFlyoutItem x:Name="MenuFlyoutItem_DeleteItem" Icon="Delete" Text="{i18nExt:Localize Key=Delete}" Command="{x:Bind _vm.DeleteAudioSoundSourceCommand}" CommandParameter="{Binding}" />
               </MenuFlyout>
             </Setter.Value>
           </Setter>
         </Style>
-      </tkControls:AdaptiveGridView.ItemContainerStyle>
-      <ListViewBase.ItemTemplate>
-        <DataTemplate x:DataType="viewModels:AudioSoundSourceViewModel">
-          <Grid ToolTipService.ToolTip="{x:Bind FilePath, Mode=OneWay}">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="*" />
-              <RowDefinition Height="32" />
-            </Grid.RowDefinitions>
+      </local:NullOrContentStyleSelector.Content>
+    </local:NullOrContentStyleSelector>
+  </Page.Resources>
+  <Grid>
 
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" MinHeight="50" />
+      <RowDefinition Height="*" MinHeight="50" MaxHeight="500" />
+    </Grid.RowDefinitions>
 
-            <!-- Top, audio infomation and actions -->
-            <Border Grid.Column="0" Margin="8 8 8 0">
-              <StackPanel>
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" >
-                  <Run Text="{x:Bind Title, Mode=OneWay}" />
-                </TextBlock>
-                <TextBlock Text="{x:Bind Duration, Mode=OneWay, Converter={StaticResource DurationToTextConverter}}"
-                           Opacity="0.7"
-                           />
-              </StackPanel>
-            </Border>
-
-            <!-- Bottom, Range of playing audio -->
-            <Border Grid.Row="1" Height="14">
-              <tkControls:RangeSelector RangeStart="{x:Bind AudioSpanBegin, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}" 
-                                        RangeEnd="{x:Bind AudioSpanEnd, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
-                                        Minimum="0"
-                                        Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
-                                        IsTapEnabled="False"
-                                        IsHitTestVisible="False"
-                                        RenderTransformOrigin="0.5, 0.5"
-                                        >
-                <tkControls:RangeSelector.RenderTransform>
-                  <TranslateTransform Y="9" />
-                </tkControls:RangeSelector.RenderTransform>
-              </tkControls:RangeSelector>
-            </Border>
-          </Grid>
-        </DataTemplate>
-      </ListViewBase.ItemTemplate>
+    <tkControls:AdaptiveGridView 
+      Grid.Row="0"
+      ItemsSource="{x:Bind _vm.Items}"      
+      ItemTemplateSelector="{StaticResource NullOrSoundSourceVMTemplateSelector}"
+      ItemContainerStyleSelector="{StaticResource NullOrSoundSourceVMStyleSelector}"
+      SelectionMode="None"
+      IsItemClickEnabled="True"
+      ItemClick="AdaptiveGridView_ItemClick"
+      DesiredWidth="320"
+      ItemHeight="140"      
+      SingleSelectionFollowsFocus="False"                                 
+      >
     </tkControls:AdaptiveGridView>
 
-    <StackPanel VerticalAlignment="Bottom" >
+    <Grid Grid.Row="1"
+          
+          >
+      <ScrollViewer x:Name="ScrollViewer_AudioEditContainer" Opacity="0" IsHitTestVisible="False">
+        <StackPanel Spacing="16" Margin="32">
+
+
+          <Grid>
+            <Button Style="{ThemeResource AccentButtonStyle}" 
+                    x:Name="Button_Apply"
+                    Click="Button_Apply_Click"
+                    HorizontalAlignment="Right"
+                    >
+              <TextBlock Text="{i18nExt:Localize Key=Save}" />
+            </Button>
+            
+            <Button x:Name="Button_Cancel"
+                    Click="Button_Cancel_Click"
+                    HorizontalAlignment="Left"
+                    >
+              <TextBlock Text="{i18nExt:Localize Key=Cancel}" />
+            </Button>
+          </Grid>
+
+          <tkControls:DockPanel ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_FilePath_Label}"                                                                            
+                                >
+            <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_FilePath_Label}" tkControls:DockPanel.Dock="Left"
+                       Margin="0 0 8 0"
+                       />
+
+            <Button x:Name="Button_ChangeFilePath" Tapped="Button_ChangeFilePath_Tapped"                                                   
+                    tkControls:DockPanel.Dock="Right"
+                >
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <SymbolIcon Symbol="OpenFile" />
+                <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_SelectFile}" />
+              </StackPanel>
+            </Button>
+
+            <TextBox x:Name="TextBox_FilePath" Text="{x:Bind FilePath, Mode=TwoWay}" IsReadOnly="True" 
+                     Margin="0 0 8 0"
+                     />
+          </tkControls:DockPanel>
+
+          <StackPanel>
+            <tkControls:DockPanel ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange}">
+
+              <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_AudioPlayRange}" tkControls:DockPanel.Dock="Left"                         
+                         Margin="0 0 8 0"
+                         />
+              <tkControls:RangeSelector x:Name="RangeSelector_AudioSpan" 
+                                RangeStart="{x:Bind AudioBegin, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                                RangeEnd="{x:Bind AudioEnd, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                                Minimum="0"
+                                Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"                                 
+                                Margin="0 8 0 0"                                                                
+                                HorizontalAlignment="Left"
+                                Width="{x:Bind Slider_PlaybackPosition.(uiExt:FrameworkElementExtensions.ActualWidth), Mode=OneWay}"
+                                tkControls:DockPanel.Dock="Top"                                        
+                                StepFrequency="0.1"                                        
+                                />
+
+              <Button Content="{i18nExt:Localize Key=AudioSoundSource_TestPlayAudioWithRange}" Tapped="Button_AudioRangedPlayPauseToggle_Tapped"
+                  HorizontalAlignment="Center"
+                      tkControls:DockPanel.Dock="Bottom"
+                      Margin="0 16 0 0"
+                  />
+
+              <StackPanel Orientation="Horizontal" 
+                          tkControls:DockPanel.Dock="Bottom"
+                          HorizontalAlignment="Center"                          
+                          Spacing="16"
+                          >
+                <Button x:Name="Button_SetBeginPosition" Tapped="Button_SetBeginPosition_Tapped" ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioBeginSetToCurrentPosition}">
+                  <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_AudioBeginSetToCurrentPosition}" />
+                </Button>
+                <Button x:Name="Button_AudioMovePreview" Tapped="Button_AudioMovePreview_Tapped"                                            
+                >
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Previous" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="Button_AudioPlayPauseToggle" Tapped="Button_AudioPlayPauseToggle_Tapped"                                            
+                >
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Play" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="Button_AudioMoveNext" Tapped="Button_AudioMoveNext_Tapped"                                            
+                >
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Next" />
+                  </StackPanel>
+                </Button>
+
+                <Button x:Name="Button_SetEndPosition" Tapped="Button_SetEndPosition_Tapped" ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_AudioEndSetToCurrentPosition}">
+                  <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_AudioEndSetToCurrentPosition}" />
+                </Button>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Opacity="0.7" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                          tkControls:DockPanel.Dock="Bottom"
+                          >
+                <TextBlock x:Name="TextBlock_CurrentPlaybackPosition"
+                       Text="{x:Bind CurrentPlaybackPosition, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}"
+                       >
+                </TextBlock>
+                <TextBlock Text="/" />
+                <TextBlock x:Name="TextBlock_Duration" Text="{x:Bind _vm.SelectedAudioSoundSourceVM.Duration, Converter={StaticResource TimeSpanToSecondsConverter},Mode=OneWay}" tkControls:DockPanel.Dock="Right"                                                                  
+                     />
+              </StackPanel>
+
+              <Slider x:Name="Slider_PlaybackPosition" 
+                  Value="{x:Bind CurrentPlaybackPosition, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=TwoWay}"
+                  Minimum="0"
+                  Maximum="{x:Bind Duration, Converter={StaticResource TimeSpanToSecondsConverter}, Mode=OneWay}" 
+                  StepFrequency="0.1"
+                  TickPlacement="Outside"
+                  TickFrequency="2.0"                      
+                  uiExt:FrameworkElementExtensions.EnableActualSizeBinding="True"
+                />
+            </tkControls:DockPanel>
+          </StackPanel>
+
+
+
+
+
+
+
+          <tkControls:DockPanel ToolTipService.ToolTip="{i18nExt:Localize Key=SoundVolume}"
+                                HorizontalAlignment="Left"
+                                >
+            <SymbolIcon Symbol="Volume" Margin="0 0 8 0" tkControls:DockPanel.Dock="Left" />
+            <TextBlock Text="{i18nExt:Localize Key=SoundVolume}" tkControls:DockPanel.Dock="Left" />
+            <Slider x:Name="Slider_SoundVolume" Minimum="0.0" Maximum="1.0"
+                Value="{x:Bind SoundVolume, Mode=TwoWay}"                             
+                StepFrequency="0.01"              
+                Width="320"
+                Margin="8 0 0 0"                    
+                />
+          </tkControls:DockPanel>
+
+
+          <tkControls:DockPanel ToolTipService.ToolTip="{i18nExt:Localize Key=AudioSoundSource_Label}"
+                                HorizontalAlignment="Left"
+                                >
+            <SymbolIcon Symbol="Edit" Margin="0 0 8 0" tkControls:DockPanel.Dock="Left" />
+            <TextBlock Text="{i18nExt:Localize Key=AudioSoundSource_Label}" />
+            <TextBox x:Name="TextBox_Title" Text="{x:Bind Label, Mode=TwoWay}"
+                 TextChanged="TextBox_Title_TextChanged"
+                     Margin="8 0 0 0"
+                     Width="320"                     
+               />
+          </tkControls:DockPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+    <tkControls:GridSplitter Grid.Row="1"
+      x:Name="GridSplitter_EditerSplitter"                
+        VerticalAlignment="Top"
+        Height="16"
+      CursorBehavior="ChangeOnSplitterHover"            
+      >
+      <tkControls:GridSplitter.RenderTransform>
+        <TranslateTransform Y="-8" />
+      </tkControls:GridSplitter.RenderTransform>
+      <tkControls:GridSplitter.Element>
+        <TextBlock HorizontalAlignment="Center"
+                         IsHitTestVisible="False"
+                         VerticalAlignment="Center"
+                         Text="&#xE76F;"
+                         Foreground="White"
+                         FontFamily="Segoe MDL2 Assets"/>
+      </tkControls:GridSplitter.Element>
+    </tkControls:GridSplitter>
+
+    <!--<StackPanel VerticalAlignment="Bottom"  Visibility="Collapsed">
       <Grid x:Name="Grid_PageActions" HorizontalAlignment="Right" Margin="24"
           Background="{ThemeResource MicaBackgroundBrush}" Padding="4"
           BorderBrush="{ThemeResource MicaBorderBrush}"
@@ -120,6 +355,20 @@
           </Button>
         </StackPanel>
       </Grid>
-    </StackPanel>
+    </StackPanel>-->
+
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{x:Bind _vm.SelectedAudioSoundSourceVM, Mode=OneWay, Converter={StaticResource NotNullToTrueConverter}}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="ScrollViewer_AudioEditContainer.Opacity" Value="1.0" />
+            <Setter Target="ScrollViewer_AudioEditContainer.IsHitTestVisible" Value="True" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
   </Grid>
 </Page>

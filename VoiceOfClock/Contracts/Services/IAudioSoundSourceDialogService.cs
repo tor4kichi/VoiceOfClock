@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Models;
+using Windows.Storage;
 
 namespace VoiceOfClock.Contracts.Services;
 
 public interface IAudioSoundSourceDialogService
 {
     Task<AudioSoundSourceDialogResult> ShowAsync(string dialogTitle, string filePath, TimeSpan duration, TimeSpan start, TimeSpan end, string title, double soundVolume);
+
+    Task<StorageFile> ChoiceFileAsync(string dialogTitle);
 }
 
 public sealed class AudioSoundSourceDialogResult

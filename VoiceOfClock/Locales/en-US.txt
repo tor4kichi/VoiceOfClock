@@ -186,3 +186,6 @@ AudioSoundSource_AudioPlayRange_Begin = Start
 AudioSoundSource_AudioPlayRange_End = End
 AudioSoundSource_AudioPlayRange = Playback range
 AudioSoundSource_FilePath_Label = Music file path
+AudioSoundSource_SelectFile = File selection
+AudioSoundSource_TestPlayAudio = Play
+AudioSoundSource_TestPlayAudioWithRange = Play specified range
