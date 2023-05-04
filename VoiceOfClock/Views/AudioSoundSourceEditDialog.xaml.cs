@@ -1,4 +1,5 @@
-﻿using DependencyPropertyGenerator;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using DependencyPropertyGenerator;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -75,13 +76,9 @@ public sealed partial class AudioSoundSourceEditDialog : ContentDialog
     {
         _cts = new CancellationTokenSource();
         var cancellationToken = _cts.Token;
-        _mediaPlayer = new MediaPlayer()
-        {
-            AutoPlay = false,
-            Volume = SoundVolume,
-        };
-
-        _mediaPlayer.CommandManager.IsEnabled = false;
+        _mediaPlayer = Ioc.Default.GetRequiredService<MediaPlayer>();
+        _mediaPlayer.AutoPlay = false;
+        _mediaPlayer.Volume = SoundVolume;
 
         _mediaPlayer.BufferingStarted += _mediaPlayer_BufferingStarted;
         _mediaPlayer.BufferingEnded += _mediaPlayer_BufferingEnded;

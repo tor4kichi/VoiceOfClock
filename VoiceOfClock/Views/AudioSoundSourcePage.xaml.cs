@@ -41,12 +41,7 @@ public sealed partial class AudioSoundSourcePage : Page
     {
         this.InitializeComponent();
         DataContext = _vm = Ioc.Default.GetRequiredService<AudioSoundSourcePageViewModel>();
-        _mediaPlayer = new MediaPlayer() 
-        {
-            
-        };
-
-        _mediaPlayer.SystemMediaTransportControls.IsEnabled = false;
+        _mediaPlayer = Ioc.Default.GetRequiredService<MediaPlayer>();
         _mediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
         _dispatcherQueue = DispatcherQueue;
 

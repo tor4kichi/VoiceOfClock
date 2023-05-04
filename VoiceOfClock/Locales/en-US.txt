@@ -84,6 +84,7 @@ SendReview = Send review
 Third-Party-Library-Notice = Third-Party Libraries Notice
 OpenWindowsClockSettings = Open time settings
 OpenWindowsSoundSettings = Open sound settings
+OpenWindowsNotificationSettings = Open notification settings
 Speech = Read aloud
 SpeechRate = Speed of speech
 SpeechPitch = Pitch

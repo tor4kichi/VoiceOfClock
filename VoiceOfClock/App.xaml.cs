@@ -40,6 +40,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media;
+using Windows.Media.Playback;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.UI;
@@ -102,6 +103,14 @@ public partial class App : Application
         // Core.Domain
         container.Register<TimerSettings>(reuse: new SingletonReuse());
         container.Register<ApplicationSettings>(reuse: new SingletonReuse());
+
+        container.RegisterDelegate<MediaPlayer>(() => 
+        {
+            var mp = new MediaPlayer();
+            mp.CommandManager.IsEnabled = false;
+            mp.SystemMediaTransportControls.IsEnabled = false;
+            return mp;
+        });
 
         // Core.Services
         container.RegisterInstance<IStorageHelper>(new BytesApplicationDataStorageHelper(ApplicationData.Current, new BinaryJsonObjectSerializer()));
