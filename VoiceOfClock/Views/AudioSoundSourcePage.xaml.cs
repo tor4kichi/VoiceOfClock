@@ -325,20 +325,20 @@ public sealed partial class AudioSoundSourcePage : Page
 
     private void Button_SetBeginPosition_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        var prevBeginPos = _vm.SelectedAudioSoundSourceVM.AudioSpanBegin;
-        _vm.SelectedAudioSoundSourceVM.AudioSpanBegin = _mediaPlayer.PlaybackSession.Position;
-        if (_vm.SelectedAudioSoundSourceVM.AudioSpanBegin > _vm.SelectedAudioSoundSourceVM.AudioSpanEnd)
+        var prevBeginPos = AudioBegin;
+        AudioBegin = _mediaPlayer.PlaybackSession.Position;
+        if (AudioBegin > AudioEnd)
         {
-            _vm.SelectedAudioSoundSourceVM.AudioSpanEnd = prevBeginPos;
+            AudioEnd = prevBeginPos;
         }
     }
 
     private void Button_SetEndPosition_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        _vm.SelectedAudioSoundSourceVM.AudioSpanEnd = _mediaPlayer.PlaybackSession.Position;
-        if (_vm.SelectedAudioSoundSourceVM.AudioSpanBegin > _vm.SelectedAudioSoundSourceVM.AudioSpanEnd)
+        AudioEnd = _mediaPlayer.PlaybackSession.Position;
+        if (AudioBegin > AudioEnd)
         {
-            _vm.SelectedAudioSoundSourceVM.AudioSpanBegin = TimeSpan.Zero;
+            AudioBegin = TimeSpan.Zero;
         }
     }
 
