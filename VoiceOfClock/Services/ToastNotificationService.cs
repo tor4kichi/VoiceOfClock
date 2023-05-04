@@ -2,6 +2,7 @@
 using I18NPortable;
 using Microsoft.Toolkit.Uwp.Notifications;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ using VoiceOfClock.Core.Contracts.Services;
 using VoiceOfClock.Core.Models.Timers;
 using VoiceOfClock.ViewModels;
 using Windows.Foundation.Collections;
+using Windows.UI.Notifications;
 
 namespace VoiceOfClock.Services;
 
@@ -26,6 +28,7 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
         _messenger = messenger;
     }
 
+    private readonly ConcurrentDictionary<Guid, ToastNotification> _notificationsMap = new();
     void Core.Contracts.Services.IToastNotificationService.ShowAlarmToastNotification(AlarmTimerEntity entity, DateTime targetTime)
     {
         var stopToastArgs = new ToastArguments()
@@ -42,9 +45,9 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
             { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
         };
 
+        var tcb = new ToastContentBuilder();
         if (TimeSpan.Zero < entity.Snooze)
-        {
-            var tcb = new ToastContentBuilder();
+        {            
             foreach (var kvp in againToastArgs)
             {
                 tcb.AddArgument(kvp.Key, kvp.Value);
@@ -62,11 +65,9 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
                 ;
-            tcb.Show();
         }
         else
         {
-            var tcb = new ToastContentBuilder();
             foreach (var kvp in stopToastArgs)
             {
                 tcb.AddArgument(kvp.Key, kvp.Value);
@@ -77,8 +78,9 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
                 ;
-            tcb.Show();
         }
+
+        ToastContentBuilderShow(entity, tcb);
     }
 
     void Core.Contracts.Services.IToastNotificationService.ShowOneShotTimerToastNotification(OneShotTimerEntity entity)
@@ -101,14 +103,39 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
             .AddAttributionText($"{entity.Title}\n{"Time_Elapsed".Translate(entity.Time.TranslateTimeSpan())}")
             .SetToastScenario(ToastScenario.Reminder)
             .AddButton("Close".Translate(), ToastActivationType.Background, args.ToString())
-            .Show();
+            ;
+
+        ToastContentBuilderShow(entity, tcb);
     }
+
+
+    void ToastContentBuilderShow(ITimer timer, ToastContentBuilder tcb)
+    {
+        tcb.Show(
+            (toast) =>
+            {
+                _notificationsMap.TryAdd(timer.Id, toast);
+                toast.Dismissed += (s, e) => { _notificationsMap.TryRemove(timer.Id, out _); };
+                toast.Failed += (s, e) => { _notificationsMap.TryRemove(timer.Id, out _); };
+                toast.Activated += (s, e) => { _notificationsMap.TryRemove(timer.Id, out _); };
+            }
+            );
+    }
+
 
     bool Contracts.Services.IToastActivationAware.ProcessToastActivation(ToastArguments args, ValueSet props)
     {
         var e = new ToastNotificationActivatedEventArgs(new Dictionary<string, string>(args), props);
         _messenger.Send(new ToastNotificationActivatedMessage(e));
         return e.IsHandled;        
+    }
+
+    public void HideNotify(ITimer timer)
+    {
+        if (_notificationsMap.TryRemove(timer.Id, out ToastNotification toast))
+        {
+            ToastNotificationManagerCompat.CreateToastNotifier().Hide(toast);
+        }
     }
 }
 

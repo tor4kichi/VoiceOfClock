@@ -23,7 +23,8 @@
       <Grid x:Name="Grid_Container" CornerRadius="6"             
             Padding="12 8" 
             Translation="0, 0, 16"                
-            Background="{ThemeResource MicaBackgroundBrush}"               
+            Background="{ThemeResource MicaBackgroundBrush}"        
+            BorderThickness="1"
             >
         <Grid.Shadow>
           <ThemeShadow />
@@ -35,6 +36,15 @@
           </core:DataTriggerBehavior>
           <core:DataTriggerBehavior Binding="{x:Bind IsEditting, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
             <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Content}" PropertyName="Opacity" Value="1.0" />
+          </core:DataTriggerBehavior>
+
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{ThemeResource AccentAAFillColorDefaultBrush}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Visible" />
+          </core:DataTriggerBehavior>
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{x:Null}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Collapsed" />
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
 
@@ -151,6 +161,10 @@
           </Button>
         </Grid>
 
+        <Grid x:Name="Grid_NowPlayingNotifyAudio" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Collapsed">
+          
+        </Grid>
+
       </Grid>
     </DataTemplate>
 
@@ -192,10 +206,124 @@
 
       <uiControls:AdaptiveGridView.Header>
         <StackPanel>
+          <Grid Background="{ThemeResource MicaBackgroundBrush}"
+              CornerRadius="6"   
+              Padding="12" 
+              Translation="0, 0, 8"                  
+              HorizontalAlignment="Center"
+              Margin="32"
+              >
+            <Grid.Shadow>
+              <ThemeShadow />
+            </Grid.Shadow>
+
+            <StackPanel Orientation="Vertical" Spacing="8">
+              <StackPanel Spacing="4">
+                <Grid>
+                 
+                  <Border x:Name="Grid_ProgressRingBack_InstantOneShotTimer"                                        
+                    BorderThickness="18"
+                    Width="212" Height="212"
+                    CornerRadius="180"
+                      Visibility="Visible"
+                      BorderBrush="{ThemeResource SystemControlBaseMediumLowAcrylicElementMediumBrush}"                                            
+                    >
+                  </Border>
+
+                  <ProgressRing Width="220" Height="220" IsIndeterminate="False"
+                            Minimum="0" Maximum="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(_vm.InstantOneShotTimer.Time), Mode=OneWay}" 
+                            Value="{x:Bind viewModels:OneShotTimerViewModel.ConvertToDouble(_vm.InstantOneShotTimer.RemainingTime), Mode=OneWay}"                                                                  
+                            IsActive="{x:Bind _vm.InstantOneShotTimer.IsTimerActive, Mode=OneWay}"                              
+                                 >
+                  </ProgressRing>
+
+                  <myControls:TimeSelectBox 
+                    x:Name="TimeSelectBox_InstantOneShotTimer"
+                    Time="{x:Bind _vm.InstantOneShotTimer.Time, Mode=TwoWay}"      
+                    FontSize="32"        
+                    Visibility="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverterInversed}}"
+                    DisplayMode="Hours_Minutes_Seconds"
+                    Width="224"
+                    Height="140"                    
+                    >
+                  </myControls:TimeSelectBox>
+
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="1"
+                              Visibility="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                              >
+                    <TextBlock x:Name="TextBlock_Time_Hour" FontSize="40" TextLineBounds="Tight" FontWeight="SemiBold"  VerticalAlignment="Center"
+                           Width="44"                           
+                         >
+                      <Run Text="{x:Bind sys:String.Format('{0:d2}', _vm.InstantOneShotTimer.RemainingTime.Hours), Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock FontSize="40" Text=":" FontWeight="SemiBold" Margin="0 0 0 12" />
+                    <TextBlock x:Name="TextBlock_Time_Minute" FontSize="40" TextLineBounds="Tight" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Width="44"
+                         >
+                      <Run Text="{x:Bind sys:String.Format('{0:d2}', _vm.InstantOneShotTimer.RemainingTime.Minutes), Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock FontSize="40" Text=":" FontWeight="SemiBold" Margin="0 0 0 12" />
+                    <TextBlock x:Name="TextBlock_Time_Second" FontSize="40" TextLineBounds="Tight" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Width="44"
+                         >
+                      <Run Text="{x:Bind sys:String.Format('{0:d2}', _vm.InstantOneShotTimer.RemainingTime.Seconds), Mode=OneWay}" />
+                    </TextBlock>
+                  </StackPanel>
+
+                  <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 84 0 0"
+                    Visibility="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Background="{ThemeResource SystemBaseMediumLowColor}"
+                    CornerRadius="10"
+                    Padding="8 4"
+                    >
+                    <SymbolIcon x:Name="SymbolIcon_NextTimeIcon" Symbol="Clock" RenderTransformOrigin="0.25, 0.5" Width="20" HorizontalAlignment="Left">
+                      <SymbolIcon.RenderTransform>
+                        <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
+                      </SymbolIcon.RenderTransform>
+                    </SymbolIcon>
+                    <TextBlock x:Name="TextBlock_NextTime" Text="{x:Bind viewModels:OneShotTimerViewModel.ConvertTime(_vm.InstantOneShotTimer.EndTime), Mode=OneWay}" VerticalAlignment="Center" FontSize="12" HorizontalAlignment="Left" Margin="16 0 0 0">
+
+                    </TextBlock>
+                  </Grid>
+                </Grid>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                <Button Command="{x:Bind _vm.InstantOneShotTimer.ToggleTimerStartAndStopCommand}" Style="{ThemeResource AccentButtonStyle}">
+                  <SymbolIcon Symbol="Play">
+                    <i:Interaction.Behaviors>
+                      <core:DataTriggerBehavior Binding="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+                        <core:ChangePropertyAction PropertyName="Symbol" Value="Pause" />
+                      </core:DataTriggerBehavior>
+                      <core:DataTriggerBehavior Binding="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+                        <core:ChangePropertyAction PropertyName="Symbol" Value="Play" />
+                      </core:DataTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                  </SymbolIcon>
+                </Button>
+                <Button Command="{x:Bind _vm.InstantOneShotTimer.RewindTimerCommand}">
+                  <SymbolIcon Symbol="Refresh" />
+                </Button>
+              </StackPanel>
+
+            </StackPanel>
+
+            <Button Command="{x:Bind _vm.EditTimerCommand}" CommandParameter="{x:Bind _vm.InstantOneShotTimer}"
+                    IsEnabled="{x:Bind _vm.InstantOneShotTimer.IsRunning, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    >
+              <SymbolIcon Symbol="Setting" />
+            </Button>
+            
+          </Grid>
+          
           <TextBlock Text="{i18n:Localize Key=ScheduledPeriodicTimer}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="8 0"
                      x:Name="TextBlock_ScheduleTitle"
                      Visibility="Collapsed"
                      />
+          
+          
         </StackPanel>
       </uiControls:AdaptiveGridView.Header>
     </uiControls:AdaptiveGridView>
@@ -258,6 +386,16 @@
           </VisualState.StateTriggers>
           <VisualState.Setters>
             <Setter Target="Grid_ActiveAlarmInformation.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{x:Bind _vm.InstantOneShotTimer.IsTimerActive, Mode=OneWay}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
           </VisualState.Setters>
         </VisualState>
       </VisualStateGroup>

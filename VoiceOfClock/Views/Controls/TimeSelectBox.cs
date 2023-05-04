@@ -337,6 +337,7 @@ public sealed partial class TimeSelectBox : Control
                     break;
             }
 
+            e.Handled = true;
             Debug.WriteLine($"[NumberBox] Uc_PointerWheelChanged");
         }
     }

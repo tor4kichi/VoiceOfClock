@@ -22,6 +22,8 @@ namespace VoiceOfClock.ViewModels;
 public sealed partial class AlarmTimerPageViewModel 
     : ObservableRecipient
     , IRecipient<AlarmTimerUpdatedMessage>
+    , IRecipient<NotifyAudioStartingMessage>
+    , IRecipient<NotifyAudioEndedMessage>
 {
     private readonly IAlarmTimerDialogService _alarmTimerDialogService;
     private readonly IStoreLisenceService _storeLisenceService;
@@ -98,6 +100,31 @@ public sealed partial class AlarmTimerPageViewModel
         }
     }
 
+    void IRecipient<NotifyAudioStartingMessage>.Receive(NotifyAudioStartingMessage message)
+    {
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            //?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioStarting();
+    }
+
+    void IRecipient<NotifyAudioEndedMessage>.Receive(NotifyAudioEndedMessage message)
+    {
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            //?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioEnded();
+    }
+
+
     [RelayCommand]
     async Task AddTimer()
     {
@@ -143,6 +170,15 @@ public sealed partial class AlarmTimerPageViewModel
     [RelayCommand]
     async Task EditTimer(AlarmTimerViewModel timerVM)
     {        
+        if (timerVM.NowPlayingNotifyAudio) 
+        {
+            if (timerVM.DismissNotificationCommand.CanExecute(null))
+            {
+                timerVM.DismissNotificationCommand.Execute(null);
+            }
+            return; 
+        }
+
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerEditDialog_Title".Translate()
             , timerVM.Title

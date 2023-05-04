@@ -35,6 +35,7 @@ public partial class PeriodicTimerViewModel : ObservableObject
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
         CulcNextTime();
+        _nowPlayingNotifyAudio = _periodicTimerLifetimeManager.GetNowPlayingAudio(Entity);
     }
 
     public void RefrectValues()
@@ -128,5 +129,25 @@ public partial class PeriodicTimerViewModel : ObservableObject
     public string LocalizeIntervalTime(TimeSpan timeSpan)
     {
         return "IntervalTime_PerVariableTime".Translate(TimeTranslationHelper.TranslateTimeSpan(timeSpan));
+    }
+
+
+    [ObservableProperty]
+    private bool _nowPlayingNotifyAudio;
+
+    [RelayCommand]
+    void StopPlayingSound()
+    {
+        _periodicTimerLifetimeManager.StopNotifyAudio(Entity);
+    }
+
+    internal void OnNotifyAudioStarting()
+    {
+        NowPlayingNotifyAudio = true;
+    }
+
+    internal void OnNotifyAudioEnded()
+    {
+        NowPlayingNotifyAudio = false;
     }
 }

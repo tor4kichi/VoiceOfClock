@@ -35,6 +35,7 @@ public sealed partial class AlarmTimerViewModel
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
         CulcTargetTime();
+        _nowPlayingNotifyAudio = _alarmTimerLifetimeManager.GetNowPlayingAudio(Entity);
     }
 
     public Guid EntityId => Entity.Id;
@@ -96,7 +97,7 @@ public sealed partial class AlarmTimerViewModel
             dayOfWeekVM.IsEnabled = Entity.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
         }
 
-        CulcTargetTime();
+        CulcTargetTime();        
     }
 
 
@@ -161,5 +162,32 @@ public sealed partial class AlarmTimerViewModel
         {
             return "IntervalTime_PerSeconds".Translate(timeSpan.Seconds);
         }
-    }    
+    }
+
+
+
+    [ObservableProperty]
+    private bool _nowPlayingNotifyAudio;
+
+    [RelayCommand]
+    public void DismissNotification()
+    {
+        _alarmTimerLifetimeManager.TimerChecked(Entity);        
+    }
+
+    [RelayCommand]
+    public void SnoozeNotification()
+    {        
+        TargetTime = _alarmTimerLifetimeManager.SetSnooze(Entity);
+    }
+
+    internal void OnNotifyAudioStarting()
+    {
+        NowPlayingNotifyAudio = true;
+    }
+
+    internal void OnNotifyAudioEnded()
+    {
+        NowPlayingNotifyAudio = false;
+    }
 }

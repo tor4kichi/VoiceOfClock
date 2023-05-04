@@ -26,7 +26,8 @@
       <Grid x:Name="Grid_Container" CornerRadius="6" 
             Background="{ThemeResource MicaBackgroundBrush}"
             Padding="12" 
-            Translation="0, 0, 16"                  
+            Translation="0, 0, 16"            
+            BorderThickness="1"
             >
         <Grid.Shadow>
           <ThemeShadow />
@@ -42,6 +43,15 @@
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_Time}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerIntervalTime}" PropertyName="Opacity" Value="1.0" />
             <core:ChangePropertyAction TargetObject="{Binding ElementName=TextBlock_TimerTitle}" PropertyName="Opacity" Value="1.0" />
+          </core:DataTriggerBehavior>
+
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="True" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{ThemeResource AccentAAFillColorDefaultBrush}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Visible" />
+          </core:DataTriggerBehavior>
+          <core:DataTriggerBehavior Binding="{x:Bind NowPlayingNotifyAudio, Mode=OneWay}" Value="False" ComparisonCondition="Equal">
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_Container}" PropertyName="BorderBrush" Value="{x:Null}" />
+            <core:ChangePropertyAction TargetObject="{Binding ElementName=Grid_NowPlayingNotifyAudio}" PropertyName="Visibility" Value="Collapsed" />
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
      
@@ -118,6 +128,9 @@
           </Button>
         </Grid>
 
+        <Grid x:Name="Grid_NowPlayingNotifyAudio" HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="Collapsed">
+          
+        </Grid>
       </Grid>
     </DataTemplate>
 

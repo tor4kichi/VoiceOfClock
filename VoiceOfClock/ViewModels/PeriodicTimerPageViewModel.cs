@@ -23,6 +23,8 @@ public sealed partial class PeriodicTimerPageViewModel
     : ObservableRecipient
     , IRecipient<PeriodicTimerUpdatedMessage>
     , IRecipient<PeriodicTimerProgressPeriodMessage>
+    , IRecipient<NotifyAudioStartingMessage>
+    , IRecipient<NotifyAudioEndedMessage>
 {
     private readonly IPeriodicTimerDialogService _dialogService;
     private readonly IStoreLisenceService _storeLisenceService;
@@ -140,6 +142,31 @@ public sealed partial class PeriodicTimerPageViewModel
         timerVM.NextTime = message.TriggerTime + sourceEntity.IntervalTime;
     }
 
+    void IRecipient<NotifyAudioStartingMessage>.Receive(NotifyAudioStartingMessage message)
+    {
+        var sourceEntity = message.Value;        
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            ?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioStarting();
+    }
+
+    void IRecipient<NotifyAudioEndedMessage>.Receive(NotifyAudioEndedMessage message)
+    {
+        var sourceEntity = message.Value;
+        var timerVM = _timers.FirstOrDefault(x => x.Entity.Id == sourceEntity.Id)
+            ?? (sourceEntity.Id == InstantPeriodicTimer.Entity.Id ? InstantPeriodicTimer : null)
+            ;
+
+        if (timerVM == null) { return; }
+
+        timerVM.OnNotifyAudioEnded();
+    }
+
+
     [RelayCommand]
     async Task AddTimer()
     {
@@ -183,6 +210,15 @@ public sealed partial class PeriodicTimerPageViewModel
     [RelayCommand]
     async Task EditTimer(PeriodicTimerViewModel timerVM)
     {
+        if (timerVM.NowPlayingNotifyAudio)
+        {
+            if (timerVM.StopPlayingSoundCommand.CanExecute(null))
+            {
+                timerVM.StopPlayingSoundCommand.Execute(null);
+            }
+            return;
+        }
+
         var result = await _dialogService.ShowEditTimerAsync("PeriodicTimerEditDialog_Title".Translate(), timerVM.Title, timerVM.StartTime, timerVM.EndTime, timerVM.IntervalTime, timerVM.EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek), TimerSettings.FirstDayOfWeek);
         if (result?.IsConfirmed is true)
         {
