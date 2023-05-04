@@ -252,6 +252,7 @@
 
             <HyperlinkButton Content="{i18n:Localize Key=OpenWindowsClockSettings}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-settings:dateandtime" />
             <HyperlinkButton Content="{i18n:Localize Key=OpenWindowsSoundSettings}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-settings:sound" />
+            <HyperlinkButton Content="{i18n:Localize Key=OpenWindowsSoundSettings}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-settings:notifications" />
 
           </StackPanel>
           
