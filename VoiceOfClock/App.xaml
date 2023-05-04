@@ -73,6 +73,45 @@
         </uwpConverters:EmptyStringToObjectConverter.NotEmptyValue>
       </uwpConverters:EmptyStringToObjectConverter>
 
+
+      <uwpConverters:EmptyObjectToObjectConverter x:Key="NullToVisibleConverter">
+        <uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+          <Visibility>Visible</Visibility>
+        </uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+          <Visibility>Collapsed</Visibility>
+        </uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyObjectToObjectConverter>
+
+      <uwpConverters:EmptyObjectToObjectConverter x:Key="NotNullToVisibleConverter">
+        <uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+          <Visibility>Collapsed</Visibility>
+        </uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+          <Visibility>Visible</Visibility>
+        </uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyObjectToObjectConverter>
+
+
+
+      <uwpConverters:EmptyObjectToObjectConverter x:Key="NullToTrueConverter">
+        <uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+          <x:Boolean>True</x:Boolean>
+        </uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+          <x:Boolean>False</x:Boolean>
+        </uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyObjectToObjectConverter>
+
+      <uwpConverters:EmptyObjectToObjectConverter x:Key="NotNullToTrueConverter">
+        <uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+          <x:Boolean>False</x:Boolean>
+        </uwpConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+          <x:Boolean>True</x:Boolean>
+        </uwpConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+      </uwpConverters:EmptyObjectToObjectConverter>
+
       <x:Double x:Key="MicaCornerRadius">4</x:Double>
 
 

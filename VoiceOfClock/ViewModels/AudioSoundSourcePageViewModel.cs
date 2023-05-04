@@ -22,9 +22,12 @@ public sealed partial class AudioSoundSourcePageViewModel : ObservableRecipient
     private readonly AudioSoundSourceRepository _audioSoundSourceRepository;
     private readonly IAudioSoundSourceDialogService _audioSoundSourceDialogService;
 
-    public ReadOnlyObservableCollection<AudioSoundSourceViewModel> Items { get; }
+    public ReadOnlyObservableCollection<object> Items { get; }
 
-    private readonly ObservableCollection<AudioSoundSourceViewModel> _items;
+    private readonly ObservableCollection<object> _items;
+
+    [ObservableProperty]
+    private AudioSoundSourceViewModel? _selectedAudioSoundSourceVM;
 
     public AudioSoundSourcePageViewModel(
         AudioSoundSourceRepository audioSoundSourceRepository
@@ -33,12 +36,13 @@ public sealed partial class AudioSoundSourcePageViewModel : ObservableRecipient
     {
         _audioSoundSourceRepository = audioSoundSourceRepository;
         _audioSoundSourceDialogService = audioSoundSourceDialogService;
-        _items = new ObservableCollection<AudioSoundSourceViewModel>();
-        Items = new ReadOnlyObservableCollection<AudioSoundSourceViewModel>(_items);
+        _items = new ObservableCollection<object>();
+        Items = new ReadOnlyObservableCollection<object>(_items);
     }
 
     protected override void OnActivated()
     {
+        _items.Add(null);
         List<AudioSoundSourceEntity> entities = _audioSoundSourceRepository.ReadAllItems();
         foreach (var item in entities)
         {
@@ -63,23 +67,25 @@ public sealed partial class AudioSoundSourcePageViewModel : ObservableRecipient
     [RelayCommand]
     async Task AddNewAudioSoundSource()
     {
-        var result = await _audioSoundSourceDialogService.ShowAsync("AudioSoundSource_DialogTitle_New".Translate(), string.Empty, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, string.Empty, 1.0);
-        if (result.IsConfirmed)
+        if (await _audioSoundSourceDialogService.ChoiceFileAsync("AudioSoundSource_DialogTitle_New".Translate()) is not { } file)
         {
-            var newEntity = _audioSoundSourceRepository.CreateItem(
-                new AudioSoundSourceEntity(
-                    result.FilePath
-                    , result.Duration
-                    )
-                {
-                    Title = result.Title,
-                    AudioSpan = result.AudioSpan,
-                    SoundVolume = result.SoundVolume,
-                });
-
-            var itemVM = new AudioSoundSourceViewModel(newEntity, _audioSoundSourceRepository);
-            _items.Add(itemVM);
+            return;
         }
+
+        var musicProps = await file.Properties.GetMusicPropertiesAsync();
+        var newEntity = _audioSoundSourceRepository.CreateItem(
+            new AudioSoundSourceEntity(
+                file.Path
+                , musicProps.Duration
+                )
+            {
+                Title = musicProps.Title,
+                AudioSpan = new AudioSpan(TimeSpan.Zero, musicProps.Duration),
+                SoundVolume = 1.0,
+            });
+
+        var itemVM = new AudioSoundSourceViewModel(newEntity, _audioSoundSourceRepository);
+        _items.Add(itemVM);
     }
 
     [RelayCommand]
@@ -113,7 +119,10 @@ public sealed partial class AudioSoundSourcePageViewModel : ObservableRecipient
 [ObservableObject]
 public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
 {
-    public AudioSoundSourceViewModel(AudioSoundSourceEntity entity, AudioSoundSourceRepository repository)
+    public AudioSoundSourceViewModel(
+        AudioSoundSourceEntity entity, 
+        AudioSoundSourceRepository repository
+        )
     {
         Entity = entity;
         _repository = repository;
@@ -123,6 +132,7 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
         _audioSpanEnd = Entity.AudioSpan.End;
         _title = Entity.Title;
         _soundVolume= Entity.SoundVolume;
+        RangedDuration = ConvertRangedDurationTime();
     }
 
     public AudioSoundSourceEntity Entity { get; }
@@ -157,6 +167,7 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
     partial void OnDurationChanged(TimeSpan value)
     {
         Entity.Duration= value;
+        RangedDuration = ConvertRangedDurationTime();
 
         if (!NowDeferUpdateRequested)
         {
@@ -170,6 +181,7 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
     partial void OnAudioSpanBeginChanged(TimeSpan value)
     {
         Entity.AudioSpan = Entity.AudioSpan with { Begin = value };
+        RangedDuration = ConvertRangedDurationTime();
 
         if (!NowDeferUpdateRequested)
         {
@@ -184,6 +196,7 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
     partial void OnAudioSpanEndChanged(TimeSpan value)
     {
         Entity.AudioSpan = Entity.AudioSpan with { End = value };
+        RangedDuration = ConvertRangedDurationTime();
 
         if (!NowDeferUpdateRequested)
         {
@@ -221,6 +234,34 @@ public sealed partial class AudioSoundSourceViewModel  : DeferUpdatable
     public string ConvertShortTime(TimeSpan time)
     {
         return time.TrimMilliSeconds().ToString("T");
+    }
+
+
+    [ObservableProperty]
+    private TimeSpan _rangedDuration;
+
+    public TimeSpan ConvertRangedDurationTime()
+    {
+        var beginTime = AudioSpanBegin;
+        var endTime = AudioSpanEnd;
+        if (beginTime ==  TimeSpan.Zero
+            && endTime == Duration
+            )
+        {
+            // 全体 Durationを返す
+            return Duration;
+        }
+        else if (beginTime == endTime)
+        {
+            // BeginTimeからDurationまでの長さ
+            return (Duration - beginTime);
+        }
+        else
+        {
+            var duration = endTime - beginTime;
+            Guard.IsGreaterThan(duration, TimeSpan.Zero);
+            return duration;
+        }
     }
 }
 
