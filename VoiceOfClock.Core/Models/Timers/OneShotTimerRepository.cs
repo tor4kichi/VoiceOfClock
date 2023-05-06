@@ -85,4 +85,7 @@ public sealed class OneShotTimerEntity : ITimer
     public string SoundContent { get; set; } = string.Empty;
     
     public int Order { get; set; }
+
+
+    public string? TimeZoneId { get; set; } = null;
 }

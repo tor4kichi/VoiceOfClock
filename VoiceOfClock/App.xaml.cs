@@ -153,7 +153,8 @@ public partial class App : Application
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
         container.Register<IAlarmTimerDialogService, AlarmTimerEditDialogService>();
         container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();
-        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();        
+        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();
+        container.Register<ITimeZoneDialogService, TimeZoneDialogService>();        
     }    
 
     /// <summary>

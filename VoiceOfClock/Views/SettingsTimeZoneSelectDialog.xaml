@@ -1,0 +1,32 @@
+<ContentDialog
+  x:Class="VoiceOfClock.Views.SettingsTimeZoneSelectDialog"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:VoiceOfClock.Views"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  xmlns:i18nExt="using:I18NPortable.Xaml.Extensions" xmlns:system="using:System"
+  xmlns:ui="using:CommunityToolkit.WinUI.UI"
+  PrimaryButtonText="{i18nExt:Localize Key=TimeZoneSetting_Dialog_PrimaryButton_Label}"
+  SecondaryButtonText="{i18nExt:Localize Key=Cancel}"
+  >
+
+  <Grid>
+    <ListView x:Name="TimeZonesListView"              
+              ui:ListViewExtensions.AlternateColor="{ThemeResource SystemAltLowColor}"
+              >
+      <ListView.ItemTemplate>
+        <DataTemplate x:DataType="system:TimeZoneInfo">
+          <StackPanel Orientation="Vertical" Spacing="0">
+            <TextBlock >
+              <Run Text="{x:Bind StandardName}" />
+            </TextBlock>
+            <TextBlock Text="{x:Bind DisplayName}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.65" />
+          </StackPanel>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+
+    </ListView>
+  </Grid>
+</ContentDialog>

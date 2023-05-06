@@ -132,6 +132,7 @@
       <Style TargetType="views:AlarmTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:PurchaseConfirmDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:AudioSoundSourceEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+      <Style TargetType="views:SettingsTimeZoneSelectDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
 
     </ResourceDictionary>
   </Application.Resources>
