@@ -202,7 +202,7 @@ public sealed partial class AlarmTimerPageViewModel
             , timerVM.SoundSourceType
             , timerVM.SoundContent
             , timeZones
-            , Math.Max(Array.IndexOf(timeZones, timerVM.TimeZone), 0)
+            , Math.Max(Array.IndexOf(timeZones, timerVM.TimeZone), -1)
             );
         if (result.IsConfirmed)
         {

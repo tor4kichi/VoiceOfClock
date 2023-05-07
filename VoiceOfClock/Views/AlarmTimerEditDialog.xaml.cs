@@ -72,8 +72,11 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
         if (timeZones?.Any() ?? false)
         {
             ComboBox_TimeZones.Visibility = Visibility.Visible;
-            ComboBox_TimeZones.ItemsSource = timeZones;            
-            ComboBox_TimeZones.SelectedIndex = firstSelectedIndex;
+            ComboBox_TimeZones.ItemsSource = timeZones;  
+            if (0 <= firstSelectedIndex)
+            {
+                ComboBox_TimeZones.SelectedIndex = firstSelectedIndex;
+            }
         }
         else
         {
