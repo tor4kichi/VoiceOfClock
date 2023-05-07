@@ -67,6 +67,21 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     private SoundSelectionItemViewModel? _firstSelectedsoundSelectionItem;
     private TimeSpan? _snoozeTimeFirstSelected;
 
+    public void SetTimeZone(IEnumerable<TimeZoneInfo>? timeZones, int firstSelectedIndex)
+    {
+        if (timeZones?.Any() ?? false)
+        {
+            ComboBox_TimeZones.Visibility = Visibility.Visible;
+            ComboBox_TimeZones.ItemsSource = timeZones;            
+            ComboBox_TimeZones.SelectedIndex = firstSelectedIndex;
+        }
+        else
+        {
+            ComboBox_TimeZones.Visibility = Visibility.Collapsed;
+        }
+    }
+
+
 
     public void SetSoundSource(SoundSourceType soundSourceType, string parameter)
     {
@@ -100,14 +115,25 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
     }
 
 
-    public async Task<AlarmTimerDialogResult> ShowAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent)
+    public async Task<AlarmTimerDialogResult> ShowAsync(
+        string dialogTitle,
+        string timerTitle,
+        TimeOnly dayOfTime,
+        TimeSpan? snooze,
+        IEnumerable<DayOfWeek> enabledDayOfWeeks,
+        DayOfWeek firstDayOfWeek,
+        SoundSourceType soundSourceType,
+        string soundContent,
+        IEnumerable<TimeZoneInfo>? timeZones,
+        int firstTimeZoneSelectedIndex
+        )
     {
         Title = dialogTitle;
         TextBox_EditTitle.Text = timerTitle;
         TimeSelectBox_TimeOfDay.Time = dayOfTime.ToTimeSpan();
         SetSoundSource(soundSourceType, soundContent);
         _snoozeTimeFirstSelected = _snoozeTimes.FirstOrDefault(x => x == snooze, _snoozeTimes.First());
-        
+        SetTimeZone(timeZones, firstTimeZoneSelectedIndex);
         var enabledDayOfWeeksHashSet = enabledDayOfWeeks.ToHashSet();
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = enabledDayOfWeeksHashSet.Contains(x) })
@@ -138,6 +164,7 @@ public sealed partial class AlarmTimerEditDialog : ContentDialog
                     EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray(),                    
                     SoundSourceType = resultSoundSourceType,
                     SoundContent = resultSoundContent,
+                    TimeZone = ComboBox_TimeZones.SelectedItem as TimeZoneInfo,
                 };
             }
             else

@@ -213,3 +213,11 @@ public enum AMPMPosition
     Prefix,
     Postfix,
 }
+
+public static class TimeSettingsExtensions
+{
+    public static IEnumerable<TimeZoneInfo> GetSupportTimeZones(this TimerSettings timerSettings)
+    {
+        return timerSettings.AdditionalSupportTimeZoneIds.Select(TimeZoneInfo.FindSystemTimeZoneById);
+    }
+}

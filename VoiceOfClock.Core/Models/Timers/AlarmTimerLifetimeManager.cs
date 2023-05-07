@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
 using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
@@ -90,7 +91,17 @@ public sealed partial class AlarmTimerLifetimeManager
         AlarmTimerEntity? timer = _alarmTimerRepository.FindById(e.Id);        
         if (timer == null) { return; }
 
-        _toastNotificationService.ShowAlarmToastNotification(timer, e.TriggerTime);
+        if (timer.TimeZoneId != null
+            && TimeZoneInfo.Local.Id != timer.TimeZoneId)
+        {
+            var targetTZTime = TimeZoneInfo.ConvertTime(e.TriggerTime, TimeZoneInfo.Local, TimeZoneInfo.FindSystemTimeZoneById(timer.TimeZoneId));
+            _toastNotificationService.ShowAlarmToastNotification(timer, targetTZTime);
+        }
+        else
+        {
+            _toastNotificationService.ShowAlarmToastNotification(timer, e.TriggerTime);
+        }
+
         PlayTimerSound(timer);
     }
 
@@ -153,12 +164,31 @@ public sealed partial class AlarmTimerLifetimeManager
         return _playCancelMap.ContainsKey(entity.Id);
     }
 
+    private DateTime CulcNextTime(AlarmTimerEntity timer)
+    {
+        if (timer.TimeZoneId != null
+            && TimeZoneInfo.Local.Id != timer.TimeZoneId
+            )
+        {
+            return TimeHelpers.CulcNextTimeWithTimeZone(
+                DateTimeOffset.Now, 
+                timer.TimeOfDay.ToTimeSpan(), 
+                timer.EnabledDayOfWeeks, 
+                TimeZoneInfo.Local, 
+                TimeZoneInfo.FindSystemTimeZoneById(timer.TimeZoneId)
+                );
+        }
+        else
+        {
+            return TimeHelpers.CulcNextTime(DateTime.Now, timer.TimeOfDay.ToTimeSpan(), timer.EnabledDayOfWeeks);
+        }
+    }
 
     public void TimerChecked(AlarmTimerEntity timer)
     {
         if (timer.IsEnabled && timer.EnabledDayOfWeeks.Any())
         {
-            var nextAlarmTime = TimeHelpers.CulcNextTime(DateTime.Now, timer.TimeOfDay.ToTimeSpan(), timer.EnabledDayOfWeeks);
+            var nextAlarmTime = CulcNextTime(timer);
             _timeTriggerService.SetTimeTrigger(timer.Id, nextAlarmTime, TimeTriggerGroupId);
         }
 
@@ -180,7 +210,7 @@ public sealed partial class AlarmTimerLifetimeManager
         return _alarmTimerRepository.ReadAllItems();
     }
 
-    public AlarmTimerEntity CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = true)
+    public AlarmTimerEntity CreateAlarmTimer(string title, TimeOnly timeOfDay, DayOfWeek[] enabledDayOfWeeks, TimeSpan? snoozeTime, SoundSourceType soundSourceType, string soundContent, bool isEnabled = true, string? timeZoneId = null)
     {
         AlarmTimerEntity newEntity = _alarmTimerRepository.CreateItem(new AlarmTimerEntity
         {
@@ -192,6 +222,7 @@ public sealed partial class AlarmTimerLifetimeManager
             SoundContent = soundContent,            
             IsEnabled = isEnabled,
             Order = int.MaxValue,
+            TimeZoneId = timeZoneId
         });
 
         // 並び順を確実に指定する
@@ -203,7 +234,7 @@ public sealed partial class AlarmTimerLifetimeManager
 
         if (newEntity.IsEnabled && newEntity.EnabledDayOfWeeks.Any())
         {
-            _timeTriggerService.SetTimeTrigger(newEntity.Id, TimeHelpers.CulcNextTime(DateTime.Now, newEntity.TimeOfDay.ToTimeSpan(), newEntity.EnabledDayOfWeeks), TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(newEntity.Id, CulcNextTime(newEntity), TimeTriggerGroupId);
         }
 
         return newEntity;
@@ -225,7 +256,7 @@ public sealed partial class AlarmTimerLifetimeManager
        
         if (entity.IsEnabled)
         {
-            _timeTriggerService.SetTimeTrigger(entity.Id, TimeHelpers.CulcNextTime(DateTime.Now, entity.TimeOfDay.ToTimeSpan(), entity.EnabledDayOfWeeks), TimeTriggerGroupId);
+            _timeTriggerService.SetTimeTrigger(entity.Id, CulcNextTime(entity), TimeTriggerGroupId);
         }
         else
         {

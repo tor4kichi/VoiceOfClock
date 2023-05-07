@@ -171,7 +171,7 @@ public partial class App : Application
 
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
-            .SetNotFoundSymbol("🍣")            
+            .SetNotFoundSymbol("🍣")               
             ;
 
         DispatcherQueue = global::Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();

@@ -30,6 +30,7 @@ public sealed class MigrationService
     {
         yield return (Ioc.Default.GetService<TimeTriggerRepositoryEntityIdTypeMigrator>(), "TimeTriggerRepositoryEntityIdTypeMigrator");
         yield return (Ioc.Default.GetService<InitializeTimeTriggerRepositoryMigrator>(), "InitializeTimeTriggerRepositoryMigrator");
+        yield return (Ioc.Default.GetService<TimeZoneIdInitializeForAllTimers>(), "TimeZoneIdInitializeForAllTimers");        
     }
 
     public void Migrate(Version currentVersion, Version prevVersion)

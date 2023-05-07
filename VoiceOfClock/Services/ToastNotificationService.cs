@@ -45,6 +45,11 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
             { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
         };
 
+        string timeText = entity.TimeZoneId != TimeZoneInfo.Local.Id
+            ? $"{targetTime.ToShortTimeString()} {TimeZoneInfo.FindSystemTimeZoneById(entity.TimeZoneId).StandardName}"
+            : targetTime.ToShortTimeString()
+            ;
+
         var tcb = new ToastContentBuilder();
         if (TimeSpan.Zero < entity.Snooze)
         {            
@@ -55,7 +60,7 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
 
             string defaultSelectComboBoxId = entity.Snooze.Value.ToString();
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
-                .AddAttributionText($"{entity.Title}\n{targetTime.ToShortTimeString()}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
+                .AddAttributionText($"{entity.Title}\n{timeText}\n\n{"AlarmTimer_ToastNotificationSnoozeTimeDescription".Translate()}")
                 .AddComboBox(
                     TimersToastNotificationConstants.PropsKey_SnoozeTimeComboBox_Id
                     , defaultSelectComboBoxId
@@ -64,6 +69,7 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
                 .AddButton("AlarmTimer_Snooze".Translate(), ToastActivationType.Background, againToastArgs.ToString())
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
+                .SetToastScenario(ToastScenario.Alarm)
                 ;
         }
         else
@@ -74,9 +80,10 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
             }
 
             tcb.AddText("AlarmTimer_ToastNotificationTitle".Translate())
-                .AddAttributionText($"{entity.Title}\n{targetTime.ToShortTimeString()}")
+                .AddAttributionText($"{entity.Title}\n{timeText}")
                 .AddButton("Close".Translate(), ToastActivationType.Background, stopToastArgs.ToString())
                 .AddAudio(new Uri("ms-winsoundevent:Notification.Default", UriKind.RelativeOrAbsolute), silent: true)
+                .SetToastScenario(ToastScenario.Alarm)
                 ;
         }
 

@@ -15,18 +15,8 @@
   <Grid>
     <ListView x:Name="TimeZonesListView"              
               ui:ListViewExtensions.AlternateColor="{ThemeResource SystemAltLowColor}"
+              ItemTemplate="{StaticResource TimeZoneInfoDataTemplate}"
               >
-      <ListView.ItemTemplate>
-        <DataTemplate x:DataType="system:TimeZoneInfo">
-          <StackPanel Orientation="Vertical" Spacing="0">
-            <TextBlock >
-              <Run Text="{x:Bind StandardName}" />
-            </TextBlock>
-            <TextBlock Text="{x:Bind DisplayName}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.65" />
-          </StackPanel>
-        </DataTemplate>
-      </ListView.ItemTemplate>
-
     </ListView>
   </Grid>
 </ContentDialog>
