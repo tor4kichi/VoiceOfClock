@@ -6,7 +6,8 @@
   xmlns:uwpConverters="using:CommunityToolkit.WinUI.UI.Converters"
   xmlns:views="using:VoiceOfClock.Views"
   xmlns:i18n="using:I18NPortable.Converters" 
-  xmlns:myConv="using:VoiceOfClock.Views.Converters">
+  xmlns:myConv="using:VoiceOfClock.Views.Converters"
+  xmlns:system="using:System">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -124,6 +125,14 @@
         <Setter Property="ClockIdentifier" Value="24HourClock" />
       </Style>
 
+      <DataTemplate x:Key="TimeZoneInfoDataTemplate">
+        <StackPanel Orientation="Vertical" Spacing="0">
+          <TextBlock >
+              <Run Text="{Binding StandardName}" />
+          </TextBlock>
+          <TextBlock Text="{Binding DisplayName}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.65" />
+        </StackPanel>
+      </DataTemplate>
 
       <!-- bug on the ContentDialog derived -->
       <!-- see also https://github.com/microsoft/microsoft-ui-xaml/issues/4325 -->
@@ -132,6 +141,7 @@
       <Style TargetType="views:AlarmTimerEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:PurchaseConfirmDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
       <Style TargetType="views:AudioSoundSourceEditDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
+      <Style TargetType="views:SettingsTimeZoneSelectDialog" BasedOn="{StaticResource DefaultContentDialogStyle}" />
 
     </ResourceDictionary>
   </Application.Resources>

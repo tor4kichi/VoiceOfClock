@@ -53,10 +53,10 @@
     </local:SettingsContentStyleSelector>
     
     <DataTemplate x:DataType="viewModels:ExpanderSettingContent" x:Key="ExpanderSettingContentTemplate">
-      <Expander>
+      <Expander IsExpanded="{x:Bind IsOpen, Mode=TwoWay}">
         <Expander.Header>
           <tkControls:DockPanel>
-            <StackPanel tkControls:DockPanel.Dock="Left">
+            <StackPanel tkControls:DockPanel.Dock="Left" VerticalAlignment="Center">
               <TextBlock Text="{x:Bind Label}" Visibility="{x:Bind Label, Converter={StaticResource EmptyStringToCollapsedConverter}}" />
               <TextBlock Text="{x:Bind Description}" Style="{StaticResource CaptionTextBlockStyle}"
                          Opacity="0.7"

@@ -16,6 +16,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
   <ItemGroup>
     <None Remove="Package.appxmanifest" />
+    <None Remove="Views\SettingsTimeZoneSelectDialog.xaml" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -71,6 +72,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VoiceOfClock.Core\VoiceOfClock.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\SettingsTimeZoneSelectDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

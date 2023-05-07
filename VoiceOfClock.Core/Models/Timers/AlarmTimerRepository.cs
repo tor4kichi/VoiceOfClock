@@ -13,6 +13,7 @@ public sealed class AlarmTimerRepository : LiteDBRepositoryBase<AlarmTimerEntity
 {
     public AlarmTimerRepository(ILiteDatabase liteDatabase) : base(liteDatabase)
     {
+        
     }
 }
 
@@ -36,4 +37,6 @@ public sealed class AlarmTimerEntity : ITimer
     public string SoundContent { get; set; } = string.Empty;
 
     public int Order { get; set; }
+
+    public string? TimeZoneId { get; set; } = null;
 }

@@ -38,4 +38,6 @@ public sealed class PeriodicTimerEntity : ITimer
     public SoundSourceType SoundSourceType { get; set; } = SoundSourceType.DateTimeToSpeech;
 
     public string SoundContent { get; set; } = string.Empty;
+
+    public string? TimeZoneId { get; set; } = null;
 }

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using I18NPortable;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -16,13 +17,21 @@ namespace VoiceOfClock.ViewModels;
 public sealed partial class AlarmTimerViewModel
 {
     public AlarmTimerEntity Entity { get; }
+    
     private readonly AlarmTimerLifetimeManager _alarmTimerLifetimeManager;
     public ICommand DeleteCommand { get; }  
 
-    public AlarmTimerViewModel(AlarmTimerEntity entity, DayOfWeek firstDayOfWeek, AlarmTimerLifetimeManager alarmTimerLifetimeManager, ICommand deleteCommand)
+    public AlarmTimerViewModel(
+        AlarmTimerEntity entity,
+        DayOfWeek firstDayOfWeek,
+        AlarmTimerLifetimeManager alarmTimerLifetimeManager,
+        bool isDisplayTimeZone,
+        ICommand deleteCommand
+        )
     {
         Entity = entity;
         _alarmTimerLifetimeManager = alarmTimerLifetimeManager;
+        _isDisplayTimeZone = isDisplayTimeZone;
         DeleteCommand = deleteCommand;
         _title = Entity.Title;
         _timeOfDay = Entity.TimeOfDay;
@@ -30,7 +39,7 @@ public sealed partial class AlarmTimerViewModel
         _soundContent = Entity.SoundContent;
         _snooze = Entity.Snooze;
         _isEnabled = entity.IsEnabled;
-
+        _timeZone = entity.TimeZoneId != null ? TimeZoneInfo.FindSystemTimeZoneById(entity.TimeZoneId) : null;
         EnabledDayOfWeeks = firstDayOfWeek.ToWeek()
             .Select(x => new EnabledDayOfWeekViewModel(x) { IsEnabled = entity.EnabledDayOfWeeks.Contains(x) }).ToArray();
 
@@ -70,6 +79,12 @@ public sealed partial class AlarmTimerViewModel
     [ObservableProperty]
     private TimeSpan? _snooze;
 
+    
+    public Visibility IsVisibleSnooze(TimeSpan? snooze)
+    {
+        return (snooze != null && TimeSpan.Zero < snooze) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     [ObservableProperty]
     private SoundSourceType _soundSourceType;
 
@@ -81,8 +96,30 @@ public sealed partial class AlarmTimerViewModel
 
     public void CulcTargetTime()
     {
-        TargetTime = TimeHelpers.CulcNextTime(DateTime.Now, Entity.TimeOfDay.ToTimeSpan(), Entity.EnabledDayOfWeeks);
+        if (_timeZone != null
+            && !TimeZoneInfo.Local.Equals(_timeZone) 
+            )
+        {
+            TargetTime = TimeHelpers.CulcNextTimeWithTimeZone(
+                utcNow: DateTimeOffset.Now.DateTime,
+                startTimeInTargetTZ: Entity.TimeOfDay.ToTimeSpan(),
+                enabledDayOfWeeks: Entity.EnabledDayOfWeeks,
+                localTZ: TimeZoneInfo.Local,
+                targetTZ: _timeZone
+                );
+        }
+        else
+        {
+            TargetTime = TimeHelpers.CulcNextTime(DateTime.Now, Entity.TimeOfDay.ToTimeSpan(), Entity.EnabledDayOfWeeks);
+        }
     }
+
+    [ObservableProperty]
+    private TimeZoneInfo? _timeZone;
+
+    [ObservableProperty]
+    private bool _isDisplayTimeZone;
+
 
     public void RefrectValues()
     {
@@ -96,6 +133,7 @@ public sealed partial class AlarmTimerViewModel
         {
             dayOfWeekVM.IsEnabled = Entity.EnabledDayOfWeeks.Contains(dayOfWeekVM.DayOfWeek);
         }
+        TimeZone = Entity.TimeZoneId != null ? TimeZoneInfo.FindSystemTimeZoneById(Entity.TimeZoneId) : null;
 
         CulcTargetTime();        
     }
@@ -110,6 +148,7 @@ public sealed partial class AlarmTimerViewModel
         Entity.SoundContent = SoundContent;
         Entity.Snooze = Snooze;
         Entity.EnabledDayOfWeeks = EnabledDayOfWeeks.Where(x => x.IsEnabled).Select(x => x.DayOfWeek).ToArray();
+        Entity.TimeZoneId = TimeZone?.Id ?? Entity.TimeZoneId;
 
         Save();
     }

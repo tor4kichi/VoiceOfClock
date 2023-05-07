@@ -27,11 +27,16 @@
   <ScrollViewer>
     <StackPanel Spacing="16" Margin="0 0 8 0">
 
-
       <myControls:TimeSelectBox x:Name="TimeSelectBox_TimeOfDay" FontSize="30"                                                                    
                                   DisplayMode="Hours_Minutes"
                                   HorizontalContentAlignment="Center"
                                   />
+
+      <ComboBox x:Name="ComboBox_TimeZones"
+                ItemTemplate="{StaticResource TimeZoneInfoDataTemplate}"
+                >
+
+      </ComboBox>
 
       <myControls:ContentWithIcon ToolTipService.ToolTip="{i18n:Localize Key=AlarmTimer_Label_Title}">
         <myControls:ContentWithIcon.Icon>
@@ -135,6 +140,7 @@
             >
 
       </Button>
+
     </StackPanel>
   </ScrollViewer>
 </ContentDialog>

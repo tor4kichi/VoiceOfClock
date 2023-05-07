@@ -153,7 +153,8 @@ public partial class App : Application
         container.Register<IOneShotTimerDialogService, OneShotTimerEditDialogService>();
         container.Register<IAlarmTimerDialogService, AlarmTimerEditDialogService>();
         container.Register<ILisencePurchaseDialogService, LisencePurchaseDialogService>();
-        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();        
+        container.Register<IAudioSoundSourceDialogService, AudioSoundSourceDialogService>();
+        container.Register<ITimeZoneDialogService, TimeZoneDialogService>();        
     }    
 
     /// <summary>
@@ -170,7 +171,7 @@ public partial class App : Application
 
         I18N.Current.Init(GetType().GetAssembly())
             .SetFallbackLocale("en-US")
-            .SetNotFoundSymbol("🍣")            
+            .SetNotFoundSymbol("🍣")               
             ;
 
         DispatcherQueue = global::Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
