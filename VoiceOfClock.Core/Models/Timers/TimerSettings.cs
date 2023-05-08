@@ -183,7 +183,14 @@ public sealed class TimerSettings : SettingsBase
     public TimeSpan InstantPeriodicTimerInterval
     {
         get => _instantPeriodicTimerInterval;
-        set => SetProperty(ref _instantPeriodicTimerInterval, value);
+        set
+        {
+            if (value >= TimeSpan.FromDays(1))
+            {
+                value -= TimeSpan.FromDays(1);
+            }
+            SetProperty(ref _instantPeriodicTimerInterval, value);
+        }
     }
 
 
