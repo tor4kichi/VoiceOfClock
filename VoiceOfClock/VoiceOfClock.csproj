@@ -10,18 +10,14 @@
     <UseWinUI>true</UseWinUI>
     <DefaultLanguage>ja-JP</DefaultLanguage>
     <LangVersion>11</LangVersion>
+    <AssemblyName>VoiClo</AssemblyName>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" />
   <ItemGroup>
-    <None Remove="Package.appxmanifest" />
     <None Remove="Views\SettingsTimeZoneSelectDialog.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
-      <SubType>Designer</SubType>
-    </AppxManifest>
   </ItemGroup>
 
   <ItemGroup>

@@ -224,6 +224,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
 
     private async Task DeleteTimeZone(ButtonSettingContent content)
     {
+        Guard.IsNotNull(_timeZoneExpander);
         // 既にある
         _timerSettings.AdditionalSupportTimeZoneIds = _timerSettings.AdditionalSupportTimeZoneIds.Where(x => x != content.Id).ToArray();
 
@@ -233,6 +234,8 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
 
     async Task ChoiceAndAddTimeZoneAsync(ButtonSettingContent content)
     {
+        Guard.IsNotNull(_timeZoneExpander);
+
         var selectedTimeZoneInfo = await _timeZoneDialogService.ChoiceSingleTimeZoneAsync(timeZoneInfo => !_timerSettings.AdditionalSupportTimeZoneIds.Any(x => timeZoneInfo.Id == x));
         if (selectedTimeZoneInfo == null) { return; }
 
@@ -403,7 +406,7 @@ public partial class SettingContentWithHeader : ObservableObject, ISettingConten
     }
     
     public ISettingContent? Content { get; }
-    public string Id { get; }
+    public string? Id { get; }
     public SettingContainerPositionType Position { get; set; }
 
     private bool _disposedValue;
@@ -489,7 +492,7 @@ public sealed partial class SliderSettingContent : ObservableObject, ISettingCon
     public double MinValue { get; }
     public double MaxValue { get; }
     public IValueConverter ValueConverter { get; }
-    public string Id { get; }
+    public string? Id { get; }
 
     public string ConvertToString(double value)
     {            
@@ -558,7 +561,7 @@ public sealed partial class ButtonSettingContent : ISettingContent
 {
     public string Label { get; }
     public Func<ButtonSettingContent, Task> Action { get; }
-    public string Id { get; }
+    public string? Id { get; }
 
     public ButtonSettingContent(string label, Func<ButtonSettingContent, Task> action, string? id = null)
     {
@@ -591,7 +594,7 @@ public sealed partial class ToggleSwitchSettingContent : ObservableObject, ISett
 
     public string OnContent { get; }
     public string OffContent { get; }
-    public string Id { get; }
+    public string? Id { get; }
 
     public ToggleSwitchSettingContent(bool firstValue, Action<bool> valueChanged, string onCntent, string offContent, string? id = null)
     {
@@ -629,7 +632,7 @@ public sealed partial class ComboBoxSettingContent : ObservableObject, ISettingC
     public ICollection<ComboBoxSettingContentItem> Items { get; }
     public ComboBoxSettingContentItem FirstSelect { get; }
     public Action<ComboBoxSettingContent, ComboBoxSettingContentItem> SelectedAction { get; }
-    public string Id { get; }
+    public string? Id { get; }
 
     bool _skipOnFirst = true;
 
@@ -679,7 +682,7 @@ public sealed partial class TextSettingContent : ObservableObject, ISettingConte
 
     private readonly IDisposable _disposer;
 
-    public string Id { get; }
+    public string? Id { get; }
 
     public void Dispose()
     {

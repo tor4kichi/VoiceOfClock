@@ -4,52 +4,51 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VoiceOfClock.Core.Infrastructure
+namespace VoiceOfClock.Core.Infrastructure;
+
+public sealed class AsyncLock
 {
-    public sealed class AsyncLock
+    public AsyncLock()
     {
-        public AsyncLock()
-        {
-            _semaphore = new(1, 1);
-        }
+        _semaphore = new(1, 1);
+    }
 
-        public AsyncLock(int lineCount)
-        {
-            _semaphore = new(lineCount, lineCount);
-        }
+    public AsyncLock(int lineCount)
+    {
+        _semaphore = new(lineCount, lineCount);
+    }
 
-        private readonly SemaphoreSlim _semaphore;
+    private readonly SemaphoreSlim _semaphore;
 
-        //
-        // 概要:
-        //     Acquires the lock, then provides a disposable to release it.
-        //
-        // パラメーター:
-        //   ct:
-        //     A cancellation token to cancel the lock
-        //
-        // 戻り値:
-        //     An IDisposable instance that allows the release of the lock.
-        public async Task<IDisposable> LockAsync(CancellationToken ct)
-        {
-            await _semaphore.WaitAsync(ct);
-            return new DelegateDisposable(() => _semaphore.Release());
+    //
+    // 概要:
+    //     Acquires the lock, then provides a disposable to release it.
+    //
+    // パラメーター:
+    //   ct:
+    //     A cancellation token to cancel the lock
+    //
+    // 戻り値:
+    //     An IDisposable instance that allows the release of the lock.
+    public async Task<IDisposable> LockAsync(CancellationToken ct)
+    {
+        await _semaphore.WaitAsync(ct);
+        return new DelegateDisposable(() => _semaphore.Release());
 }
 
-        internal class DelegateDisposable : IDisposable
+    internal class DelegateDisposable : IDisposable
+    {
+        private readonly Action _action;
+
+        public DelegateDisposable(Action action)
         {
-            private readonly Action _action;
-
-            public DelegateDisposable(Action action)
-            {
-                _action = action;
-            }
-
-            public void Dispose()
-            {
-                _action();
-            }
+            _action = action;
         }
 
+        public void Dispose()
+        {
+            _action();
+        }
     }
+
 }

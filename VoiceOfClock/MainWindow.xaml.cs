@@ -40,8 +40,6 @@ public sealed partial class MainWindow : Window
 {
     public IStoreLisenceService StoreLisenceService { get; }
 
-    private readonly AppWindow _appWindow;
-
     public MainWindow()
     {
         this.InitializeComponent();        

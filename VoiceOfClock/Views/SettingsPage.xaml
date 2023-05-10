@@ -242,9 +242,9 @@
 
             <HyperlinkButton Content="{i18n:Localize Key=SendReview}" Margin="0" Padding="0" Command="{x:Bind OpenUriCommand}" CommandParameter="ms-windows-store://review/?ProductId=9P44GTTGB3Q6" />
 
-            <HyperlinkButton Content="{i18n:Localize Key=Privacy-Policy}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/voiceofclock/privacy-policy" />
+            <HyperlinkButton Content="{i18n:Localize Key=Privacy-Policy}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/VoiClo/privacy-policy" />
 
-            <HyperlinkButton Content="{i18n:Localize Key=Third-Party-Library-Notice}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/voiceofclock/Third-Party-Library-Notice" />
+            <HyperlinkButton Content="{i18n:Localize Key=Third-Party-Library-Notice}" Margin="0" Padding="0" NavigateUri="https://tor4kichi.github.io/VoiClo/Third-Party-Library-Notice" />
 
             <Button Content="{i18n:Localize Key=SendFeedback}" IsEnabled="False" Visibility="Collapsed">
               
