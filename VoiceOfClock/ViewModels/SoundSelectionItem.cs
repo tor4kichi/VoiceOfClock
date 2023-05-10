@@ -7,16 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Models;
 
-namespace VoiceOfClock.ViewModels
+namespace VoiceOfClock.ViewModels;
+
+
+public sealed partial class SoundSelectionItemViewModel : ObservableObject
 {
-    
-    public sealed partial class SoundSelectionItemViewModel : ObservableObject
-    {
-        public SoundSourceType SoundSourceType { get; init; }
+    public SoundSourceType SoundSourceType { get; init; }
 
-        [ObservableProperty]
-        private string _soundContent = string.Empty;        
+    [ObservableProperty]
+    private string _soundContent = string.Empty;        
 
-        public string? Label { get; init; }
-    }
+    public string? Label { get; init; }
 }
