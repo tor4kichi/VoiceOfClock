@@ -36,6 +36,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     private readonly TimerSettings _timerSettings;
     private readonly ApplicationSettings _applicationSettings;
     private readonly ISoundContentPlayerService _soundContentPlayerService;
+    private readonly ITimeZoneDialogService _timeZoneDialogService;
 
     public string AppName { get; }
     public string AppVersion { get; }
@@ -45,13 +46,15 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         IMessenger messenger,
         TimerSettings timerSettings,
         ApplicationSettings applicationSettings,
-        ISoundContentPlayerService soundContentPlayerService
+        ISoundContentPlayerService soundContentPlayerService,
+        ITimeZoneDialogService timeZoneDialogService
         )
         : base(messenger)
     {
         _timerSettings = timerSettings;
         _applicationSettings = applicationSettings;
         _soundContentPlayerService = soundContentPlayerService;
+        _timeZoneDialogService = timeZoneDialogService;
         AppName = Package.Current.DisplayName;
         AppVersion = Package.Current.Id.Version.ToFormattedString(4);
     }
@@ -83,6 +86,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
             {
                 CreateSpeechSettingContent(),
                 CreateCalenderSettingContent(),
+                CreateTimeZoneSettingContent(),
                 CreateAppearanceColorThemeSettingContent(),
             }
             .SelectMany(x => x)
@@ -157,7 +161,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         }
 
         //items.Add(CreateToggleSwitchContent(_timerSettings.UseSsml, useSsml => _timerSettings.UseSsml = useSsml, label: "SSMLを使用する"));
-        yield return CreateButtonContent("SpeechSettingsTest".Translate(), async () => await _soundContentPlayerService.PlayTimeOfDayAsync(DateTime.Now, cancellationToken: _activeTimeCts?.Token ?? default));
+        yield return CreateButtonContent("SpeechSettingsTest".Translate(), async (content) => await _soundContentPlayerService.PlayTimeOfDayAsync(DateTime.Now, cancellationToken: _activeTimeCts?.Token ?? default));
 
 
 
@@ -174,8 +178,71 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
             , label: "SpeechSettings_AmpmPositionByLanguage_Title".Translate()
             , description: "SpeechSettings_AmpmPositionByLanguage_Description".Translate()
             //, content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => _allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
-            );
+            )
+        {
+            IsOpen = true 
+        };
     }
+
+    ExpanderSettingContent? _timeZoneExpander;
+    private IEnumerable<ISettingContent> CreateTimeZoneSettingContent()
+    {
+        yield return new SettingHeader("TimeZoneSettingsTitle".Translate());
+
+        yield return CreateToggleSwitchContent(
+            _timerSettings.IsMultiTimeZoneSupportEnabled, 
+            (val) => _timerSettings.IsMultiTimeZoneSupportEnabled = val, 
+            label: "TimeZoneSetting_IsMultiTimeZoneSupportEnabled_Label".Translate(),
+            description: "TimeZoneSetting_IsMultiTimeZoneSupportEnabled_Description".Translate()
+            );
+
+        var items = _timerSettings.AdditionalSupportTimeZoneIds
+            .Select(x => CreateTimeZoneSettingContent(TimeZoneInfo.FindSystemTimeZoneById(x)))
+            .ToArray();
+
+        yield return _timeZoneExpander = new ExpanderSettingContent(
+            items, 
+            "TimeZoneSetting_TimeZonesExpander_Label".Translate(),
+            content: CreateButtonContent("TimeZoneSetting_AddButton_ButtonLabel".Translate(), ChoiceAndAddTimeZoneAsync)
+            );        
+    }
+
+    private ISettingContent CreateTimeZoneSettingContent(TimeZoneInfo item)
+    {
+        // 現在のタイムゾーンは削除不可
+        if (TimeZoneInfo.Local.Id == item.Id 
+            || _timerSettings.AdditionalSupportTimeZoneIds.FirstOrDefault() == item.Id
+            )
+        {
+            return new SettingContentWithHeader(null, item.StandardName, item.DisplayName);
+        }
+        else
+        {
+            return CreateButtonContent("Delete".Translate(), DeleteTimeZone, item.StandardName, item.DisplayName, item.Id);
+        }
+    }    
+
+    private async Task DeleteTimeZone(ButtonSettingContent content)
+    {
+        Guard.IsNotNull(_timeZoneExpander);
+        // 既にある
+        _timerSettings.AdditionalSupportTimeZoneIds = _timerSettings.AdditionalSupportTimeZoneIds.Where(x => x != content.Id).ToArray();
+
+        ISettingContent removeTarget = _timeZoneExpander.Items.First(x => x.Id == content.Id);
+        _timeZoneExpander.Items.Remove(removeTarget);
+    }
+
+    async Task ChoiceAndAddTimeZoneAsync(ButtonSettingContent content)
+    {
+        Guard.IsNotNull(_timeZoneExpander);
+
+        var selectedTimeZoneInfo = await _timeZoneDialogService.ChoiceSingleTimeZoneAsync(timeZoneInfo => !_timerSettings.AdditionalSupportTimeZoneIds.Any(x => timeZoneInfo.Id == x));
+        if (selectedTimeZoneInfo == null) { return; }
+
+        _timerSettings.AdditionalSupportTimeZoneIds = _timerSettings.AdditionalSupportTimeZoneIds.Append(selectedTimeZoneInfo.Id).ToArray();
+        _timeZoneExpander.Items.Add(CreateTimeZoneSettingContent(selectedTimeZoneInfo));
+    }
+
 
     private IEnumerable<ISettingContent> CreateCalenderSettingContent()
     {
@@ -229,31 +296,29 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
 
 
 
-    static ISettingContent CreateComboBoxContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelection, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction, string label = "", string description = "")
+    static ISettingContent CreateComboBoxContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelection, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction, string label = "", string description = "", string? id = null)
     {
-        return new SettingContentWithHeader(new ComboBoxSettingContent(items, firstSelection, selectedAction), label, description);
+        return new SettingContentWithHeader(new ComboBoxSettingContent(items, firstSelection, selectedAction, id), label, description, id);
     }
 
-    static ISettingContent CreateSliderContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter converter, string label = "", string description = "")
+    static ISettingContent CreateSliderContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter converter, string label = "", string description = "", string? id = null)
     {
-        return new SettingContentWithHeader(new SliderSettingContent(firstValue, valueChanged, minValue, maxValue, converter), label, description);
+        return new SettingContentWithHeader(new SliderSettingContent(firstValue, valueChanged, minValue, maxValue, converter, id), label, description, id);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
-    static ISettingContent CreateButtonContent(string buttonLabel, Action clickAction, string label = "", string description = "")
+    static ISettingContent CreateButtonContent(string buttonLabel, Action<ButtonSettingContent> clickAction, string label = "", string description = "", string? id = null)
     {
-        return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction), label, description);
+        return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction, id), label, description, id);
     }
 
-    static ISettingContent CreateButtonContent(string buttonLabel, Func<Task> clickAction, string label = "", string description = "")
+    static ISettingContent CreateButtonContent(string buttonLabel, Func<ButtonSettingContent, Task> clickAction, string label = "", string description = "", string? id = null)
     {
-        return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction), label, description);
+        return new SettingContentWithHeader(new ButtonSettingContent(buttonLabel, clickAction, id), label, description, id);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
-    static ISettingContent CreateToggleSwitchContent(bool firstValue, Action<bool> valueChanged, string onContent = "", string offContent = "", string label = "", string description = "")
+    static ISettingContent CreateToggleSwitchContent(bool firstValue, Action<bool> valueChanged, string onContent = "", string offContent = "", string label = "", string description = "", string? id = null)
     {
-        return new SettingContentWithHeader(new ToggleSwitchSettingContent(firstValue, valueChanged, onContent, offContent), label, description);
+        return new SettingContentWithHeader(new ToggleSwitchSettingContent(firstValue, valueChanged, onContent, offContent, id), label, description, id);
     }
 }
 
@@ -293,16 +358,18 @@ public class VoiceInfoValueConverter : IValueConverter
 
 public interface ISettingContent
 {
-
+    public string? Id { get; }
 }
 
 public sealed class SettingHeader : ISettingContent
 {
-    public SettingHeader(string title)
+    public SettingHeader(string title, string? id = null)
     {
+        Id = id;
         Title = title;
     }
 
+    public string? Id { get; }
     public string Title { get; }
 }
 
@@ -315,11 +382,12 @@ public enum SettingContainerPositionType
 
 public partial class SettingContentWithHeader : ObservableObject, ISettingContent, IDisposable
 {
-    public SettingContentWithHeader(ISettingContent? content, string label = "", string description = "")
+    public SettingContentWithHeader(ISettingContent? content, string label = "", string description = "", string? id = null)
     {
         Content = content;
         _label = label;
-        _description = description;            
+        _description = description;
+        Id = id;
     }
 
     private string _label;
@@ -338,6 +406,7 @@ public partial class SettingContentWithHeader : ObservableObject, ISettingConten
     }
     
     public ISettingContent? Content { get; }
+    public string? Id { get; }
     public SettingContainerPositionType Position { get; set; }
 
     private bool _disposedValue;
@@ -376,13 +445,16 @@ public sealed partial class ExpanderSettingContent
     : SettingContentWithHeader
 
 {
-    public ExpanderSettingContent(IEnumerable<ISettingContent> items, string label = "", string description = "", ISettingContent? content = null)
-        : base(content, label, description)
+    public ExpanderSettingContent(IEnumerable<ISettingContent> items, string label = "", string description = "", ISettingContent? content = null, string? id = null)
+        : base(content, label, description, id)
     {           
         Items = new ObservableCollection<ISettingContent>(items);
     }
 
     public ObservableCollection<ISettingContent> Items { get; }
+
+    [ObservableProperty]
+    private bool _isOpen;
 
     protected override void Dispose(bool disposing)
     {
@@ -399,13 +471,13 @@ public sealed partial class SliderSettingContent : ObservableObject, ISettingCon
 {
     private readonly Action<double> _valueChanged;
 
-    public SliderSettingContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter valueConverter)
+    public SliderSettingContent(double firstValue, Action<double> valueChanged, double minValue, double maxValue, IValueConverter valueConverter, string? id = null)
     {
         _valueChanged = valueChanged;
         MinValue = minValue;
         MaxValue = maxValue;
         ValueConverter = valueConverter;
-
+        Id = id;
         _value = firstValue;
     }
 
@@ -420,6 +492,7 @@ public sealed partial class SliderSettingContent : ObservableObject, ISettingCon
     public double MinValue { get; }
     public double MaxValue { get; }
     public IValueConverter ValueConverter { get; }
+    public string? Id { get; }
 
     public string ConvertToString(double value)
     {            
@@ -487,28 +560,31 @@ public sealed class ParcentageValueConverter : IValueConverter
 public sealed partial class ButtonSettingContent : ISettingContent
 {
     public string Label { get; }
-    public Func<Task> Action { get; }
-    
-    public ButtonSettingContent(string label, Func<Task> action)
+    public Func<ButtonSettingContent, Task> Action { get; }
+    public string? Id { get; }
+
+    public ButtonSettingContent(string label, Func<ButtonSettingContent, Task> action, string? id = null)
     {
         Label = label;
         Action = action;
+        Id = id;
     }
 
-    public ButtonSettingContent(string label, Action action)
+    public ButtonSettingContent(string label, Action<ButtonSettingContent> action, string? id = null)
     {
         Label = label;
-        Action = () =>
+        Id = id;
+        Action = (content) =>
         {
-            action();
-            return Task.CompletedTask;
+            action(content);
+            return Task<ButtonSettingContent>.CompletedTask;
         };
     }
 
     [RelayCommand]
     async Task DoAction()
     {
-        await Action();
+        await Action(this);
     }
 }
 
@@ -518,13 +594,15 @@ public sealed partial class ToggleSwitchSettingContent : ObservableObject, ISett
 
     public string OnContent { get; }
     public string OffContent { get; }
-    
-    public ToggleSwitchSettingContent(bool firstValue, Action<bool> valueChanged, string onCntent, string offContent)
+    public string? Id { get; }
+
+    public ToggleSwitchSettingContent(bool firstValue, Action<bool> valueChanged, string onCntent, string offContent, string? id = null)
     {
         _value = firstValue;
         _valueChanged = valueChanged;
         OnContent = onCntent;
         OffContent = offContent;
+        Id = id;
     }
 
     [ObservableProperty]
@@ -538,16 +616,23 @@ public sealed partial class ToggleSwitchSettingContent : ObservableObject, ISett
 
 public sealed partial class ComboBoxSettingContent : ObservableObject, ISettingContent
 {
-    public ComboBoxSettingContent(ICollection<ComboBoxSettingContentItem> items, ComboBoxSettingContentItem firstSelect, Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction)
+    public ComboBoxSettingContent(
+        ICollection<ComboBoxSettingContentItem> items, 
+        ComboBoxSettingContentItem firstSelect, 
+        Action<ComboBoxSettingContent, ComboBoxSettingContentItem> selectedAction,
+        string? id = null
+        )
     {
         Items = items;
         FirstSelect = firstSelect;
         SelectedAction = selectedAction;
+        Id = id;
     }
 
     public ICollection<ComboBoxSettingContentItem> Items { get; }
     public ComboBoxSettingContentItem FirstSelect { get; }
     public Action<ComboBoxSettingContent, ComboBoxSettingContentItem> SelectedAction { get; }
+    public string? Id { get; }
 
     bool _skipOnFirst = true;
 
@@ -585,16 +670,19 @@ public class ComboBoxSettingContentItem
 
 public sealed partial class TextSettingContent : ObservableObject, ISettingContent, IDisposable
 {
-    public TextSettingContent(IObservable<string> textObservable)
+    public TextSettingContent(IObservable<string> textObservable, string? id = null)
     {
         _disposer = textObservable.Subscribe(x => Text = x);
         _text = string.Empty;
+        Id = id;
     }
 
     [ObservableProperty]
     private string _text;
 
     private readonly IDisposable _disposer;
+
+    public string? Id { get; }
 
     public void Dispose()
     {

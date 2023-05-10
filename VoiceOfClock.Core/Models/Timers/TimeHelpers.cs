@@ -56,16 +56,16 @@ public static class TimeHelpers
 
     public static DateTime CulcNextTime(DateTime now, TimeSpan startTime, IEnumerable<DayOfWeek> enabledDayOfWeeks)
     {
-        DateTime canidateNextTime;
-        if (startTime > now.TimeOfDay)
+        var utcDateTime = now.ToUniversalTime().Date + startTime;
+        if (utcDateTime < now)
         {
-            canidateNextTime = now.Date + startTime;
+            utcDateTime += TimeSpan.FromDays(1);
         }
-        else
-        {
-            canidateNextTime = now.Date + startTime + TimeSpan.FromDays(1);
-        }
+        return CulcValidDateInEnabledWeekOfDays(utcDateTime, enabledDayOfWeeks);
+    }
 
+    private static DateTime CulcValidDateInEnabledWeekOfDays(DateTime canidateNextTime, IEnumerable<DayOfWeek> enabledDayOfWeeks)
+    {
         if (enabledDayOfWeeks.Any() is false || enabledDayOfWeeks.Contains(canidateNextTime.DayOfWeek))
         {
             return canidateNextTime;
@@ -83,5 +83,19 @@ public static class TimeHelpers
         }
 
         throw new NotSupportedException();
+    }
+
+    public static DateTime CulcNextTimeWithTimeZone(DateTimeOffset utcNow, TimeSpan startTimeInTargetTZ, IEnumerable<DayOfWeek> enabledDayOfWeeks, TimeZoneInfo localTZ, TimeZoneInfo targetTZ)
+    {
+        // 現地時間において次回時刻と日付を割り出して       
+        var now = TimeZoneInfo.ConvertTime(utcNow.DateTime, localTZ, targetTZ);
+        var candidateNextTime = now.TimeOfDay < startTimeInTargetTZ
+            ? now.Date + startTimeInTargetTZ
+            : now.Date + startTimeInTargetTZ + TimeSpan.FromDays(1)
+            ;       
+        // 現地時間のまま有効な曜日である次の日を求めて
+        DateTime targetTZNextTime = CulcValidDateInEnabledWeekOfDays(candidateNextTime, enabledDayOfWeeks);        
+        // 現地時間からローカル時間に変換する
+        return TimeZoneInfo.ConvertTime(targetTZNextTime, targetTZ, localTZ);
     }
 }

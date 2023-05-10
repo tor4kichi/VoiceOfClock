@@ -20,6 +20,9 @@ public sealed class TimerSettings : SettingsBase
         _useSsml = Read(true, nameof(UseSsml));
         _ampmPositionByLanguageCode = Read(_defaultAmpmPositionByLanguage, nameof(AmpmPositionByLanguageCode))!;
 
+        _isMultiTimeZoneSupportEnabled = Read(false, nameof(IsMultiTimeZoneSupportEnabled));
+        _additionalSupportTimeZoneIds = Read(new string[] { TimeZoneInfo.Local.Id }, nameof(AdditionalSupportTimeZoneIds))!;
+
         _instantPeriodicTimerInterval = Read(TimeSpan.FromMinutes(1), nameof(InstantPeriodicTimerInterval));
         _firstDayOfWeek = Read(CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek, nameof(FirstDayOfWeek));
 
@@ -155,13 +158,39 @@ public sealed class TimerSettings : SettingsBase
 
     #endregion
 
+    #region TimeZone Settings
+
+    private bool _isMultiTimeZoneSupportEnabled;
+    public bool IsMultiTimeZoneSupportEnabled
+    {
+        get => _isMultiTimeZoneSupportEnabled;
+        set => SetProperty(ref _isMultiTimeZoneSupportEnabled, value);
+    }
+
+    private string[] _additionalSupportTimeZoneIds;
+    public string[] AdditionalSupportTimeZoneIds
+    {
+        get => _additionalSupportTimeZoneIds;
+        set => SetProperty(ref _additionalSupportTimeZoneIds, value);
+    }
+
+    #endregion TimeZone
+
+
     #region Periodic Timer Settings
 
     private TimeSpan _instantPeriodicTimerInterval;
     public TimeSpan InstantPeriodicTimerInterval
     {
         get => _instantPeriodicTimerInterval;
-        set => SetProperty(ref _instantPeriodicTimerInterval, value);
+        set
+        {
+            if (value >= TimeSpan.FromDays(1))
+            {
+                value -= TimeSpan.FromDays(1);
+            }
+            SetProperty(ref _instantPeriodicTimerInterval, value);
+        }
     }
 
 
@@ -190,4 +219,12 @@ public enum AMPMPosition
     NoChange,
     Prefix,
     Postfix,
+}
+
+public static class TimeSettingsExtensions
+{
+    public static IEnumerable<TimeZoneInfo> GetSupportTimeZones(this TimerSettings timerSettings)
+    {
+        return timerSettings.AdditionalSupportTimeZoneIds.Select(TimeZoneInfo.FindSystemTimeZoneById);
+    }
 }

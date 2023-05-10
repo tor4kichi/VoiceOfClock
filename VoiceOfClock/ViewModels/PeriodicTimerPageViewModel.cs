@@ -261,7 +261,7 @@ public sealed partial class PeriodicTimerPageViewModel
     void StartImmidiateTimer(TimeSpan intervalTime)
     {
         if (InstantPeriodicTimer is null) { return; }
-
+        
         _timerLifetimeManager.StartInstantPeriodicTimer(intervalTime);
         InstantPeriodicTimer.IsEnabled = true;
     }

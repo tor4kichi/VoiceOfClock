@@ -59,6 +59,7 @@ public sealed partial class AlarmTimerPageViewModel
         return new AlarmTimerViewModel(alarmTimerEntity, 
             _timerSettings.FirstDayOfWeek, 
             _alertTimerLifetimeManager, 
+            _timerSettings.IsMultiTimeZoneSupportEnabled || alarmTimerEntity.TimeZoneId != TimeZoneInfo.Local.Id,
             DeleteTimerCommand
             );
     }
@@ -67,6 +68,11 @@ public sealed partial class AlarmTimerPageViewModel
     {
         base.OnActivated();
         SomeTimerIsActive = Timers.ObserveElementProperty(x => x.IsEnabled).Select(x => Timers.Any(x => x.IsEnabled)).ToReadOnlyReactiveProperty();
+
+        foreach (var timer in Timers)
+        {
+            timer.IsDisplayTimeZone = _timerSettings.IsMultiTimeZoneSupportEnabled || timer.Entity.TimeZoneId != TimeZoneInfo.Local.Id;
+        }
     }
 
     protected override void OnDeactivated()
@@ -142,6 +148,7 @@ public sealed partial class AlarmTimerPageViewModel
         }
 
         TimeSpan now = DateTime.Now.TimeOfDay;
+        var timeZones = _timerSettings.IsMultiTimeZoneSupportEnabled ? _timerSettings.GetSupportTimeZones().ToArray() : Array.Empty<TimeZoneInfo>();
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerAddDialog_Title".Translate()
             , ""
@@ -151,6 +158,8 @@ public sealed partial class AlarmTimerPageViewModel
             , _timerSettings.FirstDayOfWeek
             , SoundSourceType.System
             , SystemSoundConstants.Default
+            , timeZones
+            , 0
             );
         if (result.IsConfirmed)
         {
@@ -179,6 +188,10 @@ public sealed partial class AlarmTimerPageViewModel
             return; 
         }
 
+        var timeZones = _timerSettings.IsMultiTimeZoneSupportEnabled || timerVM.Entity.TimeZoneId != TimeZoneInfo.Local.Id 
+            ? _timerSettings.GetSupportTimeZones().ToArray() 
+            : Array.Empty<TimeZoneInfo>()
+            ;
         AlarmTimerDialogResult result = await _alarmTimerDialogService.ShowEditTimerAsync(
             "AlarmTimerEditDialog_Title".Translate()
             , timerVM.Title
@@ -188,6 +201,8 @@ public sealed partial class AlarmTimerPageViewModel
             , _timerSettings.FirstDayOfWeek
             , timerVM.SoundSourceType
             , timerVM.SoundContent
+            , timeZones
+            , Math.Max(Array.IndexOf(timeZones, timerVM.TimeZone), -1)
             );
         if (result.IsConfirmed)
         {
@@ -197,6 +212,7 @@ public sealed partial class AlarmTimerPageViewModel
             timerVM.TimeOfDay = result.TimeOfDay;
             timerVM.SoundSourceType = result.SoundSourceType;
             timerVM.SoundContent = result.SoundContent;
+            timerVM.TimeZone = result.TimeZone ?? timerVM.TimeZone;
 
             foreach (var dayOfWeekVM in timerVM.EnabledDayOfWeeks)
             {

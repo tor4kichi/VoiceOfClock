@@ -50,12 +50,22 @@
           </core:DataTriggerBehavior>
         </i:Interaction.Behaviors>
 
+
+        
+        
         <Grid x:Name="Grid_Content">
           <StackPanel Spacing="8" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal">
               <TextBlock x:Name="TextBlock_Time" FontSize="60" FontWeight="SemiBold" TextLineBounds="Tight" VerticalAlignment="Center" >
                 <Run Text="{x:Bind LocalizeTime(TimeOfDay), Mode=OneWay}" />
               </TextBlock>
+              <Grid x:Name="Grid_TimeZone" Visibility="{x:Bind IsDisplayTimeZone, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                    VerticalAlignment="Bottom"
+                    Opacity="0.7"
+                    Margin="8 0 0 0"
+                    >
+                <TextBlock Text="{x:Bind TimeZone.StandardName, Mode=OneWay}" />
+              </Grid>
             </StackPanel>
 
             <Grid x:Name="Grid_NextTimeContainer" Opacity="0.7" Height="24">
@@ -131,6 +141,7 @@
                   Width="64"                  
                   Style="{ThemeResource AccentButtonStyle}"
                   Background="{ThemeResource AccentFillColorTertiaryBrush}"
+                  Visibility="{x:Bind IsVisibleSnooze(Snooze), Mode=OneWay}"
                   >
             <SymbolIcon Symbol="RepeatOne" />
           </Button>

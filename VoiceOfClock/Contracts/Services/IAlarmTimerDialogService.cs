@@ -7,7 +7,18 @@ namespace VoiceOfClock.Contracts.Services;
 
 public interface IAlarmTimerDialogService
 {
-    Task<AlarmTimerDialogResult> ShowEditTimerAsync(string dialogTitle, string timerTitle, TimeOnly dayOfTime, TimeSpan? snooze, IEnumerable<DayOfWeek> enabledDayOfWeeks, DayOfWeek firstDayOfWeek, SoundSourceType soundSourceType, string soundContent);
+    Task<AlarmTimerDialogResult> ShowEditTimerAsync(
+        string dialogTitle,
+        string timerTitle,
+        TimeOnly dayOfTime,
+        TimeSpan? snooze,
+        IEnumerable<DayOfWeek> enabledDayOfWeeks,
+        DayOfWeek firstDayOfWeek,
+        SoundSourceType soundSourceType,
+        string soundContent,
+        IEnumerable<TimeZoneInfo>? timeZones,
+        int firstTimeZoneSelectedIndex
+        );
 }
 
 public sealed class AlarmTimerDialogResult
@@ -19,4 +30,5 @@ public sealed class AlarmTimerDialogResult
     public DayOfWeek[] EnabledDayOfWeeks { get; init; } = Array.Empty<DayOfWeek>();
     public SoundSourceType SoundSourceType { get; init; }
     public string SoundContent { get; init; } = string.Empty;
+    public TimeZoneInfo? TimeZone { get; init; }
 }

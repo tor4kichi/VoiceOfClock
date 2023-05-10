@@ -36,11 +36,9 @@ namespace VoiceOfClock;
 /// <summary>
 /// An empty window that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class MainWindow : SystemBackdropWindow
+public sealed partial class MainWindow : Window
 {
     public IStoreLisenceService StoreLisenceService { get; }
-
-    private readonly AppWindow _appWindow;
 
     public MainWindow()
     {
@@ -58,9 +56,13 @@ public sealed partial class MainWindow : SystemBackdropWindow
 
         Title = SystemInformation.Instance.ApplicationName;
 
-        if (TrySetSystemBackdrop() is false)
+        if (MicaController.IsSupported())
         {
-            
+            SystemBackdrop = new MicaBackdrop();
+        }
+        else if (DesktopAcrylicController.IsSupported())
+        {
+            SystemBackdrop = new DesktopAcrylicBackdrop();
         }
 
         StoreLisenceService = Ioc.Default.GetRequiredService<IStoreLisenceService>();
@@ -81,8 +83,7 @@ public sealed partial class MainWindow : SystemBackdropWindow
 
         _ = StoreLisenceService.EnsureInitializeAsync();
 
-        _appWindow = GetCurrentAppWindow();
-        _appWindow.Closing += AppWindow_Closing;
+        AppWindow.Closing += AppWindow_Closing;
     }
 
     private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -116,20 +117,6 @@ public sealed partial class MainWindow : SystemBackdropWindow
         return Ioc.Default.GetRequiredService<IMessenger>().Send<ActiveTimerCollectionRequestMessage>().Responses.Any();
     }
 
-    public AppWindow GetCurrentAppWindow()
-    {
-        //Windowのハンドルを取得する
-        IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        //hwndでWindowIdを取得する
-        WindowId winId = Win32Interop.GetWindowIdFromWindow(hwnd);
-        //WindowIdでAppWindow objectを取得して返す
-        return AppWindow.GetFromWindowId(winId);
-    }
-
-    #region Backdrop
-
-
-    #endregion
     public bool IsPageLoaded => ContentFrame.Content != null;
 
 
