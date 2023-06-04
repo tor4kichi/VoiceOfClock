@@ -56,7 +56,7 @@ public static class TimeHelpers
 
     public static DateTime CulcNextTime(DateTime now, TimeSpan startTime, IEnumerable<DayOfWeek> enabledDayOfWeeks)
     {
-        var utcDateTime = now.ToUniversalTime().Date + startTime;
+        var utcDateTime = now.Date + startTime;
         if (utcDateTime < now)
         {
             utcDateTime += TimeSpan.FromDays(1);

@@ -45,7 +45,7 @@ public sealed class ToastNotificationService : Core.Contracts.Services.IToastNot
             { TimersToastNotificationConstants.ArgumentKey_TimerId, entity.Id.ToString() }
         };
 
-        string timeText = entity.TimeZoneId != TimeZoneInfo.Local.Id
+        string timeText = entity.TimeZoneId is not null && entity.TimeZoneId != TimeZoneInfo.Local.Id
             ? $"{targetTime.ToShortTimeString()} {TimeZoneInfo.FindSystemTimeZoneById(entity.TimeZoneId).StandardName}"
             : targetTime.ToShortTimeString()
             ;
