@@ -178,10 +178,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
             , label: "SpeechSettings_AmpmPositionByLanguage_Title".Translate()
             , description: "SpeechSettings_AmpmPositionByLanguage_Description".Translate()
             //, content: new TextSettingContent(_timerSettings.ObserveProperty(x => x.SpeechActorId).Select(x => _allVoices.FirstOrDefault(voice => voice.Id == x).Label ?? "NotSelected".Translate()))
-            )
-        {
-            IsOpen = true 
-        };
+            );
     }
 
     ExpanderSettingContent? _timeZoneExpander;
@@ -201,10 +198,10 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
             .ToArray();
 
         yield return _timeZoneExpander = new ExpanderSettingContent(
-            items, 
+            items,
             "TimeZoneSetting_TimeZonesExpander_Label".Translate(),
             content: CreateButtonContent("TimeZoneSetting_AddButton_ButtonLabel".Translate(), ChoiceAndAddTimeZoneAsync)
-            );        
+            );
     }
 
     private ISettingContent CreateTimeZoneSettingContent(TimeZoneInfo item)
