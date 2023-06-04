@@ -62,7 +62,7 @@
         <!--Register COM CLSID LocalServer32 registry key-->
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:ExeServer Executable="VoiceOfClock\VoiceOfClock.exe" Arguments="-ToastActivated" DisplayName="Toast activator">
+            <com:ExeServer Executable="VoiceOfClock\VoiClo.exe" Arguments="-ToastActivated" DisplayName="Toast activator">
               <com:Class Id="DFF1CEA0-5963-4197-8676-6105C5E8CE4B" DisplayName="Toast activator"/>
             </com:ExeServer>
           </com:ComServer>
