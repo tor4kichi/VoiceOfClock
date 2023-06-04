@@ -128,6 +128,7 @@ public sealed partial class AlarmTimerPageViewModel
         if (timerVM == null) { return; }
 
         timerVM.OnNotifyAudioEnded();
+        timerVM.CulcTargetTime();
     }
 
 
