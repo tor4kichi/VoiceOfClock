@@ -12,17 +12,30 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
     public DispatcherQueueTimerTimeTrigger()        
     {
         _dispatcherQueueTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _dispatcherQueueTimer.IsRepeating = false;
+        _dispatcherQueueTimer.IsRepeating = true;
+        _dispatcherQueueTimer.Interval = TimeSpan.FromSeconds(1);
         _dispatcherQueueTimer.Tick += (s, e) =>
         {
-            OnTimeArrived(_lastTriggerTime!.Value, _lastArgument!.Value);
+            if (_triggerTime.HasValue is false) 
+            {
+                _dispatcherQueueTimer.Stop();                
+            }            
+            else if (_triggerTime.Value < DateTime.Now)
+            {
+                _dispatcherQueueTimer.Stop();
+                var triggerTime = _triggerTime.Value;
+                var args = _argument!.Value;
+                _triggerTime = null;
+                _argument = null;
+                OnTimeArrived(triggerTime, args);
+            }            
         };
     }
     
     public event EventHandler<ISingleTimeTrigger.TimeTriggerRecievedEventArgs>? TimeArrived;
 
-    DateTime? _lastTriggerTime;
-    Guid? _lastArgument;
+    DateTime? _triggerTime;
+    Guid? _argument;
     void ISingleTimeTriggerBase<Guid>.SetTimeTrigger(DateTime triggerTime, Guid argument)
     {
         _dispatcherQueueTimer.Stop();
@@ -31,17 +44,16 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
         if (triggerTime < now)
         {
             Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] SetTimeTrigger already in Trigger time : {triggerTime}, {argument}");
-            _lastTriggerTime = null;
-            _lastArgument = null;
+            _triggerTime = null;
+            _argument = null;
             OnTimeArrived(triggerTime, argument);
             return;
         }
         else
         {
             Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] SetTimeTrigger set next trigger : {triggerTime}, {argument}");
-            _lastTriggerTime = triggerTime;
-            _lastArgument = argument;
-            _dispatcherQueueTimer.Interval = triggerTime - now;
+            _triggerTime = triggerTime;
+            _argument = argument;            
             _dispatcherQueueTimer.Start();
         }
     }
@@ -56,7 +68,7 @@ public sealed class DispatcherQueueTimerTimeTrigger : ISingleTimeTrigger
     {
         Debug.WriteLine($"[DispatcherQueueTimerTimeTrigger] Clear: ");
         _dispatcherQueueTimer.Stop();
-        _lastTriggerTime = null;
-        _lastArgument = null;
+        _triggerTime = null;
+        _argument = null;
     }
 }
