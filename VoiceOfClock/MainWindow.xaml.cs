@@ -122,7 +122,7 @@ public sealed partial class MainWindow : Window
 
     public void NavigateFirstPage()
     {
-        Navigate(typeof(Views.AlarmTimerPage), null);
+        Navigate(typeof(Views.OneShotTimerPage), null);
     }
 
     public void Navigate(Type pageType, object? argument)
