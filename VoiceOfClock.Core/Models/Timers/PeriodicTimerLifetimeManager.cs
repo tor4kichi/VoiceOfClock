@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using VoiceOfClock.Core.Contracts.Models;
 using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Infrastructure;
 using VoiceOfClock.Core.Services;
 using static VoiceOfClock.Core.Contracts.Services.ITimeTriggerServiceBase<System.Guid>;
 
@@ -54,7 +55,7 @@ public sealed class PeriodicTimerLifetimeManager
 
         CancelTimerPlayingVoice(timer, NotifyAudioEndedReason.CancelledFromNextNotify);
         if (DateTime.Now - e.TriggerTime < TimeSpan.FromSeconds(3))
-        {            
+        {
             _ = SendCurrentTimeVoiceAsync(timer, e.TriggerTime);
             Debug.WriteLine($"ピリオドダイマー： {timer.Title} の再生を開始");
         }
@@ -100,8 +101,17 @@ public sealed class PeriodicTimerLifetimeManager
         }
     }
 
+    private readonly AsyncLock _timeLock = new();
+    private DateTime _lastTimeVoiceTriggerdTime;
     private async Task SendCurrentTimeVoiceAsync(PeriodicTimerEntity entity, DateTime time)
     {
+        if (_lastTimeVoiceTriggerdTime == time)
+        {
+            Debug.WriteLine("_lastTimeVoiceTriggerdTime == time");
+            return;
+        }
+        _lastTimeVoiceTriggerdTime = time;
+        
         var cts = new CancellationTokenSource();
         _playCancelMap.TryAdd(entity.Id, cts);
         try
@@ -109,6 +119,7 @@ public sealed class PeriodicTimerLifetimeManager
             _messenger.Send(new NotifyAudioStartingMessage(entity));
             await _soundContentPlayerService.PlayTimeOfDayAsync(time, cancellationToken: cts.Token);
             CancelTimerPlayingVoice(entity, NotifyAudioEndedReason.Completed);
+            _lastTimeVoiceTriggerdTime = DateTime.UtcNow;
         }
         catch (OperationCanceledException)
         {

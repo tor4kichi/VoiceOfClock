@@ -155,6 +155,7 @@
           <Setter Property="VerticalContentAlignment" Value="Stretch" />
           <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
           <Setter Property="MaxWidth" Value="420" />
+          <Setter Property="MinWidth" Value="300" />
           <Setter Property="Margin" Value="6" />
           <Setter Property="CornerRadius" Value="6" />
           <Setter Property="BorderThickness" Value="0.5" />

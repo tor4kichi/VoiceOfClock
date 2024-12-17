@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VoiceOfClock.Core.Contracts.Services;
+using VoiceOfClock.Core.Infrastructure;
 using VoiceOfClock.Core.Models;
 using VoiceOfClock.Core.Models.Timers;
 using Windows.Media.Core;
@@ -81,10 +82,13 @@ public sealed class VoicePlayer : ISoundPlayer
         SoundSourceType.Tts,
         SoundSourceType.TtsWithSSML,
         SoundSourceType.DateTimeToSpeech
-    }; 
+    };
 
+    AsyncLock _serialPlaybackVoiceLock = new();
     async Task ISoundPlayer.PlayAsync(MediaPlayer mediaPlayer, SoundSourceType soundSourceType, string soundParameter, CancellationToken ct)
     {
+        using var release = await _serialPlaybackVoiceLock.LockAsync(ct);
+          
         if (soundSourceType == SoundSourceType.DateTimeToSpeech)            
         {
             if (DateTime.TryParse(soundParameter, out DateTime time))
