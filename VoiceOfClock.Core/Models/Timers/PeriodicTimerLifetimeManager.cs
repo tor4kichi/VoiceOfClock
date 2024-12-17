@@ -61,11 +61,16 @@ public sealed class PeriodicTimerLifetimeManager
 
         if (TimerIsInsidePeriod(timer) is false)
         {
-            // 繰り返しが無い場合は無効に切り替える
             if (timer.EnabledDayOfWeeks.Any() is false)
             {
+                // 繰り返しが無い場合は無効に切り替える
                 timer.IsEnabled = false;
                 _periodicTimerRepository.UpdateItem(timer);
+            }
+            else
+            {
+                // 繰り返しが有る場合は次の通知時間をセットする
+                _timeTriggerService.SetTimeTrigger(e.Id, GetNextTime(timer), TimeTriggerGroupId);
             }
 
             _messenger.Send(new PeriodicTimerUpdatedMessage(timer, e.TriggerTime));
@@ -124,7 +129,13 @@ public sealed class PeriodicTimerLifetimeManager
 
     void IApplicationLifeCycleAware.Initialize()
     {
-        _messenger.RegisterAll(this);        
+        _messenger.RegisterAll(this);
+
+        _timeTriggerService.ClearTimeTriggerGroup(TimeTriggerGroupId);
+        foreach (var timer in GetTimers().Where(x => x.IsEnabled))
+        {            
+            _timeTriggerService.SetTimeTrigger(timer.Id, GetNextTime(timer), TimeTriggerGroupId);
+        }
     }
 
     void IApplicationLifeCycleAware.Resuming() { }
